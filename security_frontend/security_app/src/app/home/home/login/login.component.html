@@ -1,0 +1,25 @@
+<div class="form-container">
+  <mat-card class="form-card">
+    <h2>Login</h2>
+    <p class="subtitle">Access your account</p>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="form">
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput formControlName="email" placeholder="Email">
+        <mat-error *ngIf="loginForm.get('email')?.hasError('required')">Email is required</mat-error>
+        <mat-error *ngIf="loginForm.get('email')?.hasError('email')">Invalid email format</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput type="password" formControlName="password" placeholder="Password">
+        <mat-error *ngIf="loginForm.get('password')?.hasError('required')">Password is required</mat-error>
+      </mat-form-field>
+
+      <!-- Google reCAPTCHA v2 -->
+      <div #captchaElem class="g-recaptcha" [attr.data-sitekey]="siteKey"></div>
+
+      <button mat-raised-button color="primary" type="submit" class="submit-btn">Log In</button>
+    </form>
+  </mat-card>
+</div>

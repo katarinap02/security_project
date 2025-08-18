@@ -1,0 +1,47 @@
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh; /* isto kao home */
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2); /* ista pozadina */
+  padding: 20px;
+}
+
+.form-card {
+  width: 450px;
+  padding: 30px;
+  border-radius: 12px; /* ista radius kao home card */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2); /* ista senka kao home */
+  background-color: #f5f7fa; /* ista boja kao home-card */
+  text-align: center;
+}
+
+.form-card h2 {
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: #555;
+  margin-bottom: 25px;
+  font-size: 14px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.form-card input::placeholder {
+  font-size: 12px;   /* manja veličina fonta */
+  color: #777;       /* opciono: tamnija/svetlija boja */
+  padding-left: 10px;
+}
+

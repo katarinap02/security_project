@@ -1,0 +1,51 @@
+<div class="form-container">
+  <mat-card class="form-card">
+    <h2>Registration</h2>
+    <p class="subtitle">Create a new account</p>
+
+    <form [formGroup]="registerForm" (ngSubmit)="submit()" class="form">
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput formControlName="email" placeholder="Email">
+        <mat-error *ngIf="registerForm.get('email')?.hasError('required')">Email is required</mat-error>
+        <mat-error *ngIf="registerForm.get('email')?.hasError('email')">Invalid email format</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput type="password" formControlName="password" (input)="onPasswordInput()" placeholder="Password">
+        <mat-error *ngIf="registerForm.get('password')?.hasError('required')">Password is required</mat-error>
+        <mat-error *ngIf="registerForm.get('password')?.hasError('minlength')">Password must be at least 8 characters</mat-error>
+      </mat-form-field>
+
+      <div class="password-strength">
+        Password strength: 
+        <span [ngClass]="{
+          'weak': passwordStrength <= 1,
+          'medium': passwordStrength == 2,
+          'strong': passwordStrength >= 3
+        }">
+          {{ passwordStrength }}/4
+        </span>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput type="password" formControlName="confirmPassword" placeholder="Confirm Password">
+        <mat-error *ngIf="!passwordsMatch()">Passwords do not match</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput formControlName="name" placeholder="Name">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput formControlName="surname" placeholder="Surname">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput formControlName="organization" placeholder="Organization">
+      </mat-form-field>
+
+      <button mat-raised-button color="accent" type="submit" class="submit-btn">Register</button>
+    </form>
+  </mat-card>
+</div>

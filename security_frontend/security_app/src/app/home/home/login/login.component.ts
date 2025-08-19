@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../../service/auth.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
-
+import { RouterModule } from '@angular/router';
 
 declare var grecaptcha: any;
 
@@ -22,7 +22,8 @@ declare var grecaptcha: any;
     MatCardModule,
     MatButtonModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    RouterModule
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']

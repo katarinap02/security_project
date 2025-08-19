@@ -20,4 +20,15 @@ public class EmailService {
         mailSender.send(message);
         System.out.println("Email sent USPESNOOOOOO");
     }
+    public void sendPasswordResetEmail(String email, String token) {
+        String resetLink = "http://localhost:4200/reset-password?token=" + token; // vodi na Angular stranicu
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("Password Reset Request");
+        message.setText("Click the link below to reset your password:\n" + resetLink);
+
+        mailSender.send(message);
+    }
+
 }

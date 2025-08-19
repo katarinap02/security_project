@@ -6,6 +6,9 @@ import com.pki.example.dto.TokenInfoDTO;
 import com.pki.example.dto.UserDTO;
 import com.pki.example.model.TokenInfo;
 import com.pki.example.model.User;
+import com.pki.example.repository.UserRepository;
+import com.pki.example.service.EmailService;
+import com.pki.example.service.PasswordResetTokenService;
 import com.pki.example.service.RecaptchaService;
 import com.pki.example.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +17,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.servlet.handler.UserRoleAuthorizationInterceptor;
+import java.util.UUID;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +33,19 @@ public class AuthController {
     private UserService userService;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
     private RecaptchaService recaptchaService;
+
+    @Autowired
+    private PasswordResetTokenService passwordResetTokenService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDTO userDto) {
@@ -73,7 +90,56 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            User user = userRepository.findByEmail(email);
+            if (user == null) {
+                throw new RuntimeException("User not found");
+            }
 
+            String token = UUID.randomUUID().toString(); // generiši token
+            passwordResetTokenService.saveToken(user, token); // upiši token u bazu
+
+            //emailService.sendPasswordResetEmail(user.getEmail(), token);
+            try {
+                emailService.sendPasswordResetEmail(user.getEmail(), token);
+            } catch (Exception e) {
+                e.printStackTrace(); // vidi tačan uzrok greške slanja maila
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "Failed to send email: " + e.getMessage()));
+
+            }
+
+            return ResponseEntity.ok(Map.of("message", "Password reset link has been sent to your email."));
+
+        } catch (Exception e) {
+            e.printStackTrace();  // ovo će ispisati stack trace u konzoli
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to send email: " + e.getMessage()));
+
+        }
+    }
+
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        String newPassword = request.get("password");
+
+        User user = passwordResetTokenService.validateToken(token);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid or expired token"));
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        passwordResetTokenService.invalidateToken(token);
+
+        return ResponseEntity.ok(Map.of("message", "Password has been successfully reset."));
+    }
 
 
 }

@@ -24,6 +24,7 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, loginData).pipe(
       tap(res => {
         localStorage.setItem('jwtToken', res.token); // čuvamo JWT token
+        localStorage.setItem('email', loginData.email);
       })
     );
   }

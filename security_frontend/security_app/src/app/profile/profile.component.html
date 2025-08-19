@@ -1,1 +1,44 @@
-<p>profile works!</p>
+<mat-toolbar color="primary" class="toolbar">
+  <span class="spacer"></span>
+  
+  <!-- Dugme Active Sessions -->
+  <button mat-button (click)="toggleSessions()">Active Sessions</button>
+
+  <!-- Dugme Logout -->
+  <button mat-raised-button 
+        [ngStyle]="{'background-color':'rgba(0,0,0,0.2)', 'color':'white'}" 
+        (click)="logout()">
+  Logout
+</button>
+
+</mat-toolbar>
+
+<div class="form-container" *ngIf="showSessions">
+  <mat-card class="form-card">
+    <h2>Active Sessions</h2>
+    <p class="subtitle">Manage devices currently logged in</p>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>IP</th>
+            <th>Device / Browser</th>
+            <th>Last Activity</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let token of tokens">
+            <td>{{token.ipAddress}}</td>
+            <td>{{token.userAgent}}</td>
+            <td>{{token.lastActivity | date:'short'}}</td>
+            <td>
+              <button mat-raised-button color="warn" (click)="revoke(token.jti)">Revoke</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+</div>

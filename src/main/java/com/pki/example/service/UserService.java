@@ -1,13 +1,13 @@
 package com.pki.example.service;
 
 import com.pki.example.dto.JwtResponse;
+import com.pki.example.dto.TokenInfoDTO;
 import com.pki.example.dto.UserDTO;
 import com.pki.example.model.Role;
+import com.pki.example.model.TokenInfo;
 import com.pki.example.model.User;
 import com.pki.example.repository.UserRepository;
 import com.pki.example.util.TokenUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 @Service
 public class UserService implements UserDetailsService {
 
-    private final Logger LOG = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private final UserRepository userRepository;
@@ -46,6 +46,8 @@ public class UserService implements UserDetailsService {
     @Autowired
     private HttpServletRequest request; // Autowired HttpServletRequest
 
+    public Map<String, TokenInfo> activeTokens = new ConcurrentHashMap<>();
+    private Map<String, String> jtiToJwtMap = new ConcurrentHashMap<>();
 
     @Autowired
     private RoleService roleService;
@@ -108,25 +110,6 @@ public class UserService implements UserDetailsService {
         return ResponseEntity.status(HttpStatus.CREATED).body(new UserDTO(user));
     }
 
-//public ResponseEntity<UserTokenState> login(
-//        @RequestBody JwtAuthenticationRequest authenticationRequest, HttpServletResponse response) {
-//    // Ukoliko kredencijali nisu ispravni, logovanje nece biti uspesno, desice se
-//    // AuthenticationException
-//    Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-//            authenticationRequest.getUsername(), authenticationRequest.getPassword()));
-//
-//    // Ukoliko je autentifikacija uspesna, ubaci korisnika u trenutni security
-//    // kontekst
-//    SecurityContextHolder.getContext().setAuthentication(authentication);
-//
-//    // Kreiraj token za tog korisnika
-//    User user = (User) authentication.getPrincipal();
-//    String jwt = tokenUtils.generateToken(user.getUsername());
-//    int expiresIn = tokenUtils.getExpiredIn();
-//
-//    // Vrati token kao odgovor na uspesnu autentifikaciju
-//    return ResponseEntity.ok(new UserTokenState(jwt, expiresIn, user.getId()));
-//}
 public ResponseEntity<?> login(String email, String password) {
     try {
         // Autentifikacija korisnika
@@ -138,8 +121,22 @@ public ResponseEntity<?> login(String email, String password) {
         // Generisanje JWT
         String jwt = tokenUtils.generateToken(email);
         int expiresIn = tokenUtils.getExpiredIn();
+        // Kreiranje JTI (jedinstveni ID tokena)
+        String jti = UUID.randomUUID().toString();
 
-        return ResponseEntity.ok(new JwtResponse(jwt, expiresIn));
+        // Kreiranje TokenInfo objekta
+        TokenInfo tokenInfo = new TokenInfo(
+                jti,
+                request.getRemoteAddr(),
+                request.getHeader("User-Agent"),
+                LocalDateTime.now()
+        );
+    // Dodaj u mapu aktivnih tokena
+        activeTokens.put(jti, tokenInfo);
+
+        jtiToJwtMap.put(jti, jwt);
+
+        return ResponseEntity.ok(new JwtResponse(jwt, expiresIn, jti));
     } catch (Exception e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan email ili lozinka!");
     }
@@ -160,14 +157,6 @@ public ResponseEntity<?> login(String email, String password) {
         return ResponseEntity.ok("Korisnik je uspešno aktiviran.");
     }
 
-    public UserDTO getUserProfile(Integer userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
-
-        return new UserDTO(user);
-    }
-
-
     public User loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email); // <-- koristi findByEmail
         if (user == null) {
@@ -182,6 +171,41 @@ public ResponseEntity<?> login(String email, String password) {
     public Integer getRole(Integer userId){
         return userRepository.findRoleIdByUserId(userId);
     }
+
+    public List<TokenInfoDTO> getActiveTokensForUser(String email) {
+        List<TokenInfoDTO> tokensForUser = new ArrayList<>();
+        for (Map.Entry<String, TokenInfo> entry : activeTokens.entrySet()) {
+            String jti = entry.getKey();
+            TokenInfo tokenInfo = entry.getValue();
+            String tokenEmail = getEmailFromTokenByJti(jti);
+            if (email.equals(tokenEmail)) {
+                tokensForUser.add(new TokenInfoDTO(tokenInfo));
+            }
+        }
+        return tokensForUser;
+    }
+
+
+    public String getEmailFromTokenByJti(String jti) {
+        String token = jtiToJwtMap.get(jti);
+        if (token == null) return null;
+        return tokenUtils.getEmailFromToken(token);
+    }
+
+
+    public boolean revokeToken(String jti, String email) {
+        TokenInfo tokenInfo = activeTokens.get(jti);
+        if (tokenInfo != null) {
+            String tokenEmail = getEmailFromTokenByJti(jti);
+            if (tokenEmail == null || !email.equals(tokenEmail)) return false;
+
+            activeTokens.remove(jti);
+            jtiToJwtMap.remove(jti); // obavezno ukloni i iz mape
+            return true;
+        }
+        return false;
+    }
+
 
 
 }

@@ -1,12 +1,71 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
+import { TokenInfo } from '../model/tokenInfo';
+import { TokenInfoService } from '../service/token-info.service';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatCardModule } from '@angular/material/card';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { Route, Router } from '@angular/router';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [],
+  imports: [CommonModule, 
+    HttpClientModule,
+      CommonModule,
+      FormsModule,
+      ReactiveFormsModule,
+      MatCardModule,
+      MatButtonModule,
+      MatFormFieldModule,
+      MatInputModule,
+      MatToolbarModule],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.css'
+  styleUrls: ['./profile.component.css']
 })
-export class ProfileComponent {
+export class ProfileComponent implements OnInit {
+  tokens: TokenInfo[] = [];
+  userEmail: string = ''; // postavi email trenutno ulogovanog korisnika
+  showSessions: boolean = false;
+  constructor(private tokenService: TokenInfoService, private router: Router) {}
 
+  ngOnInit() {
+    this.userEmail = localStorage.getItem('email') || ''; // ili uzmi iz AuthService
+    this.loadTokens();
+  }
+
+loadTokens() {
+  this.tokenService.getActiveSessions(this.userEmail).subscribe({
+    next: data => {
+      console.log(data);
+      this.tokens = data;
+    },
+    error: err => console.error(err)
+  });
+}
+
+
+  revoke(jti: string) {
+    this.tokenService.revokeToken(jti, this.userEmail).subscribe(() => {
+      this.tokens = this.tokens.filter(t => t.jti !== jti);
+    });
+  }
+
+  toggleSessions() {
+  this.showSessions = !this.showSessions;
+}
+
+  logout() {
+  // obriši sve iz localStorage ili sessionStorage
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // prebaci na login rutu
+  this.router.navigate(['/login']);
+}
 }

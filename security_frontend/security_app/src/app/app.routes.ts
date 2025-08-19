@@ -6,6 +6,7 @@ import { NgModule } from '@angular/core';
 import { ProfileComponent } from './profile/profile.component';
 import { ForgotPasswordComponent } from './home/home/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './home/home/reset-password/reset-password.component';
+import { HttpClientModule } from '@angular/common/http';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -17,7 +18,9 @@ export const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes),
+    HttpClientModule,
+  ],
   exports: [RouterModule]
 })
 export class AppRoutingModule {}

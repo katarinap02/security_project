@@ -7,8 +7,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../../../service/auth.service';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
-// Skripta se učitava globalno u index.html
+
 declare var grecaptcha: any;
 
 @Component({
@@ -28,7 +29,7 @@ declare var grecaptcha: any;
 })
 export class LoginComponent implements AfterViewInit {
   loginForm!: FormGroup;
-  siteKey: string = '6Lft_qkrAAAAAOh8Jd4JrICGZ_wkVpEvsJyQl0zp'; // zameni sa svojim site key
+  siteKey: string = '6Lft_qkrAAAAAOh8Jd4JrICGZ_wkVpEvsJyQl0zp'; 
   captchaWidgetId: any = null;
 
   @ViewChild('captchaElem', { static: true }) captchaElem!: ElementRef;
@@ -51,13 +52,21 @@ export class LoginComponent implements AfterViewInit {
     const token = grecaptcha.getResponse(this.captchaWidgetId);
 
     if (this.loginForm.invalid) {
-      alert('Popunite sve ispravno!');
+          Swal.fire({
+      icon: 'warning',
+      title: 'Invalid input',
+      text: 'Please fill in all fields correctly.'
+    });
       grecaptcha.reset(this.captchaWidgetId);
       return;
     }
 
     if (!token) {
-      alert('Molimo vas, rešite CAPTCHA!');
+          Swal.fire({
+      icon: 'warning',
+      title: 'CAPTCHA required',
+      text: 'Please solve the CAPTCHA before submitting.'
+    });
       return;
     }
 
@@ -69,12 +78,20 @@ export class LoginComponent implements AfterViewInit {
 
     this.authService.login(loginData).subscribe({
       next: (res: any) => {
-        alert('Uspešna prijava!');
+              Swal.fire({
+        icon: 'success',
+        title: 'Login successful',
+        text: 'You have been logged in successfully.'
+      });
         grecaptcha.reset(this.captchaWidgetId); // resetuje captcha nakon uspešne prijave
         this.router.navigate(['/profile']); // preusmerava na profile
       },
       error: (err: any) => {
-        alert('Greška prilikom prijave: ' + (err.error?.message || err.message));
+              Swal.fire({
+        icon: 'error',
+        title: 'Login failed',
+        text: err.error?.message || 'An error occurred during login.'
+      });
         grecaptcha.reset(this.captchaWidgetId); // resetuje captcha nakon greške
       }
     });

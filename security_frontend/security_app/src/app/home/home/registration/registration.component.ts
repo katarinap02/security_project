@@ -8,6 +8,8 @@ import { MatInputModule } from '@angular/material/input';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../service/auth.service';
 import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
+
 
 @Component({
   selector: 'app-registration',
@@ -53,7 +55,11 @@ export class RegistrationComponent {
 
 submit() {
   if (this.registerForm.invalid || !this.passwordsMatch()) {
-    alert('Popunite sve ispravno!');
+        Swal.fire({
+      icon: 'warning',
+      title: 'Invalid input',
+      text: 'Please fill in all fields correctly and ensure passwords match.'
+    });
 
     return;
   }
@@ -71,12 +77,20 @@ submit() {
   // Pozovi AuthService za registraciju
   this.authService.register(user).subscribe({
     next: (res) => {
-      alert('Uspešna registracija! Aktivacioni mejl je poslat.');
+            Swal.fire({
+        icon: 'success',
+        title: 'Registration successful',
+        text: 'Activation email has been sent.'
+      });
       this.registerForm.reset();
       this.router.navigate(['/login']);
     },
     error: (err) => {
-      alert('Greška prilikom registracije: ' + (err.error?.message || err.message));
+            Swal.fire({
+        icon: 'error',
+        title: 'Registration failed',
+        text: err.error?.message || 'An error occurred during registration.'
+      });
 
     }
   });

@@ -3,7 +3,6 @@ package com.pki.example.data;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.Date;
@@ -11,7 +10,7 @@ import java.util.Date;
 @Getter
 @Setter
 @AllArgsConstructor
-public class Certificate {
+public class CertifacateExample {
 
     private Subject subject;
     private Issuer issuer;

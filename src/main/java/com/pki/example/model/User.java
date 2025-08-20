@@ -59,6 +59,13 @@ public class User implements UserDetails {
     @Column(name = "activation_token_expiry")
     private Timestamp activationTokenExpiry;
 
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Certificate> certificates;
+
+    //svaki korisnik koristi svoj kljuc
+    @Column(name = "user_symmetric_key")
+    private String encryptedUserSymmetricKey;
+
 
     public User(Integer id, String name, String surname, String email, String password,
                 boolean activated, LocalDateTime creationTime, String organization,
@@ -213,5 +220,13 @@ public class User implements UserDetails {
 
     public void setActivationTokenExpiry(Timestamp activationTokenExpiry) {
         this.activationTokenExpiry = activationTokenExpiry;
+    }
+
+    public String getEncryptedUserSymmetricKey() {
+        return encryptedUserSymmetricKey;
+    }
+
+    public void setEncryptedUserSymmetricKey(String encryptedUserSymmetricKey) {
+        this.encryptedUserSymmetricKey = encryptedUserSymmetricKey;
     }
 }

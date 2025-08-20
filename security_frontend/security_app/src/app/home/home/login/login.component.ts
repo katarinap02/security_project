@@ -104,6 +104,7 @@ export class LoginComponent implements AfterViewInit {
 
         localStorage.setItem('email', decoded.sub);
         localStorage.setItem('jti', res.jti);
+        localStorage.setItem('jwtToken', res.token);
 
         //console.log('LOOGIINNNN INFOOO',decoded);
 

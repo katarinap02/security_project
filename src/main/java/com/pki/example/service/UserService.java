@@ -8,6 +8,7 @@ import com.pki.example.model.TokenInfo;
 import com.pki.example.model.User;
 import com.pki.example.repository.UserRepository;
 import com.pki.example.util.TokenUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -53,6 +56,10 @@ public class UserService implements UserDetailsService {
     private RoleService roleService;
 
     @Autowired
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
+
+    @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenUtils tokenUtils, AuthenticationManager authenticationManager) {
 
         this.userRepository = userRepository;
@@ -68,14 +75,19 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public synchronized ResponseEntity<?> register(UserDTO userDto) {
+        logger.info("Registration attempt for email: {}", userDto.getEmail());
+
         if (!userDto.getPassword().equals(userDto.getConfirmPassword())) {
+            logger.warn("Password mismatch for email: {}", userDto.getEmail());
             return ResponseEntity.badRequest().body("Passwords do not match!");
         }
 
         if (userDto.getEmail() == null || userDto.getEmail().isEmpty()) {
+            logger.warn("Missing email during registration attempt");
             return ResponseEntity.badRequest().body("Email address is required!");
         }
         if (userDto.getPassword() == null || userDto.getPassword().isEmpty()) {
+            logger.warn("Email already exists: {}", userDto.getEmail());
             return ResponseEntity.badRequest().body("Password is required!");
         }
 
@@ -88,9 +100,12 @@ public class UserService implements UserDetailsService {
 
         user.setEmail(userDto.getEmail());
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        user.setName(userDto.getName());
-        user.setSurname(userDto.getSurname());
-        user.setOrganization(userDto.getOrganization());
+
+        // Sanitizujemo unos da uklonimo HTML/JS tagove
+        user.setName(StringEscapeUtils.escapeHtml4(userDto.getName()));
+        user.setSurname(StringEscapeUtils.escapeHtml4(userDto.getSurname()));
+        user.setOrganization(StringEscapeUtils.escapeHtml4(userDto.getOrganization()));
+
         user.setActivated(false);
         user.setEnabled(true);
         user.setCreationTime(LocalDateTime.now());
@@ -107,11 +122,13 @@ public class UserService implements UserDetailsService {
 
         emailService.sendActivationEmail(user.getEmail(), activationToken);
 
+        logger.info("User registered successfully: {}", user.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(new UserDTO(user));
     }
 
 public ResponseEntity<?> login(String email, String password) {
-    try {
+    logger.info("Login attempt for email: {}", email);
+        try {
         // Autentifikacija korisnika
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password));
@@ -136,8 +153,12 @@ public ResponseEntity<?> login(String email, String password) {
 
         jtiToJwtMap.put(jti, jwt);
 
+            logger.info("Login successful for email: {}, IP: {}, User-Agent: {}", email,
+                    request.getRemoteAddr(), request.getHeader("User-Agent"));
+
         return ResponseEntity.ok(new JwtResponse(jwt, expiresIn, jti));
     } catch (Exception e) {
+            logger.warn("Login failed for email: {}. Reason: {}", email, e.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan email ili lozinka!");
     }
 }
@@ -145,6 +166,7 @@ public ResponseEntity<?> login(String email, String password) {
     public ResponseEntity<?> activateUser(String token) {
         Optional<User> userOptional = userRepository.findByActivationToken(token);
         if (!userOptional.isPresent()) {
+            logger.warn("Activation attempt with invalid token: {}", token);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Nevažeći aktivacioni token.");
         }
 
@@ -154,6 +176,7 @@ public ResponseEntity<?> login(String email, String password) {
 
         userRepository.save(user);
 
+        logger.info("User activated successfully: {}", user.getEmail());
         return ResponseEntity.ok("Korisnik je uspešno aktiviran.");
     }
 
@@ -197,12 +220,16 @@ public ResponseEntity<?> login(String email, String password) {
         TokenInfo tokenInfo = activeTokens.get(jti);
         if (tokenInfo != null) {
             String tokenEmail = getEmailFromTokenByJti(jti);
-            if (tokenEmail == null || !email.equals(tokenEmail)) return false;
-
+            if (tokenEmail == null || !email.equals(tokenEmail)) {
+                logger.warn("Failed attempt to revoke token {} for email {}", jti, email);
+                return false;
+            }
             activeTokens.remove(jti);
             jtiToJwtMap.remove(jti); // obavezno ukloni i iz mape
+            logger.info("Token revoked successfully: {} for email {}", jti, email);
             return true;
         }
+        logger.warn("Token not found for revocation: {} by email {}", jti, email);
         return false;
     }
 

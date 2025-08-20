@@ -66,3 +66,20 @@ button {
 .spacer {
   flex: 1 1 auto;
 }
+
+/* .current-session {
+  background-color: rgba(0, 128, 0, 0.2); 
+} */
+
+.current-session {
+  background-color: rgba(76, 175, 80, 0.1); /* blago zelenkasta */
+  font-weight: bold;
+}
+
+.logout-btn {
+  font-size: 14px;      /* veći font */
+  padding: 10px 20px;   /* više prostora oko teksta */
+  border-radius: 10px;  /* malo zaobljenije */
+  min-width: 150px;     /* šire dugme */
+}
+

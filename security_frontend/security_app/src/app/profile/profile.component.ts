@@ -9,7 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { Route, Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
@@ -24,7 +24,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
       MatButtonModule,
       MatFormFieldModule,
       MatInputModule,
-      MatToolbarModule],
+      MatToolbarModule,
+      RouterModule],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
@@ -32,17 +33,20 @@ export class ProfileComponent implements OnInit {
   tokens: TokenInfo[] = [];
   userEmail: string = ''; // postavi email trenutno ulogovanog korisnika
   showSessions: boolean = false;
+  currentJti: string = '';
   constructor(private tokenService: TokenInfoService, private router: Router) {}
 
   ngOnInit() {
     this.userEmail = localStorage.getItem('email') || ''; // ili uzmi iz AuthService
+    this.currentJti = localStorage.getItem('jti') || ''; 
     this.loadTokens();
   }
 
 loadTokens() {
   this.tokenService.getActiveSessions(this.userEmail).subscribe({
     next: data => {
-      console.log(data);
+      // console.log("Current JTI:", this.currentJti);
+      // console.log("Tokens:", data);
       this.tokens = data;
     },
     error: err => console.error(err)
@@ -50,11 +54,16 @@ loadTokens() {
 }
 
 
-  revoke(jti: string) {
-    this.tokenService.revokeToken(jti, this.userEmail).subscribe(() => {
-      this.tokens = this.tokens.filter(t => t.jti !== jti);
-    });
-  }
+revoke(jti: string) {
+  this.tokenService.revokeToken(jti, this.userEmail).subscribe(() => {
+    this.tokens = this.tokens.filter(t => t.jti !== jti);
+
+    if (jti === this.currentJti) {
+      // Ako je opozvana trenutna sesija, logout
+      this.logout();
+    }
+  });
+}
 
   toggleSessions() {
   this.showSessions = !this.showSessions;
@@ -67,5 +76,6 @@ loadTokens() {
 
   // prebaci na login rutu
   this.router.navigate(['/login']);
+
 }
 }

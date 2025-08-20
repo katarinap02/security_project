@@ -9,8 +9,17 @@ import { AuthService } from '../../../service/auth.service';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { RouterModule } from '@angular/router';
+import { jwtDecode } from "jwt-decode";
+
 
 declare var grecaptcha: any;
+
+interface DecodedToken {
+  jti: string;
+  sub: string; // email
+  exp: number;
+  
+}
 
 @Component({
   selector: 'app-login',
@@ -78,13 +87,26 @@ export class LoginComponent implements AfterViewInit {
     };
 
     this.authService.login(loginData).subscribe({
+      
       next: (res: any) => {
+
+        //console.log("LOGIN RESPONSE:", res);
+
+
               Swal.fire({
         icon: 'success',
         title: 'Login successful',
         text: 'You have been logged in successfully.'
       });
         grecaptcha.reset(this.captchaWidgetId); // resetuje captcha nakon uspešne prijave
+            
+        const decoded: DecodedToken = jwtDecode(res.token);
+
+        localStorage.setItem('email', decoded.sub);
+        localStorage.setItem('jti', res.jti);
+
+        //console.log('LOOGIINNNN INFOOO',decoded);
+
         this.router.navigate(['/profile']); // preusmerava na profile
       },
       error: (err: any) => {
@@ -98,3 +120,5 @@ export class LoginComponent implements AfterViewInit {
     });
   }
 }
+
+

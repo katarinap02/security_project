@@ -1,4 +1,4 @@
-<mat-toolbar color="primary" class="toolbar">
+ <mat-toolbar color="primary" class="toolbar">
   <span class="spacer"></span>
   
   <!-- Dugme Active Sessions -->
@@ -28,8 +28,8 @@
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
-          <tr *ngFor="let token of tokens">
+        <!-- <tbody>
+          <tr *ngFor="let token of tokens" [ngClass]="{'current-session': token.jti === currentJti}">
             <td>{{token.ipAddress}}</td>
             <td>{{token.userAgent}}</td>
             <td>{{token.lastActivity | date:'short'}}</td>
@@ -37,8 +37,29 @@
               <button mat-raised-button color="warn" (click)="revoke(token.jti)">Revoke</button>
             </td>
           </tr>
-        </tbody>
+
+        </tbody> -->
+        <tbody>
+  <tr *ngFor="let token of tokens" [ngClass]="{'current-session': token.jti === currentJti}">
+    <td>{{token.ipAddress}}</td>
+    <td>{{token.userAgent}}</td>
+    <td>{{token.lastActivity | date:'short'}}</td>
+    <td>
+      <ng-container *ngIf="token.jti === currentJti; else otherSession">
+        <button mat-raised-button color="primary" class="logout-btn" (click)="logout()">
+          This Session (Logout)
+        </button>
+      </ng-container>
+      <ng-template #otherSession>
+        <button mat-raised-button color="warn" (click)="revoke(token.jti)">
+          Revoke
+        </button>
+      </ng-template>
+    </td>
+  </tr>
+</tbody>
+
       </table>
     </div>
   </mat-card>
-</div>
+</div> 

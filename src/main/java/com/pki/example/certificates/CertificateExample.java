@@ -2,7 +2,7 @@ package com.pki.example.certificates;
 
 import com.pki.example.data.Issuer;
 import com.pki.example.data.Subject;
-import com.pki.example.data.Certificate;
+import com.pki.example.data.CertifacateExample;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.springframework.stereotype.Component;
@@ -15,6 +15,7 @@ import java.util.Date;
 
 @Component
 public class CertificateExample {
+    /*
 
     public Subject generateSubject() {
         KeyPair keyPairSubject = generateKeyPair();
@@ -67,7 +68,7 @@ public class CertificateExample {
         return null;
     }
 
-    public com.pki.example.data.Certificate getCertificate() {
+    public CertifacateExample getCertificate() {
 
         try {
             Issuer issuer = generateIssuer();
@@ -81,14 +82,14 @@ public class CertificateExample {
             X509Certificate certificate = CertificateGenerator.generateCertificate(subject,
                     issuer, startDate, endDate, "1");
 
-            return new com.pki.example.data.Certificate(subject, issuer,
+            return new CertifacateExample(subject, issuer,
                     "1", startDate, endDate, certificate);
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
         return null;
-    }
+    }*/
 
 
 }

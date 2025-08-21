@@ -2,6 +2,10 @@ package com.pki.example.certificates;
 
 import com.pki.example.data.Issuer;
 import com.pki.example.data.Subject;
+import com.pki.example.model.CertificateType;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -24,7 +28,7 @@ public class CertificateGenerator {
     public CertificateGenerator() {
         Security.addProvider(new BouncyCastleProvider());
     }
-
+/*
     public static X509Certificate generateCertificate(Subject subject, Issuer issuer, Date startDate, Date endDate, String serialNumber) {
         try {
             //Posto klasa za generisanje sertifiakta ne moze da primi direktno privatni kljuc pravi se builder za objekat
@@ -68,5 +72,52 @@ public class CertificateGenerator {
             e.printStackTrace();
         }
         return null;
+    }*/
+
+    public X509Certificate generateCertificate(Subject subject, Issuer issuer, Date startDate, Date endDate, String serialNumber, CertificateType type) {
+        try {
+            JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
+            builder = builder.setProvider("BC");
+
+            ContentSigner contentSigner = builder.build(issuer.getPrivateKey());
+
+            X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(
+                    issuer.getX500Name(),
+                    new BigInteger(serialNumber),
+                    startDate,
+                    endDate,
+                    subject.getX500Name(),
+                    subject.getPublicKey());
+
+            // ********** NOVO: DODAVANJE EKSTENZIJA *********
+
+            // BasicConstraints: Govori da li je sertifikat CA (može da potpisuje druge) ili ne.
+            if (type == CertificateType.ROOT || type == CertificateType.INTERMEDIATE) {
+                // Ovo je CA sertifikat, može da potpisuje druge sertifikate. `true` je ključno.
+                certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+            } else {
+                // Ovo je End-Entity sertifikat, ne može da potpisuje druge.
+                certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
+            }
+
+            // KeyUsage: Definiše za šta se ključ sme koristiti.
+            if (type == CertificateType.ROOT || type == CertificateType.INTERMEDIATE) {
+                // CA ključevi se koriste za potpisivanje drugih sertifikata i CRL lista.
+                certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign));
+            } else {
+                // End-Entity ključevi se tipično koriste za digitalni potpis i enkripciju.
+                certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
+            }
+
+            X509CertificateHolder certHolder = certGen.build(contentSigner);
+
+            JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
+            certConverter = certConverter.setProvider("BC");
+
+            return certConverter.getCertificate(certHolder);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error while generating certificate", e);
+        }
     }
 }

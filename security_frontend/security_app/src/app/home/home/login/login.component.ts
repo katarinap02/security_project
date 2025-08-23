@@ -32,7 +32,8 @@ interface DecodedToken {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    RouterModule
+    RouterModule,
+    ReactiveFormsModule
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']

@@ -49,7 +49,7 @@ public class UserService implements UserDetailsService {
     public Map<String, TokenInfo> activeTokens = new ConcurrentHashMap<>();
     private Map<String, String> jtiToJwtMap = new ConcurrentHashMap<>();
 
-    @Autowired
+
     private RoleService roleService;
 
     @Autowired

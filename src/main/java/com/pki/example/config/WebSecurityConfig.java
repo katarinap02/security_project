@@ -104,18 +104,18 @@ public class WebSecurityConfig {
 	}
 
 	// metoda u kojoj se definisu putanje za igorisanje autentifikacije
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-    	// Autentifikacija ce biti ignorisana ispod navedenih putanja (kako bismo ubrzali pristup resursima)
-    	// Zahtevi koji se mecuju za web.ignoring().antMatchers() nemaju pristup SecurityContext-u
-    	// Dozvoljena POST metoda na ruti /auth/login, za svaki drugi tip HTTP metode greska je 401 Unauthorized
-    	return (web) -> web.ignoring().antMatchers(HttpMethod.POST, "/auth/login")
+	@Bean
+	public WebSecurityCustomizer webSecurityCustomizer() {
+		// Autentifikacija ce biti ignorisana ispod navedenih putanja (kako bismo ubrzali pristup resursima)
+		// Zahtevi koji se mecuju za web.ignoring().antMatchers() nemaju pristup SecurityContext-u
+		// Dozvoljena POST metoda na ruti /auth/login, za svaki drugi tip HTTP metode greska je 401 Unauthorized
+		return (web) -> web.ignoring().antMatchers(HttpMethod.POST, "/auth/login")
 
 
-    			// Ovim smo dozvolili pristup statickim resursima aplikacije
-    			.antMatchers(HttpMethod.GET, "/", "/webjars/**", "/*.html", "favicon.ico",
-    			"/**/*.html", "/**/*.css", "/**/*.js", "/images/**");
+				// Ovim smo dozvolili pristup statickim resursima aplikacije
+				.antMatchers(HttpMethod.GET, "/", "/webjars/**", "/*.html", "favicon.ico",
+						"/**/*.html", "/**/*.css", "/**/*.js", "/images/**");
 
-    }
+	}
 
 }

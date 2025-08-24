@@ -43,10 +43,8 @@ import java.util.Map;
 public class UserService implements UserDetailsService {
 
 
-    @Autowired
     private final UserRepository userRepository;
 
-    @Autowired
     private final PasswordEncoder passwordEncoder;
 
     @Autowired

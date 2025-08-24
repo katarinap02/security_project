@@ -39,7 +39,11 @@ public class CertificateService {
         this.userRepository = userRepository;
     }
 
-    public Certificate issueCertificate(IssuerCertificateDTO dto) {
+    public Certificate issueCertificate(IssuerCertificateDTO dto, User ulogovaniKorisnik) {
+
+        if (ulogovaniKorisnik == null) {
+            throw new SecurityException("Pristup odbijen. Nema informacija o ulogovanom korisniku.");
+        }
 
         // ***************DEO GDE PRIPREMAMO ISSUERA******************//
         Issuer issuerData;
@@ -49,6 +53,12 @@ public class CertificateService {
         User owner = userRepository.findByEmail(dto.getOwnerEmail());
 
         if (type == CertificateType.ROOT) {
+
+            //prava pristupa
+            if (!ulogovaniKorisnik.hasRole("ROLE_ADMIN")) {
+                throw new SecurityException("Samo administratori mogu da izdaju ROOT sertifikate.");
+            }
+
             // Za ROOT, kreiramo novog, samopotpisanog izdavaoca
             KeyPair rootKeyPair = certificateFactory.generateKeyPair();
             Subject selfSignedSubject = certificateFactory.createSubject(dto, rootKeyPair.getPublic());
@@ -56,6 +66,17 @@ public class CertificateService {
         } else {
             // Za INTERMEDIATE pronalazimo postojećeg izdavaoca u našoj bazi
             issuerRecord = validateAndGetIssuerRecord(dto.getIssuerSerialNumber());
+
+            if (ulogovaniKorisnik.hasRole("ROLE_CA_USER")) {
+                // Logika ostaje ista: proveravamo da li je on vlasnik izdavačkog sertifikata.
+                if (!issuerRecord.getOwner().getId().equals(ulogovaniKorisnik.getId())) {
+                    throw new SecurityException("Nemate dozvolu da koristite ovaj sertifikat kao izdavaoca.");
+                }
+            }
+            else if (!ulogovaniKorisnik.hasRole("ROLE_ADMIN")) {
+                // Ako korisnik NIJE CA_USER i NIJE ADMIN, onda nema pravo da izdaje non-root sertifikate.
+                throw new SecurityException("Nemate dovoljna prava za izdavanje ovog tipa sertifikata.");
+            }
 
             User issuerOwner = issuerRecord.getOwner();
             if (issuerOwner == null) {
@@ -67,7 +88,7 @@ public class CertificateService {
 
             // Učitavamo privatni ključ izdavaoca iz njegovog keystore-a
             char[] issuerKeystorePassword = keystoreService.decryptPassword(
-                    issuerRecord.getEncryptedKeystorePassword(), // Enkriptovana lozinka
+                    issuerRecord.getEncryptedKeystorePassword(), // Enkriptovana lozinka za fajl
                     decryptedUserKey                           // Ključ kojim je zaključana
             );
             PrivateKey issuerPrivateKey = keystoreService.readPrivateKey(

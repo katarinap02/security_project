@@ -3,6 +3,7 @@ package com.pki.example.service;
 import com.pki.example.certificates.CertificateGenerator;
 import com.pki.example.data.Issuer;
 import com.pki.example.data.Subject;
+import com.pki.example.dto.CertificateResponseDTO;
 import com.pki.example.dto.IssuerCertificateDTO;
 import com.pki.example.exception.InvalidIssuerException;
 import com.pki.example.exception.ResourceNotFoundException;
@@ -19,7 +20,10 @@ import org.springframework.stereotype.Service;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class CertificateService {
@@ -39,10 +43,25 @@ public class CertificateService {
         this.userRepository = userRepository;
     }
 
-    public Certificate issueCertificate(IssuerCertificateDTO dto, User ulogovaniKorisnik) {
+    public CertificateResponseDTO issueCertificate(IssuerCertificateDTO dto, User ulogovaniKorisnik) {
 
         if (ulogovaniKorisnik == null) {
             throw new SecurityException("Pristup odbijen. Nema informacija o ulogovanom korisniku.");
+        }
+
+        // *** DEO GDE POSTAVLJAMO PRAVILNO OWNER ****
+        User owner;
+        if (dto.getOwnerEmail() == null || dto.getOwnerEmail().isBlank()) {
+            owner = ulogovaniKorisnik;
+        } else {
+            if (!ulogovaniKorisnik.hasRole("ROLE_ADMIN")) {
+                throw new SecurityException("Samo administratori mogu da izdaju sertifikate za druge korisnike.");
+            }
+
+            // Ako jeste admin, pronalazimo korisnika po unetom emailu.
+            owner = userRepository.findByEmail(dto.getOwnerEmail());
+            if (owner == null) {throw new SecurityException("Korisnik sa ovim email-om ne postoji."); }
+
         }
 
         // ***************DEO GDE PRIPREMAMO ISSUERA******************//
@@ -50,7 +69,7 @@ public class CertificateService {
         Certificate issuerRecord = null; //izdavalac u obliku sertifikata
 
         CertificateType type = CertificateType.fromString(dto.getType());
-        User owner = userRepository.findByEmail(dto.getOwnerEmail());
+
 
         if (type == CertificateType.ROOT) {
 
@@ -121,45 +140,55 @@ public class CertificateService {
                 type // Prosleđujemo tip da bi generator znao koje ekstenzije da doda
         );
 
-
         //*********** CUVANJE POMOCU KEYSTORE U FAJL**************//
         char[] newKeystorePassword = keystoreService.generateRandomPassword();
         String keystoreFileName = serialNumber + ".jks";
-
-        if (type == CertificateType.END_ENTITY) {
-            // Po specifikaciji, za EE sertifikate NE ČUVAMO privatni ključ.
-            keystoreService.writeTrustedCertificate(keystoreFileName, newKeystorePassword, serialNumber, x509Cert);
-        } else {
-            // Za ROOT i INTERMEDIATE, čuvamo i privatni ključ da bismo mogli da potpisujemo druge.
-            keystoreService.writeKeyPairAndCertificate(keystoreFileName, newKeystorePassword, serialNumber, subjectKeyPair.getPrivate(), x509Cert);
-        }
-
-        // ************* KORAK: ČUVANJE METAPODATAKA U BAZU **********//
         String decryptedOwnerKey = keystoreService.decryptUserSymmetricKey(owner.getEncryptedUserSymmetricKey());
         String encryptedPassword = keystoreService.encryptPassword(newKeystorePassword, decryptedOwnerKey);
 
-        Certificate newCertificate = new Certificate();
-        newCertificate.setSerialNumber(serialNumber);
-        newCertificate.setValidFrom(dto.getValidFrom());
-        newCertificate.setValidTo(dto.getValidTo());
-        newCertificate.setType(type);
-        newCertificate.setIssuer(issuerRecord);
-        newCertificate.setOwner(owner);
-        newCertificate.setRevoked(false);
-        newCertificate.setKeystoreFileName(keystoreFileName);
-        newCertificate.setEncryptedKeystorePassword(encryptedPassword);
+        if (type == CertificateType.END_ENTITY) {
+            keystoreService.writeTrustedCertificate(keystoreFileName, newKeystorePassword, serialNumber, x509Cert);
+        } else {
+            List<X509Certificate> chainList = new ArrayList<>();
+            chainList.add(x509Cert);
 
-        // Specijalan slučaj za ROOT: njegov issuer je on sam.
-        if (type == CertificateType.ROOT) {
-            newCertificate.setIssuer(newCertificate);
+            if (issuerRecord != null) {
+                X509Certificate[] issuerChain = buildCertificateChain(issuerRecord);
+                chainList.addAll(Arrays.asList(issuerChain));
+            }
+
+            // 3. Čuvamo privatni ključ i kompletan lanac u keystore
+            keystoreService.writeKeyPairAndChain(
+                    keystoreFileName,
+                    newKeystorePassword,
+                    serialNumber,
+                    subjectKeyPair.getPrivate(),
+                    chainList.toArray(new X509Certificate[0])
+            );
         }
 
-        return certificateRepository.save(newCertificate);
+        Certificate newCertificateRecord = new Certificate();
+        newCertificateRecord.setSerialNumber(serialNumber);
+        newCertificateRecord.setValidFrom(dto.getValidFrom());
+        newCertificateRecord.setValidTo(dto.getValidTo());
+        newCertificateRecord.setType(type);
+        newCertificateRecord.setOwner(owner);
+        newCertificateRecord.setRevoked(false);
+        newCertificateRecord.setKeystoreFileName(keystoreFileName);
+        newCertificateRecord.setEncryptedKeystorePassword(encryptedPassword);
+
+        if (type == CertificateType.ROOT) {
+            newCertificateRecord.setIssuer(null);
+            newCertificateRecord = certificateRepository.saveAndFlush(newCertificateRecord);
+            newCertificateRecord.setIssuer(newCertificateRecord); // Postavljamo samoreferencu
+        } else {
+            newCertificateRecord.setIssuer(issuerRecord);
+        }
+
+        Certificate savedCertificateRecord = certificateRepository.save(newCertificateRecord);
+
+        return new CertificateResponseDTO(savedCertificateRecord);
     }
-
-
-
-
 
 
     private Certificate validateAndGetIssuerRecord(String issuerSerialNumber) {
@@ -181,6 +210,37 @@ public class CertificateService {
         }
 
         return issuer;
+    }
+
+    // REKONSTRUKCIJA LANCA SERTIFIKATA
+
+    private X509Certificate[] buildCertificateChain(Certificate certificate) {
+        List<X509Certificate> chain = new ArrayList<>();
+
+        // Počinjemo od izdavaoca i pratimo lanac unazad
+        Certificate current = certificate;
+        while (current != null) {
+            // Učitavamo X509 sertifikat za trenutnog issuer-a
+            char[] password = keystoreService.decryptPassword(
+                    current.getEncryptedKeystorePassword(),
+                    keystoreService.decryptUserSymmetricKey(current.getOwner().getEncryptedUserSymmetricKey())
+            );
+            X509Certificate cert = keystoreService.readCertificate(
+                    current.getKeystoreFileName(),
+                    password,
+                    current.getSerialNumber()
+            );
+            chain.add(cert);
+
+            // Prekidamo ako smo stigli do ROOT-a
+            if (current.getIssuer() != null && current.getIssuer().getId().equals(current.getId())) {
+                break;
+            }
+
+            current = current.getIssuer(); // Idemo na sledećeg u lancu
+        }
+
+        return chain.toArray(new X509Certificate[0]);
     }
 
 

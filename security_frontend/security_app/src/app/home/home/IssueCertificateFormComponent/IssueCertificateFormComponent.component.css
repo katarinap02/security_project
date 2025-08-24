@@ -1,3 +1,90 @@
-:host {
-  display: block;
+/* Glavni kontejner za formu */
+.form-container {
+  max-width: 600px; /* Ograničavamo maksimalnu širinu forme */
+  margin: 2rem auto; /* Centriramo formu na stranici sa razmakom od vrha */
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+/* Naslov forme */
+h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+h4 {
+  color: #555;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+/* Stil za sam <form> element */
+form {
+  display: flex;
+  flex-direction: column; /* Ređamo elemente jedan ispod drugog */
+  gap: 1rem; /* Pravimo razmak između svih elemenata u formi */
+}
+
+/* Stil za labele */
+label {
+  font-weight: bold;
+  color: #444;
+  margin-bottom: -0.5rem; /* Malo približavamo labelu input polju */
+}
+
+/* Stil za sva input polja i select listu */
+input,
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Osigurava da padding ne utiče na ukupnu širinu */
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+/* Efekat kada se klikne na input polje */
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #007bff; /* Plava boja za fokus */
+}
+
+/* Stil za dugme */
+button {
+  padding: 14px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+}
+
+/* Efekat kada se pređe mišem preko dugmeta */
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Stil za onemogućeno (disabled) dugme */
+button:disabled {
+  background-color: #a0cffc;
+  cursor: not-allowed;
+}
+
+/* Linija za razdvajanje sekcija */
+hr {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 1.5rem 0;
 }

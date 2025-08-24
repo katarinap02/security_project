@@ -26,11 +26,11 @@ public class KeystoreService {
 
 
     //Koristi se za CA sertifikate (ROOT, INTERMEDIATE)
-    public void writeKeyPairAndCertificate(String keystoreFileName, char[] keystorePassword, String alias, PrivateKey privateKey, X509Certificate certificate) {
+    public void writeKeyPairAndChain(String keystoreFileName, char[] keystorePassword, String alias, PrivateKey privateKey,X509Certificate[] certificateChain) {
         try {
             KeyStore keyStore = KeyStore.getInstance("JKS");
             keyStore.load(null, keystorePassword); // Inicijalizujemo novi, prazan keystore
-            keyStore.setKeyEntry(alias, privateKey, keystorePassword, new Certificate[] {certificate});
+            keyStore.setKeyEntry(alias, privateKey, keystorePassword, certificateChain); //ceo lanac
 
             try (FileOutputStream fos = new FileOutputStream("keystores/" + keystoreFileName)) {
                 keyStore.store(fos, keystorePassword);

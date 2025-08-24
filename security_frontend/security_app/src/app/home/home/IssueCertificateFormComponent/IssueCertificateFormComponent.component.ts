@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../service/auth.service';
 
 @Component({
   selector: 'app-issue-certificate-form-component',
@@ -32,7 +33,8 @@ export class IssueCertificateFormComponentComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private certificateService: CertificateService
+    private certificateService: CertificateService,
+    public authService: AuthService 
   ) { }
 
   ngOnInit(): void {

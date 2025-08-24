@@ -3,6 +3,7 @@ package com.pki.example.model;
 
 
 
+import com.fasterxml.jackson.annotation.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +12,11 @@ import java.util.Date;
 
 @Entity
 @Table(name = "certificates")
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id"
+)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Getter
 @Setter
 public class Certificate {
@@ -34,13 +40,14 @@ public class Certificate {
     @Column(nullable = false)
     private CertificateType type;
 
-    //koji drugi sertifikat je potpisao ovaj sertifikat
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "issuer_id")
+    @JsonIgnore
     private Certificate issuer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "owner_id")
+    @JsonBackReference
     private User owner;
 
     // da li je validan sertifikat i zasto je povucen

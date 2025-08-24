@@ -19,3 +19,14 @@ Lozinka: pass1232111
 Običan (End-User) Korisnik:
 Email: end.user@example.com
 Lozinka: pass1232111*/
+
+INSERT INTO certificates (id, encrypted_keystore_password, is_revoked, keystore_file_name, revocation_reason, serial_number, type, valid_from, valid_to, issuer_id, owner_id) VALUES
+                                                                                                                                                                                  (1, 'PLQgxAFi9uAqqbuopRjizqsSiK21zT+5HD0DoEMcaeIo=', false, '1756053616451.jks', NULL, '1756053616451', 'ROOT', '2025-08-24 02:00:00', '2027-05-24 02:00:00', 1, 1),
+                                                                                                                                                                                  (2, 'NcRFkf1ZjNoKQAgdB9UcSTrujUhjp9mxHBL1/04lEAU=', false, '1756053672999.jks', NULL, '1756053672999', 'INTERMEDIATE', '2025-08-24 02:00:00', '2026-08-24 01:00:00', 1, 1),
+                                                                                                                                                                                  (3, '4MUx705ptHnHnFuvfnV05MP82977oz/D23iNmnVleLvc70=', false, '1756053754275.jks', NULL, '1756053754275', 'END_ENTITY', '2025-08-24 02:00:00', '2026-03-24 01:00:00', 2, 1),
+                                                                                                                                                                                  (4, 'QQXqobfoWq5gR1fG46SypFH2dyj/U0kR6G9rgTKD/k=', false, '1756053849726.jks', NULL, '1756053849726', 'INTERMEDIATE', '2025-08-24 02:00:00', '2026-03-24 01:00:00', 2, 1),
+                                                                                                                                                                                  (5, 'sRmSYGCmT7+8U6xL70ZQpBSplfHEJOhLmvzSPrRIw=', false, '1756053912265.jks', NULL, '1756053912265', 'INTERMEDIATE', '2025-08-24 02:00:00', '2026-01-24 01:00:00', 4, 1)
+    ON CONFLICT (id) DO NOTHING;
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users), true);
+SELECT setval('certificates_id_seq', (SELECT MAX(id) FROM certificates), true);
+

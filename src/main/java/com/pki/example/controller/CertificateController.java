@@ -1,6 +1,9 @@
 package com.pki.example.controller;
 
+import com.pki.example.dto.CertificateResponseDTO;
 import com.pki.example.dto.IssuerCertificateDTO;
+import com.pki.example.exception.InvalidIssuerException;
+import com.pki.example.exception.ResourceNotFoundException;
 import com.pki.example.model.Certificate;
 import com.pki.example.model.User;
 import com.pki.example.service.CertificateService;
@@ -26,13 +29,23 @@ public class CertificateController {
 
     @PostMapping("/issue")
     @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
-    public ResponseEntity<Certificate> issueCertificate(@RequestBody IssuerCertificateDTO dto, @AuthenticationPrincipal User ulogovaniKorisnik) {
+    // ISPRAVKA #1: Promenjen povratni tip u ResponseEntity<CertificateResponseDTO>
+    public ResponseEntity<?> issueCertificate(
+            @RequestBody IssuerCertificateDTO dto,
+            @AuthenticationPrincipal User ulogovaniKorisnik) {
         try {
-            Certificate noviSertifikat = certificateService.issueCertificate(dto, ulogovaniKorisnik);
-            return new ResponseEntity<>(noviSertifikat, HttpStatus.CREATED);
+            CertificateResponseDTO noviSertifikatDTO = certificateService.issueCertificate(dto, ulogovaniKorisnik);
+
+            return new ResponseEntity<>(noviSertifikatDTO, HttpStatus.CREATED);
+
+        } catch (ResourceNotFoundException | InvalidIssuerException | IllegalArgumentException | SecurityException e) {
+
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+
+            return new ResponseEntity<>("Došlo je do nepredviđene greške na serveru.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
+

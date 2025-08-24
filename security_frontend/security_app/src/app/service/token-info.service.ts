@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 })
 export class TokenInfoService {
 
-  private baseUrl = 'http://localhost:8080/api/users';
+  private baseUrl = 'http://localhost:8081/api/users';
 
   constructor(private http: HttpClient) { }
 

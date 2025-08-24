@@ -19,7 +19,7 @@ public class EmailService {
 
 
     public void sendActivationEmail(String email, String token) {
-        String activationLink = "http://localhost:8080/api/users/activate/" + token;
+        String activationLink = "http://localhost:8081/api/users/activate/" + token;
 
         try {
             SimpleMailMessage message = new SimpleMailMessage();

@@ -52,10 +52,21 @@ public class AuthController {
         return userService.register(userDto);
     }
 
+//    @PostMapping("/login")
+//    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+//        return userService.login(request.getEmail(), request.getPassword());
+//    }
+
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        return userService.login(request.getEmail(), request.getPassword());
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        // Prosleđuje email, password i recaptcha token servisu
+        return userService.login(
+                loginRequest.getEmail(),
+                loginRequest.getPassword(),
+                loginRequest.getRecaptchaToken()
+        );
     }
+
 
 
     @GetMapping("/activate/{token}")

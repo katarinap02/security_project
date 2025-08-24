@@ -1,18 +1,33 @@
 package com.pki.example.util;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pki.example.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.bouncycastle.jcajce.BCFKSLoadStoreParameter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+
+
+import org.springframework.http.*;
+
 
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.Date;
+
 
 // Utility klasa za rad sa JSON Web Tokenima
 @Component
@@ -276,5 +291,111 @@ public class TokenUtils {
 	public String getAuthHeaderFromHeader(HttpServletRequest request) {
 		return request.getHeader(AUTH_HEADER);
 	}
-	
+
+
+
+	/* ****************KEYCLOAK********************* */
+
+	@Value("${keycloak.auth-server-url}")
+	private String keycloakUrl;
+
+	@Value("${keycloak.realm}")
+	private String realm;
+
+	@Value("${keycloak.resource}")
+	private String keycloakResource;
+
+	@Value("${keycloak.credentials.secret}")
+	private String keycloakSecret;
+
+
+
+	/**
+	 * Login korisnika na Keycloak koristeći email i password
+	 * @param email korisnikov email
+	 * @param password korisnikova lozinka
+	 * @return JWT token ako je uspešno, null ako nije
+	 */
+//
+	public String loginToKeycloak(String email, String password) {
+		try {
+			String tokenEndpoint = keycloakUrl + "/realms/" + realm + "/protocol/openid-connect/token";
+
+			RestTemplate restTemplate = new RestTemplate();
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+			MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+			body.add("grant_type", "password");
+			body.add("client_id", keycloakResource);
+
+			// dodaj secret samo ako je client confidential
+			if (keycloakSecret != null && !keycloakSecret.isEmpty()) {
+				body.add("client_secret", keycloakSecret);
+			}
+
+			body.add("username", email);
+			body.add("password", password);
+
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+			ResponseEntity<String> response = restTemplate.postForEntity(tokenEndpoint, request, String.class);
+
+			if (response.getStatusCode() == HttpStatus.OK) {
+				ObjectMapper mapper = new ObjectMapper();
+				JsonNode node = mapper.readTree(response.getBody());
+				return node.get("access_token").asText(); // JWT token
+			}
+
+		} catch (HttpClientErrorException e) {
+			System.err.println("Keycloak login failed: " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+
+	/**
+	 * Validacija Keycloak tokena preko /userinfo
+	 */
+	public boolean validateKeycloakToken(String token) {
+		try {
+			String userInfoEndpoint = keycloakUrl + "/realms/" + realm + "/protocol/openid-connect/userinfo";
+
+			RestTemplate restTemplate = new RestTemplate();
+			HttpHeaders headers = new HttpHeaders();
+			headers.setBearerAuth(token);
+
+			HttpEntity<String> entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(userInfoEndpoint, HttpMethod.GET, entity, String.class);
+
+			return response.getStatusCode() == HttpStatus.OK;
+
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Preuzimanje email-a iz Keycloak JWT tokena
+	 */
+	public String getEmailFromKeycloakToken(String token) {
+		try {
+			String[] parts = token.split("\\.");
+			if (parts.length < 2) return null;
+
+			String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode node = mapper.readTree(payload);
+
+			if (node.has("email")) return node.get("email").asText();
+			if (node.has("preferred_username")) return node.get("preferred_username").asText();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 }

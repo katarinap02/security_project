@@ -107,6 +107,13 @@
 			<version>1.10.0</version>
 		</dependency>
 
+		<!-- Keycloak Adapter za Spring Boot -->
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-spring-boot-starter</artifactId>
+			<version>21.1.1</version> <!-- Možeš uskladiti sa svojom verzijom Keycloak servera -->
+		</dependency>
+
 
 	</dependencies>
 

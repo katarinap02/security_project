@@ -124,6 +124,23 @@ public class KeystoreService {
         }
     }
 
+    public String encryptUserSymmetricKey(String userSymmetricKey) {
+        try {
+            SecretKey masterSecretKey = new SecretKeySpec(globalKey.getBytes(StandardCharsets.UTF_8), "AES");
+
+
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, masterSecretKey);
+
+            byte[] encryptedBytes = cipher.doFinal(userSymmetricKey.getBytes(StandardCharsets.UTF_8));
+
+            return Base64.getEncoder().encodeToString(encryptedBytes);
+
+        } catch (Exception e) {
+            throw new KeyStoreOperationException("Failed to encrypt user symmetric key.");
+        }
+    }
+
     public String decryptUserSymmetricKey(String encryptedUserKey) {
         try {
             SecretKey masterSecretKey = new SecretKeySpec(globalKey.getBytes(StandardCharsets.UTF_8), "AES");

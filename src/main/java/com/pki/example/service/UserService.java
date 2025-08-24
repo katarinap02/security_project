@@ -38,6 +38,8 @@ public class UserService implements UserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private KeystoreService keystoreService;
+
     @Autowired
     private TokenUtils tokenUtils;
 
@@ -57,12 +59,13 @@ public class UserService implements UserDetailsService {
 
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenUtils tokenUtils, AuthenticationManager authenticationManager) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, KeystoreService keystoreService, TokenUtils tokenUtils, AuthenticationManager authenticationManager) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenUtils = tokenUtils;
         this.authenticationManager = authenticationManager;
+        this.keystoreService = keystoreService;
 
 
     }
@@ -92,6 +95,13 @@ public class UserService implements UserDetailsService {
             return ResponseEntity.badRequest().body("Email address already exists!");
         }
 
+        char[] userSymmetricKey = keystoreService.generateRandomPassword();
+
+        String encryptedUserKey = keystoreService.encryptUserSymmetricKey(new String(userSymmetricKey));
+
+
+
+
 
         User user = new User();
 
@@ -102,6 +112,7 @@ public class UserService implements UserDetailsService {
         user.setName(StringEscapeUtils.escapeHtml4(userDto.getName()));
         user.setSurname(StringEscapeUtils.escapeHtml4(userDto.getSurname()));
         user.setOrganization(StringEscapeUtils.escapeHtml4(userDto.getOrganization()));
+        user.setEncryptedUserSymmetricKey(StringEscapeUtils.escapeHtml4((encryptedUserKey)));
 
         user.setActivated(false);
         user.setEnabled(true);

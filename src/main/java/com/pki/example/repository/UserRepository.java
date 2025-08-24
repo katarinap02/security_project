@@ -1,10 +1,12 @@
 package com.pki.example.repository;
 
+import com.pki.example.model.Role;
 import com.pki.example.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
@@ -21,6 +23,11 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query(value = "SELECT ur.role_id FROM user_role ur WHERE ur.user_id = :userId", nativeQuery = true)
     Integer findRoleIdByUserId(@Param("userId") Integer userId);
+
+    @Query(value = "SELECT ur.role_id FROM user_role ur WHERE ur.user_id = (SELECT u.id FROM users u WHERE u.email = :email)",
+            nativeQuery = true)
+    List<Integer> findRoleIdsByEmail(@Param("email") String email);
+
 
 
 

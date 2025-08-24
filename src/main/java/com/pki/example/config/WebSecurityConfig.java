@@ -54,8 +54,10 @@ public class WebSecurityConfig {
  	    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
  	   // 1. koji servis da koristi da izvuce podatke o korisniku koji zeli da se autentifikuje
  	    // prilikom autentifikacije, AuthenticationManager ce sam pozivati loadUserByUsername() metodu ovog servisa
- 	    authProvider.setUserDetailsService(userService);
- 	    // 2. kroz koji enkoder da provuce lozinku koju je dobio od klijenta u zahtevu
+ 	    //authProvider.setUserDetailsService(userService);
+		authProvider.setUserDetailsService(userDetailsService());
+
+		// 2. kroz koji enkoder da provuce lozinku koju je dobio od klijenta u zahtevu
 	    // da bi adekvatan hash koji dobije kao rezultat hash algoritma uporedio sa onim koji se nalazi u bazi (posto se u bazi ne cuva plain lozinka)
  	    authProvider.setPasswordEncoder(passwordEncoder());
 
@@ -104,18 +106,18 @@ public class WebSecurityConfig {
 	}
 
 	// metoda u kojoj se definisu putanje za igorisanje autentifikacije
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-    	// Autentifikacija ce biti ignorisana ispod navedenih putanja (kako bismo ubrzali pristup resursima)
-    	// Zahtevi koji se mecuju za web.ignoring().antMatchers() nemaju pristup SecurityContext-u
-    	// Dozvoljena POST metoda na ruti /auth/login, za svaki drugi tip HTTP metode greska je 401 Unauthorized
-    	return (web) -> web.ignoring().antMatchers(HttpMethod.POST, "/auth/login")
+	@Bean
+	public WebSecurityCustomizer webSecurityCustomizer() {
+		// Autentifikacija ce biti ignorisana ispod navedenih putanja (kako bismo ubrzali pristup resursima)
+		// Zahtevi koji se mecuju za web.ignoring().antMatchers() nemaju pristup SecurityContext-u
+		// Dozvoljena POST metoda na ruti /auth/login, za svaki drugi tip HTTP metode greska je 401 Unauthorized
+		return (web) -> web.ignoring().antMatchers(HttpMethod.POST, "/auth/login")
 
 
-    			// Ovim smo dozvolili pristup statickim resursima aplikacije
-    			.antMatchers(HttpMethod.GET, "/", "/webjars/**", "/*.html", "favicon.ico",
-    			"/**/*.html", "/**/*.css", "/**/*.js", "/images/**");
+				// Ovim smo dozvolili pristup statickim resursima aplikacije
+				.antMatchers(HttpMethod.GET, "/", "/webjars/**", "/*.html", "favicon.ico",
+						"/**/*.html", "/**/*.css", "/**/*.js", "/images/**");
 
-    }
+	}
 
 }

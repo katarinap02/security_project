@@ -1,5 +1,6 @@
 package com.pki.example.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.GrantedAuthority;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -60,10 +61,11 @@ public class User implements UserDetails {
     private Timestamp activationTokenExpiry;
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<Certificate> certificates;
 
     //svaki korisnik koristi svoj kljuc
-    @Column(name = "user_symmetric_key")
+    @Column(name = "encrypted_user_symmetric_key")
     private String encryptedUserSymmetricKey;
 
 
@@ -228,5 +230,18 @@ public class User implements UserDetails {
 
     public void setEncryptedUserSymmetricKey(String encryptedUserSymmetricKey) {
         this.encryptedUserSymmetricKey = encryptedUserSymmetricKey;
+    }
+
+    public boolean hasRole(String roleName) {
+        if (this.roles == null || this.roles.isEmpty()) {
+            return false;
+        }
+
+        for (Role role : this.roles) {
+            if (role.getName().equals(roleName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

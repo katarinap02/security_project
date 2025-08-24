@@ -31,6 +31,7 @@ export class AuthService {
 
   getToken(): string | null {
     return localStorage.getItem('jwtToken');
+    
   }
 
   logout() {
@@ -47,6 +48,10 @@ export class AuthService {
 
   resetPassword(token: string, password: string) {
     return this.http.post(`${this.apiUrl}/reset-password`, { token, password });
+  }
+
+  getRoleIdsByEmail(email: string): Observable<number[]> {
+    return this.http.get<number[]>(`${this.apiUrl}/roles/ids/${email}`);
   }
 
 }

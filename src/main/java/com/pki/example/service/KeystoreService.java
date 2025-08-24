@@ -26,11 +26,11 @@ public class KeystoreService {
 
 
     //Koristi se za CA sertifikate (ROOT, INTERMEDIATE)
-    public void writeKeyPairAndCertificate(String keystoreFileName, char[] keystorePassword, String alias, PrivateKey privateKey, X509Certificate certificate) {
+    public void writeKeyPairAndChain(String keystoreFileName, char[] keystorePassword, String alias, PrivateKey privateKey,X509Certificate[] certificateChain) {
         try {
             KeyStore keyStore = KeyStore.getInstance("JKS");
             keyStore.load(null, keystorePassword); // Inicijalizujemo novi, prazan keystore
-            keyStore.setKeyEntry(alias, privateKey, keystorePassword, new Certificate[] {certificate});
+            keyStore.setKeyEntry(alias, privateKey, keystorePassword, certificateChain); //ceo lanac
 
             try (FileOutputStream fos = new FileOutputStream("keystores/" + keystoreFileName)) {
                 keyStore.store(fos, keystorePassword);
@@ -121,6 +121,23 @@ public class KeystoreService {
             return new String(decryptedBytes, StandardCharsets.UTF_8).toCharArray();
         } catch (Exception e) {
             throw new KeyStoreOperationException("Failed to decrypt password.");
+        }
+    }
+
+    public String encryptUserSymmetricKey(String userSymmetricKey) {
+        try {
+            SecretKey masterSecretKey = new SecretKeySpec(globalKey.getBytes(StandardCharsets.UTF_8), "AES");
+
+
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, masterSecretKey);
+
+            byte[] encryptedBytes = cipher.doFinal(userSymmetricKey.getBytes(StandardCharsets.UTF_8));
+
+            return Base64.getEncoder().encodeToString(encryptedBytes);
+
+        } catch (Exception e) {
+            throw new KeyStoreOperationException("Failed to encrypt user symmetric key.");
         }
     }
 

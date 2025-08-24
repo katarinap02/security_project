@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.handler.UserRoleAuthorizationInterceptor;
 import java.util.UUID;
@@ -139,6 +140,21 @@ public class AuthController {
         passwordResetTokenService.invalidateToken(token);
 
         return ResponseEntity.ok(Map.of("message", "Password has been successfully reset."));
+    }
+
+    @GetMapping("/roles/ids/{email}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getRoleIdsByEmail(@PathVariable String email) {
+        try {
+            // Pozivamo novu metodu iz UserService-a
+            List<Integer> roleIds = userService.getRolesByEmail(email);
+
+            // Ako je sve prošlo kako treba, vraćamo listu i status 200 OK
+            return ResponseEntity.ok(roleIds);
+
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
 

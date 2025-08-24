@@ -32,7 +32,8 @@ interface DecodedToken {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    RouterModule
+    RouterModule,
+    ReactiveFormsModule
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
@@ -104,6 +105,7 @@ export class LoginComponent implements AfterViewInit {
 
         localStorage.setItem('email', decoded.sub);
         localStorage.setItem('jti', res.jti);
+        localStorage.setItem('jwtToken', res.token);
 
         //console.log('LOOGIINNNN INFOOO',decoded);
 

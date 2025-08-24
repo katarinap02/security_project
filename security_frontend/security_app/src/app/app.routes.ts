@@ -7,6 +7,8 @@ import { ProfileComponent } from './profile/profile.component';
 import { ForgotPasswordComponent } from './home/home/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './home/home/reset-password/reset-password.component';
 import { HttpClientModule } from '@angular/common/http';
+import { ReactiveFormsModule } from '@angular/forms';
+import { IssueCertificateFormComponentComponent } from './home/home/IssueCertificateFormComponent/IssueCertificateFormComponent.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -14,12 +16,13 @@ export const routes: Routes = [
   { path: 'register', component: RegistrationComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent},
-  { path: 'reset-password', component: ResetPasswordComponent }
+  { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'add-cerficate', component: IssueCertificateFormComponentComponent }
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes),
-    HttpClientModule,
+    HttpClientModule, ReactiveFormsModule
   ],
   exports: [RouterModule]
 })

@@ -1,47 +1,45 @@
-<!-- u src/app/components/issue-certificate-form/issue-certificate-form.component.html -->
-
 <div class="form-container">
-  <h2>Izdavanje Novog Sertifikata</h2>
+  <h2>Issue New Certificate</h2>
    <ng-container *ngIf="certificateForm">
   <form [formGroup]="certificateForm" (ngSubmit)="onSubmit()">
     
-    <!-- Podaci o vlasniku -->
-    <h4>Podaci o vlasniku (Subject)</h4>
-    <input formControlName="commonName" placeholder="Common Name (npr. Ime i Prezime)">
-    <input formControlName="surname" placeholder="Prezime">
-    <input formControlName="givenName" placeholder="Ime">
-    <input formControlName="organization" placeholder="Organizacija (npr. UNS-FTN)">
-    <input formControlName="organizationalUnit" placeholder="Organizaciona jedinica (npr. Katedra)">
-    <input formControlName="country" placeholder="Država (kod, npr. RS)">
-    <input formControlName="email" placeholder="Email adresa vlasnika">
+    <!-- Owner Information -->
+    <h4>Owner Information (Subject)</h4>
+    <input formControlName="commonName" placeholder="Common Name (e.g., Full Name)">
+    <input formControlName="surname" placeholder="Surname">
+    <input formControlName="givenName" placeholder="Given Name">
+    <input formControlName="organization" placeholder="Organization (e.g., UNS-FTN)">
+    <input formControlName="organizationalUnit" placeholder="Organizational Unit (e.g., Department)">
+    <input formControlName="country" placeholder="Country (code, e.g., RS)">
+    <input formControlName="email" placeholder="Owner's Email Address">
 
     <hr>
     
-    <!-- Tehnički podaci -->
-    <h4>Tehnički podaci</h4>
-    <label for="ownerEmail">Email korisnika vlasnika (iz 'users' tabele):</label>
-    <input id="ownerEmail" formControlName="ownerEmail" placeholder="Email vlasnika naloga">
+    <!-- Technical Details -->
+    <h4>Technical Details</h4>
+    <label for="ownerEmail">Owner User Email (from 'users' table):</label>
+    <input id="ownerEmail" formControlName="ownerEmail" placeholder="Owner account email">
     
-    <label for="type">Tip sertifikata:</label>
+    <label for="type">Certificate Type:</label>
     <select id="type" formControlName="type">
-      <option value="ROOT">ROOT</option>
+      <option *ngIf="pom !== 2" value="ROOT">ROOT</option>
       <option value="INTERMEDIATE">INTERMEDIATE</option>
       <option value="END_ENTITY">END_ENTITY</option>
     </select>
     
-    <!-- Prikazujemo ovo polje samo ako tip NIJE ROOT -->
+    <!-- Show this field only if type is NOT ROOT -->
     <div *ngIf="certificateForm.get('type')?.value !== 'ROOT'">
-      <label for="issuer">Serijski broj izdavaoca (Issuer):</label>
-      <input id="issuer" formControlName="issuerSerialNumber" placeholder="Unesite serijski broj CA sertifikata">
+      <label for="issuer">Issuer Serial Number:</label>
+      <input id="issuer" formControlName="issuerSerialNumber" placeholder="Enter CA certificate serial number">
     </div>
 
-    <label for="validFrom">Važi od:</label>
+    <label for="validFrom">Valid From:</label>
     <input id="validFrom" type="date" formControlName="validFrom">
     
-    <label for="validTo">Važi do:</label>
+    <label for="validTo">Valid To:</label>
     <input id="validTo" type="date" formControlName="validTo">
 
-    <button type="submit" [disabled]="certificateForm.invalid">Izdaj Sertifikat</button>
+    <button type="submit" [disabled]="certificateForm.invalid">Issue Certificate</button>
   </form>
   </ng-container>
 </div>

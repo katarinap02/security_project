@@ -44,7 +44,7 @@ public class CertificateController {
 
         } catch (Exception e) {
 
-            return new ResponseEntity<>("Došlo je do nepredviđene greške na serveru.", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("An unexpected error occurred on the server.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

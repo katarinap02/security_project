@@ -46,21 +46,22 @@ public class CertificateService {
     public CertificateResponseDTO issueCertificate(IssuerCertificateDTO dto, User ulogovaniKorisnik) {
 
         if (ulogovaniKorisnik == null) {
-            throw new SecurityException("Pristup odbijen. Nema informacija o ulogovanom korisniku.");
+            throw new SecurityException("Access denied. No information about the logged-in user.");
         }
 
         // *** DEO GDE POSTAVLJAMO PRAVILNO OWNER ****
         User owner;
-        if (dto.getOwnerEmail() == null || dto.getOwnerEmail().isBlank()) {
+        if (dto.getOwnerEmail() == null || dto.getOwnerEmail().isBlank() || dto.getOwnerEmail().equals(ulogovaniKorisnik.getEmail())) {
             owner = ulogovaniKorisnik;
         } else {
             if (!ulogovaniKorisnik.hasRole("ROLE_ADMIN")) {
-                throw new SecurityException("Samo administratori mogu da izdaju sertifikate za druge korisnike.");
+                throw new SecurityException("Only administrators can issue certificates for other users.");
             }
 
             // Ako jeste admin, pronalazimo korisnika po unetom emailu.
             owner = userRepository.findByEmail(dto.getOwnerEmail());
-            if (owner == null) {throw new SecurityException("Korisnik sa ovim email-om ne postoji."); }
+            if (owner == null) {throw new SecurityException("No user exists with this email address.");
+            }
 
         }
 
@@ -75,7 +76,7 @@ public class CertificateService {
 
             //prava pristupa
             if (!ulogovaniKorisnik.hasRole("ROLE_ADMIN")) {
-                throw new SecurityException("Samo administratori mogu da izdaju ROOT sertifikate.");
+                throw new SecurityException("Only administrators can issue ROOT certificates.");
             }
 
             // Za ROOT, kreiramo novog, samopotpisanog izdavaoca
@@ -89,12 +90,13 @@ public class CertificateService {
             if (ulogovaniKorisnik.hasRole("ROLE_CA_USER")) {
                 // Logika ostaje ista: proveravamo da li je on vlasnik izdavačkog sertifikata.
                 if (!issuerRecord.getOwner().getId().equals(ulogovaniKorisnik.getId())) {
-                    throw new SecurityException("Nemate dozvolu da koristite ovaj sertifikat kao izdavaoca.");
+                    throw new SecurityException("You do not have permission to use this certificate as an issuer.");
                 }
             }
             else if (!ulogovaniKorisnik.hasRole("ROLE_ADMIN")) {
                 // Ako korisnik NIJE CA_USER i NIJE ADMIN, onda nema pravo da izdaje non-root sertifikate.
-                throw new SecurityException("Nemate dovoljna prava za izdavanje ovog tipa sertifikata.");
+                throw new SecurityException("You do not have sufficient privileges to issue this type of certificate.");
+
             }
 
             User issuerOwner = issuerRecord.getOwner();

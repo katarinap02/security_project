@@ -102,7 +102,8 @@ export class IssueCertificateFormComponentComponent implements OnInit {
             // disable + set value za ownerEmail
             this.certificateForm.get('ownerEmail')?.disable();
             this.certificateForm.patchValue({
-              ownerEmail: this.userEmail
+              ownerEmail: this.userEmail,
+              type: 'INTERMEDIATE'
             });
           }
         },

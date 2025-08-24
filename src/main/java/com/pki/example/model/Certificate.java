@@ -64,8 +64,7 @@ public class Certificate {
 
     public Certificate() {}
 
-    public Certificate(Integer id, String serialNumber, Date validFrom, Date validTo, CertificateType type, String keystoreFileName, String encryptedKeystorePassword) {
-        this.id = id;
+    public Certificate(String serialNumber, Date validFrom, Date validTo, CertificateType type, String keystoreFileName, String encryptedKeystorePassword) {
         this.serialNumber = serialNumber;
         this.validFrom = validFrom;
         this.validTo = validTo;

@@ -13,7 +13,7 @@ INSERT INTO users (email, password, name, surname, activated, enabled, creation_
 
 INSERT INTO user_role (user_id, role_id) VALUES
                                              (1, 1),  -- admin@example.com
-                                             (2, 2),  -- ca.user@example.com
+                                             (2, 2),  -- 
                                              (3, 3),  -- end.user@example.com
                                              (4, 2),  -- ca.user2@example.com
                                              (5, 2);   -- ca.user3@example.com
@@ -21,15 +21,14 @@ INSERT INTO user_role (user_id, role_id) VALUES
 
 -- Sve lozinke su pass1232111
 
-INSERT INTO certificates
-(id, encrypted_keystore_password, is_revoked, keystore_file_name, revocation_reason, serial_number, type, valid_from, valid_to, issuer_id, owner_id)
-VALUES
-    (1, 'PLQgxAFi9uAqqbuopRjizqsSiK21zT+5HD0DoEMcaeIo=', false, '1756053616451.jks', NULL, '1756053616451', 'ROOT',        '2025-08-24 02:00:00', '2027-05-24 02:00:00', NULL, 1),
-    (2, 'NcRFkf1ZjNoKQAgdB9UcSTrujUhjp9mxHBL1/04lEAU=', false, '1756053672999.jks', NULL, '1756053672999', 'INTERMEDIATE','2025-08-24 02:00:00', '2026-08-24 01:00:00', 1,    1),
-    (3, '4MUx705ptHnHnFuvfnV05MP82977oz/D23iNmnVleLvc70=', false, '1756053754275.jks', NULL, '1756053754275', 'END_ENTITY',  '2025-08-24 02:00:00', '2026-03-24 01:00:00', 2,    1),
-    (4, 'QQXqobfoWq5gR1fG46SypFH2dyj/U0kR6G9rgTKD/k=', false, '1756053849726.jks', NULL, '1756053849726', 'INTERMEDIATE','2025-08-24 02:00:00', '2026-03-24 01:00:00', 2,    1),
-    (5, 'sRmSYGCmT7+8U6xL70ZQpBSplfHEJOhLmvzSPrRIw=', false, '1756053912265.jks', NULL, '1756053912265', 'INTERMEDIATE','2025-08-24 02:00:00', '2026-01-24 01:00:00', 4,    1)
-    ON CONFLICT (id) DO NOTHING;
+INSERT INTO certificates (
+     serial_number, valid_from, valid_to, type, issuer_id, owner_id,
+    is_revoked, revocation_reason, keystore_file_name, encrypted_keystore_password
+) VALUES
+      ( '1756070448121', '2025-08-24 02:00:00', '2027-10-24 02:00:00', 'ROOT', NULL, 2, false, NULL, '1756070448121.jks', '0Y75ilK97GjjyOZ4TeRPYU/68Hu7grf3gGpg2R6R5qw='),
+      ( '1756070521659', '2025-08-24 02:00:00', '2026-12-24 01:00:00', 'INTERMEDIATE', 1, 2, false, NULL, '1756070521659.jks', 'Pzxe957Lhj7qcOKRNml7hWqfZUERK7GcmICnZLwjbrc='),
+      ( '1756070621656', '2025-08-24 02:00:00', '2026-08-24 02:00:00', 'END_ENTITY', 2, 2, false, NULL, '1756070621656.jks', 'JHdg9WBf6OXH8HfGOKxxrJidxbQHgx0PK3XMkDzuT6c='),
+      ( '1756070692229', '2025-08-24 02:00:00', '2026-04-29 02:00:00', 'INTERMEDIATE', 2, 2, false, NULL, '1756070692229.jks', 'RvoO8y/iG8Rrg0ozhW5Fxhe1wrvPk6Hx7m6aSCZflhs='),
+      ( '1756071279231', '2025-08-24 02:00:00', '2027-10-24 02:00:00', 'ROOT', NULL, 4, false, NULL, '1756071279231.jks', 'ZX1eU+PwM9xP8UkVZiSTQWjlt4fTT/w8PVg09tXuv5k=');
 
-SELECT setval('users_id_seq', (SELECT MAX(id) FROM users), true);
-SELECT setval('certificates_id_seq', (SELECT MAX(id) FROM certificates), true);
+

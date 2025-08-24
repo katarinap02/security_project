@@ -34,10 +34,8 @@ import org.slf4j.LoggerFactory;
 public class UserService implements UserDetailsService {
 
 
-    @Autowired
     private final UserRepository userRepository;
 
-    @Autowired
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -52,10 +50,9 @@ public class UserService implements UserDetailsService {
     public Map<String, TokenInfo> activeTokens = new ConcurrentHashMap<>();
     private Map<String, String> jtiToJwtMap = new ConcurrentHashMap<>();
 
-
+    @Autowired
     private RoleService roleService;
 
-    @Autowired
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
 

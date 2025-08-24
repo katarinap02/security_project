@@ -19,7 +19,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
     private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
 
     // Funkcija koja na osnovu email-a iz baze vraca objekat User-a

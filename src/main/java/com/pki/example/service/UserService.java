@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -239,6 +240,16 @@ public ResponseEntity<?> login(String email, String password) {
         }
         logger.warn("Token not found for revocation: {} by email {}", jti, email);
         return false;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Integer> getRolesByEmail(String email) {
+
+        User user = userRepository.findByEmail(email);
+        if(user == null)
+            throw new UsernameNotFoundException("Korisnik sa emailom '" + email + "' nije pronađen.");
+
+        return userRepository.findRoleIdsByEmail(email);
     }
 
 

@@ -1,0 +1,146 @@
+
+1.0rizovictanjaJavaFrontend"1756238118520*java2.Bþ
+7
+2src/main/java/com/pki/example/model/JwtConfig.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.model7
+$
+com.pki.example.model.JwtConfig9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+	JwtConfig14
+
+Configuration16
+
+unknown17
+
+annotated by18
++
+%Recovered#typeBindingLConfiguration;020
+
+
+uses21
+/
+)com.pki.example.model.JwtConfig.jwkSetUri23
+
+field24
+
+private25
+
+	jwkSetUri26
+>
+8com.pki.example.model.JwtConfig#jwtDecoder()LJwtDecoder;28
+
+method29
+
+
+jwtDecoder30
+
+
+JwtDecoder32
+
+returns33
+
+
+Bean35
+"
+Recovered#typeBindingLBean;037
+
+
+references38J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576j§
+A
+27;
+272829 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+30
+
+15
+151617
+
+36
+363717
+
+31
+313217
+
+19
+192017
+;
+86
+8910 *
+1	 	(:5B
+
+
+11
+12
+
+
+13
+14
+A
+22;
+222324 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+26
+
+34
+343517r»
+
+81518*
+1 (
+
+81921*
+1 (
+
+273133*
+1 (
+
+273418*
+1 (
+
+273621*
+1 (
+
+
+273121*
+1 (
+
+272238*
+1/ (8

@@ -1,0 +1,15 @@
+
+Jcom.pki.example.model.TokenInfo#getLastActivity()Ljava/time/LocalDateTime;{
+qC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/model/TokenInfo.java (("1*Â
+14 (@…
+‚
+4 (@
+%0java.time.LocalDateTime"__id*Q
+
+__unknown_file (5*3!
+com.pki.example.model.TokenInfo"
+lastActivity"+
+- (A
+
+%0java.time.LocalDateTimeB#!
+com.pki.example.model.TokenInfoH

@@ -1,0 +1,23 @@
+
+Zcom.pki.example.service.RoleService#findById(Ljava/lang/Long;)Lcom/pki/example/model/Role;
+uC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/service/RoleService.java ("1*ª
+1 (ù
+ö
+ (!/
+%0)com.pki.example.repository.RoleRepository"__id*W
+
+__unknown_file (;*9%
+#com.pki.example.service.RoleService"
+roleRepositoryZ
+X
+ (-"
+authcom.pki.example.model.Role"__id*"
+
+__unknown_file (
+"""0
+ ($
+"
+authcom.pki.example.model.Role: 
+ (
+idjava.lang.LongB'%
+#com.pki.example.service.RoleServiceH

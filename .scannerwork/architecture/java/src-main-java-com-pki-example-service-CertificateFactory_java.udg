@@ -1,0 +1,248 @@
+
+1.0rizovictanjaJavaFrontend"1756238118843*java2.B·
+
+B
+=src/main/java/com/pki/example/service/CertificateFactory.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.service7
+/
+*com.pki.example.service.CertificateFactory9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+CertificateFactory14
+
+	Component16
+
+unknown17
+
+annotated by18
+'
+!Recovered#typeBindingLComponent;020
+
+
+uses21
+Y
+Scom.pki.example.service.CertificateFactory#generateKeyPair()Ljava/security/KeyPair;23
+
+method24
+
+generateKeyPair25
+¢
+›com.pki.example.service.CertificateFactory#createSubject(Lcom/pki/example/dto/IssuerCertificateDTO;Ljava/security/PublicKey;)Lcom/pki/example/data/Subject;27
+
+createSubject28
+"
+com.pki.example.data.Subject30
+
+returns31
+.
+(com.pki.example.dto.IssuerCertificateDTO33
+
+	has param34
+
+is type35
+&
+ Recovered#typeBindingLX500Name;037
+
+X500Name39
+
+
+references40
+|
+vcom.pki.example.service.CertificateFactory#createX500NameFromDTO(Lcom/pki/example/dto/IssuerCertificateDTO;)LX500Name;42
+
+calls43
+š
+“com.pki.example.service.CertificateFactory#createIssuer(Ljava/security/PrivateKey;Ljava/security/PublicKey;LX500Name;)Lcom/pki/example/data/Issuer;45
+
+createIssuer46
+!
+com.pki.example.data.Issuer48
+
+private49
+
+createX500NameFromDTO50
+-
+'Recovered#typeBindingLX500NameBuilder;052J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576jé
+A
+44;
+444524 *
+1" "(28:5B
+
+
+11
+12
+
+
+13
+46
+
+19
+192017
+
+47
+474817
+A
+22;
+222324 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+25
+;
+86
+8910 *
+1 ( :5B
+
+
+11
+12
+
+
+13
+14
+
+38
+383917
+
+32
+323317
+
+51
+515217
+
+36
+363717
+
+29
+293017
+A
+41;
+414224 *
+1% %(28:5B
+
+
+11
+49
+
+
+13
+50
+
+15
+151617
+A
+26;
+262724 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+28r 
+
+81518*
+1 (
+
+81921*
+1 (
+
+262931*
+1 (
+
+263234*
+1" (6
+
+262921*
+1 (
+
+263235*
+17 (:
+
+263221*
+1" (6
+
+263635*
+1 (
+
+263621*
+1	 (
+
+263831*
+1 (2
+
+26840*
+1 (2
+
+264143*
+1 (2
+
+262943*
+1 (
+
+444731*
+1" "(
+
+443634*
+1"L "(T
+
+444721*
+1" "(
+
+443635*
+1"U "(]
+
+443621*
+1"L "(T
+
+413831*
+1% %(
+
+413234*
+1%, %(@
+
+413821*
+1% %(
+
+413235*
+1%A %(D
+
+413221*
+1%, %(@
+
+415135*
+1& &( 
+
+415121*
+1&	 &(

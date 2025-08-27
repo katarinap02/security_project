@@ -1,0 +1,34 @@
+
+Rcom.pki.example.service.RoleService#findByName(Ljava/lang/String;)Ljava/util/List;
+uC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/service/RoleService.java ("1*‹
+1 (ù
+ö
+ ((/
+%0)com.pki.example.repository.RoleRepository"__id*W
+
+__unknown_file (;*9%
+#com.pki.example.service.RoleService"
+roleRepository§°
+ (9
+%1java.util.List"Xcom.pki.example.repository.RoleRepository#findByName(Ljava/lang/String;)Ljava/util/List;*M
+
+__unknown_file (1
+/
+%0)com.pki.example.repository.RoleRepository*6
+
+__unknown_file (
+
+namejava.lang.String2findByName(Ljava/lang/String;)_
+]
+ (:
+rolesjava.util.List"__id*2
+
+__unknown_file (
+
+%1java.util.List"%
+ (
+
+rolesjava.util.List:$
+ ()
+namejava.lang.StringB'%
+#com.pki.example.service.RoleServiceH

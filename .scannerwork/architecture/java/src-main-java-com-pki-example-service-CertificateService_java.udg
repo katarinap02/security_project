@@ -1,0 +1,1064 @@
+
+1.0rizovictanjaJavaFrontend"1756238097144*java2.BÖ%
+B
+=src/main/java/com/pki/example/service/CertificateService.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.service7
+/
+*com.pki.example.service.CertificateService9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+CertificateService14
+
+Service16
+
+unknown17
+
+annotated by18
+%
+Recovered#typeBindingLService;020
+
+
+uses21
+F
+@com.pki.example.service.CertificateService.certificateRepository23
+
+field24
+
+private25
+
+certificateRepository26
+6
+0com.pki.example.repository.CertificateRepository28
+
+is type29
+C
+=com.pki.example.service.CertificateService.certificateFactory31
+
+certificateFactory32
+0
+*com.pki.example.service.CertificateFactory34
+@
+:com.pki.example.service.CertificateService.keystoreService36
+
+keystoreService37
+-
+'com.pki.example.service.KeystoreService39
+E
+?com.pki.example.service.CertificateService.certificateGenerator41
+
+certificateGenerator42
+7
+1com.pki.example.certificates.CertificateGenerator44
+?
+9com.pki.example.service.CertificateService.userRepository46
+
+userRepository47
+/
+)com.pki.example.repository.UserRepository49
+Ì
+Êcom.pki.example.service.CertificateService#<init>(Lcom/pki/example/repository/CertificateRepository;Lcom/pki/example/repository/UserRepository;Lcom/pki/example/service/CertificateFactory;Lcom/pki/example/service/KeystoreService;)V51
+
+method52
+
+	has param53
+
+	Autowired55
+'
+!Recovered#typeBindingLAutowired;057
+
+calls58
+
+
+references59
+≠
+¶com.pki.example.service.CertificateService#issueCertificate(Lcom/pki/example/dto/IssuerCertificateDTO;Lcom/pki/example/model/User;)Lcom/pki/example/model/Certificate;61
+
+issueCertificate62
+'
+!com.pki.example.model.Certificate64
+
+returns65
+.
+(com.pki.example.dto.IssuerCertificateDTO67
+ 
+com.pki.example.model.User69
+!
+com.pki.example.data.Issuer71
++
+%com.pki.example.model.CertificateType73
+q
+kcom.pki.example.model.CertificateType#fromString(Ljava/lang/String;)Lcom/pki/example/model/CertificateType;75
+k
+ecom.pki.example.repository.UserRepository#findByEmail(Ljava/lang/String;)Lcom/pki/example/model/User;77
+0
+*com.pki.example.model.CertificateType.ROOT79
+=
+7com.pki.example.model.User#hasRole(Ljava/lang/String;)Z81
+Y
+Scom.pki.example.service.CertificateFactory#generateKeyPair()Ljava/security/KeyPair;83
+"
+com.pki.example.data.Subject85
+¢
+õcom.pki.example.service.CertificateFactory#createSubject(Lcom/pki/example/dto/IssuerCertificateDTO;Ljava/security/PublicKey;)Lcom/pki/example/data/Subject;87
+ö
+ìcom.pki.example.service.CertificateFactory#createIssuer(Ljava/security/PrivateKey;Ljava/security/PublicKey;LX500Name;)Lcom/pki/example/data/Issuer;89
+)
+#org.bouncycastle.asn1.x500.X500Name91
+U
+Ocom.pki.example.data.Subject#getX500Name()Lorg/bouncycastle/asn1/x500/X500Name;93
+Ç
+|com.pki.example.service.CertificateService#validateAndGetIssuerRecord(Ljava/lang/String;)Lcom/pki/example/model/Certificate;95
+;
+5com.pki.example.model.User#getId()Ljava/lang/Integer;97
+6
+0com.pki.example.exception.InvalidIssuerException99
+R
+Kcom.pki.example.model.User#getEncryptedUserSymmetricKey()Ljava/lang/String;101
+l
+ecom.pki.example.service.KeystoreService#decryptUserSymmetricKey(Ljava/lang/String;)Ljava/lang/String;103
+f
+_com.pki.example.service.KeystoreService#decryptPassword(Ljava/lang/String;Ljava/lang/String;)[C105
+
+xcom.pki.example.service.KeystoreService#readPrivateKey(Ljava/lang/String;[CLjava/lang/String;)Ljava/security/PrivateKey;107
+ã
+Écom.pki.example.service.KeystoreService#readCertificate(Ljava/lang/String;[CLjava/lang/String;)Ljava/security/cert/X509Certificate;109
+'
+ Recovered#typeBindingLX500Name;0111
+á
+ˇcom.pki.example.certificates.CertificateGenerator#generateCertificate(Lcom/pki/example/data/Subject;Lcom/pki/example/data/Issuer;Ljava/util/Date;Ljava/util/Date;Ljava/lang/String;Lcom/pki/example/model/CertificateType;)Ljava/security/cert/X509Certificate;113
+I
+Bcom.pki.example.service.KeystoreService#generateRandomPassword()[C115
+7
+0com.pki.example.model.CertificateType.END_ENTITY117
+î
+åcom.pki.example.service.KeystoreService#writeTrustedCertificate(Ljava/lang/String;[CLjava/lang/String;Ljava/security/cert/X509Certificate;)V119
+±
+©com.pki.example.service.KeystoreService#writeKeyPairAndCertificate(Ljava/lang/String;[CLjava/lang/String;Ljava/security/PrivateKey;Ljava/security/cert/X509Certificate;)V121
+f
+_com.pki.example.service.KeystoreService#encryptPassword([CLjava/lang/String;)Ljava/lang/String;123
+!
+validateAndGetIssuerRecord124
+r
+kcom.pki.example.repository.CertificateRepository#findBySerialNumber(Ljava/lang/String;)Ljava/util/Optional;126
+:
+3com.pki.example.exception.ResourceNotFoundException128J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576j¢
+
+88
+888917
+
+70
+707117
+
+82
+828317
+
+125
+12512617
+
+33
+333417
+
+72
+727317
+A
+60;
+606152 *
+1* *(28:5B
+
+
+11
+12
+
+
+13
+62
+
+90
+909117
+
+108
+10810917
+
+112
+11211317
+A
+30;
+303124 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+32
+A
+35;
+353624 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+37
+
+120
+12012117
+
+100
+10010117
+
+96
+969717
+
+98
+989917
+;
+86
+8910 *
+1 ( :5B
+
+
+11
+12
+
+
+13
+14
+
+122
+12212317
+
+127
+12712817
+
+19
+192017
+
+118
+11811917
+
+66
+666717
+
+76
+767717
+D
+94>
+949552 *
+1• •(28:5B
+
+
+11
+25
+
+13
+124
+
+78
+787917
+
+114
+11411517
+
+43
+434417
+
+102
+10210317
+A
+22;
+222324 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+26
+A
+50;
+505152 *
+1! !(28:5B
+
+
+11
+12
+
+
+13
+14
+A
+45;
+454624 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+47
+
+48
+484917
+
+110
+11011117
+A
+40;
+404124 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+42
+
+68
+686917
+
+80
+808117
+
+54
+545517
+
+116
+11611717
+
+27
+272817
+
+38
+383917
+
+104
+10410517
+
+63
+636417
+
+92
+929317
+
+15
+151617
+
+106
+10610717
+
+84
+848517
+
+56
+565717
+
+74
+747517
+
+86
+868717r˘/
+
+81518*
+1 (
+
+81921*
+1 (	
+
+222729*
+1 ((
+
+222721*
+1 ((
+
+222721*
+1) (>
+
+303329*
+1 (%
+
+303321*
+1 (%
+
+303321*
+1& (8
+
+353829*
+1 ("
+
+353821*
+1 ("
+
+353821*
+1# (2
+
+404329*
+1 ('
+
+404321*
+1 ('
+
+404321*
+1( (<
+
+454829*
+1 (!
+
+454821*
+1 (!
+
+454821*
+1" (0
+
+502753*
+1" "(4
+
+504853*
+1"L "(Z
+
+503353*
+1"j "(|
+
+503853*
+1"ë "(†
+
+505418*
+1! !(
+
+505621*
+1! !(
+
+50858*
+1" "(
+
+502729*
+1"5 "(J
+
+502721*
+1" "(4
+
+504829*
+1"[ "(i
+
+504821*
+1"L "(Z
+
+503329*
+1"} "(è
+
+503321*
+1"j "(|
+
+503829*
+1"° "(∞
+
+503821*
+1"ë "(†
+
+50821*
+1#	 #(
+
+50859*
+1#	 #(
+
+502721*
+1# #(#
+
+502259*
+1# #(#
+
+50821*
+1$	 $(
+
+50859*
+1$	 $(
+
+503321*
+1$ $( 
+
+503059*
+1$ $( 
+
+50821*
+1%	 %(
+
+50859*
+1%	 %(
+
+503821*
+1% %(
+
+503559*
+1% %(
+
+50821*
+1&	 &(
+
+50859*
+1&	 &(
+
+504321*
+1& &("
+
+504059*
+1& &("
+
+504358*
+1&) &(=
+
+50821*
+1'	 '(
+
+50859*
+1'	 '(
+
+504821*
+1' '(
+
+504559*
+1' '(
+
+606365*
+1* *(
+
+606653*
+1*) *(=
+
+606853*
+1*C *(G
+
+606321*
+1* *(
+
+606629*
+1*> *(A
+
+606621*
+1*) *(=
+
+606829*
+1*H *(Y
+
+606821*
+1*C *(G
+
+607029*
+11 1(
+
+607021*
+11	 1(
+
+606329*
+12 2(!
+
+606321*
+12	 2(
+
+607229*
+14 4(
+
+607221*
+14	 4(
+
+607265*
+14  4(/
+
+607259*
+14  4(/
+
+607458*
+140 4(:
+
+607221*
+14  4(/
+
+606829*
+15 5(
+
+606821*
+15	 5(
+
+606865*
+15 5($
+
+604859*
+15 5($
+
+607658*
+15% 5(0
+
+604559*
+15 5($
+
+604821*
+15 5($
+
+604559*
+15 5($
+
+607221*
+17 7($
+
+607221*
+17% 7()
+
+607859*
+17% 7()
+
+606859*
+1: :(#
+
+608058*
+1:$ :(+
+
+603359*
+1?# ?(5
+
+608258*
+1?6 ?(E
+
+603059*
+1?# ?(5
+
+603321*
+1?# ?(5
+
+603059*
+1?# ?(5
+
+608429*
+1@ @(&
+
+608421*
+1@ @(
+
+608465*
+1@) @(;
+
+603359*
+1@) @(;
+
+608658*
+1@< @(I
+
+603059*
+1@) @(;
+
+603321*
+1@) @(;
+
+603059*
+1@) @(;
+
+607065*
+1A A(,
+
+603359*
+1A A(,
+
+608858*
+1A- A(9
+
+603059*
+1A A(,
+
+603321*
+1A A(,
+
+603059*
+1A A(,
+
+609065*
+1Am A(~
+
+608459*
+1Am A(~
+
+609258*
+1A A(ä
+
+606365*
+1D D(6
+
+60859*
+1D D(6
+
+609458*
+1D D(6
+
+606859*
+1F F("
+
+608058*
+1F# F(*
+
+606859*
+1H= H(N
+
+609658*
+1HO H(T
+
+606859*
+1L L((
+
+608058*
+1L) L(0
+
+606829*
+1Q Q(
+
+606821*
+1Q Q(
+
+609858*
+1S S(1
+
+606859*
+1U' U(2
+
+6010058*
+1U3 U(O
+
+603859*
+1W' W(6
+
+6010258*
+1W7 W(N
+
+603559*
+1W' W(6
+
+603821*
+1W' W(6
+
+603559*
+1W' W(6
+
+603859*
+1Z- Z(<
+
+6010458*
+1Z= Z(L
+
+603559*
+1Z- Z(<
+
+603821*
+1Z- Z(<
+
+603559*
+1Z- Z(<
+
+603859*
+1^+ ^(:
+
+6010658*
+1^; ^(I
+
+603559*
+1^+ ^(:
+
+603821*
+1^+ ^(:
+
+603559*
+1^+ ^(:
+
+603859*
+1e. e(=
+
+6010858*
+1e> e(M
+
+603559*
+1e. e(=
+
+603821*
+1e. e(=
+
+603559*
+1e. e(=
+
+6011029*
+1f f($
+
+6011021*
+1f f(
+
+607065*
+1h h(,
+
+603359*
+1h h(,
+
+608858*
+1h- h(9
+
+603059*
+1h h(,
+
+603321*
+1h h(,
+
+603059*
+1h h(,
+
+603359*
+1l" l(4
+
+608258*
+1l5 l(D
+
+603059*
+1l" l(4
+
+603321*
+1l" l(4
+
+603059*
+1l" l(4
+
+608429*
+1m m(
+
+608421*
+1m	 m(
+
+608465*
+1m m(1
+
+603359*
+1m m(1
+
+608658*
+1m2 m(?
+
+603059*
+1m m(1
+
+603321*
+1m m(1
+
+603059*
+1m m(1
+
+604359*
+1s$ s(8
+
+6011258*
+1s9 s(L
+
+604059*
+1s$ s(8
+
+604321*
+1s$ s(8
+
+604059*
+1s$ s(8
+
+603859*
+1~& ~(5
+
+6011458*
+1~6 ~(L
+
+603559*
+1~& ~(5
+
+603821*
+1~& ~(5
+
+603559*
+1~& ~(5
+
+607221*
+1Å Å($
+
+607221*
+1Å% Å(/
+
+6011659*
+1Å% Å(/
+
+603859*
+1É É(
+
+6011858*
+1É É(4
+
+603559*
+1É É(
+
+603821*
+1É É(
+
+603559*
+1É É(
+
+603859*
+1Ü Ü(
+
+6012058*
+1Ü Ü(7
+
+603559*
+1Ü Ü(
+
+603821*
+1Ü Ü(
+
+603559*
+1Ü Ü(
+
+603859*
+1ä$ ä(3
+
+6010258*
+1ä4 ä(K
+
+603559*
+1ä$ ä(3
+
+603821*
+1ä$ ä(3
+
+603559*
+1ä$ ä(3
+
+606859*
+1äL ä(Q
+
+6010058*
+1äR ä(n
+
+603859*
+1ã$ ã(3
+
+6012258*
+1ã4 ã(C
+
+603559*
+1ã$ ã(3
+
+603821*
+1ã$ ã(3
+
+603559*
+1ã$ ã(3
+
+606329*
+1ç ç(#
+
+606321*
+1ç	 ç(
+
+606358*
+1ç* ç(5
+
+607221*
+1ô ô($
+
+607221*
+1ô% ô()
+
+607859*
+1ô% ô()
+
+602259*
+1ù ù(%
+
+602721*
+1ù ù(%
+
+602259*
+1ù ù(%
+
+946365*
+1• •(
+
+946321*
+1• •(
+
+949858*
+1ß ß(-
+
+946329*
+1™ ™(
+
+946321*
+1™	 ™(
+
+946365*
+1™ ™(3
+
+942759*
+1™ ™(3
+
+9412558*
+1™4 ™(F
+
+942259*
+1™ ™(3
+
+942721*
+1™ ™(3
+
+942259*
+1™ ™(3
+
+9412758*
+1´( ´(A
+
+949858*
+1Æ Æ(-
+
+949858*
+1± ±(-
+
+947221*
+1≥! ≥(0
+
+947221*
+1≥1 ≥(;
+
+9411659*
+1≥1 ≥(;
+
+949858*
+1¥ ¥(-

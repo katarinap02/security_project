@@ -48,7 +48,8 @@ export class LoginComponent implements AfterViewInit {
   constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
+      password: ['', Validators.required],
+      twoFactorCode: ['']
     });
   }
 
@@ -84,14 +85,17 @@ export class LoginComponent implements AfterViewInit {
     const loginData = {
       email: this.loginForm.value.email,
       password: this.loginForm.value.password,
-      recaptchaToken: token
+      recaptchaToken: token,
+      twoFactorCode: this.loginForm.value.twoFactorCode
     };
+
+      console.log('Sending login data:', loginData);
 
     this.authService.login(loginData).subscribe({
       
       next: (res: any) => {
 
-        //console.log("LOGIN RESPONSE:", res);
+        console.log("LOGIN RESPONSE:", res);
 
 
               Swal.fire({
@@ -102,14 +106,15 @@ export class LoginComponent implements AfterViewInit {
         grecaptcha.reset(this.captchaWidgetId); // resetuje captcha nakon uspešne prijave
             
         const decoded: DecodedToken = jwtDecode(res.token);
-
+console.log('Decoded token:', decoded);
         localStorage.setItem('email', decoded.sub);
         localStorage.setItem('jti', res.jti);
-        localStorage.setItem('jwtToken', res.token);
+        localStorage.setItem('keycloakToken', res.token);
 
-        //console.log('LOOGIINNNN INFOOO',decoded);
+        console.log('LOOGIINNNN INFOOO',decoded);
 
         this.router.navigate(['/profile']); // preusmerava na profile
+
       },
       error: (err: any) => {
               Swal.fire({

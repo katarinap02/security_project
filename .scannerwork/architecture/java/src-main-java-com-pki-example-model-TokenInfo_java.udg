@@ -1,0 +1,494 @@
+
+1.0rizovictanjaJavaFrontend"1756238089488*java2.B÷
+7
+2src/main/java/com/pki/example/model/TokenInfo.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.model7
+$
+com.pki.example.model.TokenInfo9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+	TokenInfo14
+)
+#com.pki.example.model.TokenInfo.jti16
+
+field17
+
+private18
+	
+jti19
+/
+)com.pki.example.model.TokenInfo.ipAddress21
+
+	ipAddress22
+/
+)com.pki.example.model.TokenInfo.userAgent24
+
+	userAgent25
+2
+,com.pki.example.model.TokenInfo.lastActivity27
+
+lastActivity28
++
+%com.pki.example.model.TokenInfo.email30
+
+email31
+)
+#com.pki.example.model.TokenInfo.sub33
+	
+sub34
+‘
+Šcom.pki.example.model.TokenInfo#<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDateTime;)V36
+
+method37
+
+calls38
+
+
+uses39
+
+
+references40
+@
+:com.pki.example.model.TokenInfo#getJti()Ljava/lang/String;42
+
+getJti43
+A
+;com.pki.example.model.TokenInfo#setJti(Ljava/lang/String;)V45
+
+setJti46
+F
+@com.pki.example.model.TokenInfo#getIpAddress()Ljava/lang/String;48
+
+getIpAddress49
+G
+Acom.pki.example.model.TokenInfo#setIpAddress(Ljava/lang/String;)V51
+
+setIpAddress52
+F
+@com.pki.example.model.TokenInfo#getUserAgent()Ljava/lang/String;54
+
+getUserAgent55
+G
+Acom.pki.example.model.TokenInfo#setUserAgent(Ljava/lang/String;)V57
+
+setUserAgent58
+P
+Jcom.pki.example.model.TokenInfo#getLastActivity()Ljava/time/LocalDateTime;60
+
+getLastActivity61
+Q
+Kcom.pki.example.model.TokenInfo#setLastActivity(Ljava/time/LocalDateTime;)V63
+
+setLastActivity64
+B
+<com.pki.example.model.TokenInfo#getEmail()Ljava/lang/String;66
+
+getEmail67
+C
+=com.pki.example.model.TokenInfo#setEmail(Ljava/lang/String;)V69
+
+setEmail70
+@
+:com.pki.example.model.TokenInfo#getSub()Ljava/lang/String;72
+
+getSub73
+A
+;com.pki.example.model.TokenInfo#setSub(Ljava/lang/String;)V75
+
+setSub76J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576j¶
+
+A
+68;
+686937 *
+1   (28:5B
+
+
+11
+12
+
+
+13
+70
+A
+50;
+505137 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+52
+A
+23;
+232417 *
+1 (28:5B
+
+
+11
+18
+
+
+13
+25
+A
+29;
+293017 *
+1
+ 
+(28:5B
+
+
+11
+18
+
+
+13
+31
+A
+35;
+353637 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+14
+A
+71;
+717237 *
+1! !(28:5B
+
+
+11
+12
+
+
+13
+73
+A
+15;
+151617 *
+1 (28:5B
+
+
+11
+18
+
+
+13
+19
+A
+32;
+323317 *
+1 (28:5B
+
+
+11
+18
+
+
+13
+34
+A
+44;
+444537 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+46
+A
+41;
+414237 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+43
+A
+62;
+626337 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+64
+A
+56;
+565737 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+58
+A
+53;
+535437 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+55
+A
+74;
+747537 *
+1" "(28:5B
+
+
+11
+12
+
+
+13
+76
+A
+47;
+474837 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+49
+A
+59;
+596037 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+61
+A
+26;
+262717 *
+1	 	(28:5B
+
+
+11
+18
+
+
+13
+28
+A
+65;
+656637 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+67
+;
+86
+8910 *
+1 (:5B
+
+
+11
+12
+
+
+13
+14
+A
+20;
+202117 *
+1 (28:5B
+
+
+11
+18
+
+
+13
+22rð
+
+35838*
+1 (
+
+35839*
+1	 (
+
+35840*
+1	 (
+
+351540*
+1 (
+
+35839*
+1	 (
+
+35840*
+1	 (
+
+352940*
+1 (
+
+35839*
+1	 (
+
+35840*
+1	 (
+
+353240*
+1 (
+
+35839*
+1	 (
+
+35840*
+1	 (
+
+352040*
+1 (
+
+35839*
+1	 (
+
+35840*
+1	 (
+
+352340*
+1 (
+
+35839*
+1	 (
+
+35840*
+1	 (
+
+352640*
+1 (
+
+411540*
+1% ((
+
+44839*
+1& (*
+
+44840*
+1& (*
+
+441540*
+1+ (.
+
+472040*
+1+ (4
+
+50839*
+12 (6
+
+50840*
+12 (6
+
+502040*
+17 (@
+
+532340*
+1+ (4
+
+56839*
+12 (6
+
+56840*
+12 (6
+
+562340*
+17 (@
+
+592640*
+15 (A
+
+62839*
+1? (C
+
+62840*
+1? (C
+
+622640*
+1D (P
+
+652940*
+1' (,
+
+68839*
+1 *  (.
+
+68840*
+1 *  (.
+
+682940*
+1 /  (4
+
+713240*
+1!% !((
+
+74839*
+1"& "(*
+
+74840*
+1"& "(*
+
+743240*
+1"+ "(.

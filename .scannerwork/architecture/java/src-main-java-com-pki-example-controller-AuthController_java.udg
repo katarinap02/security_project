@@ -1,0 +1,1106 @@
+
+1.0rizovictanjaJavaFrontend"1756238109025*java2.Bç&
+A
+<src/main/java/com/pki/example/controller/AuthController.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.controller7
+.
+)com.pki.example.controller.AuthController9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+AuthController14
+
+CrossOrigin16
+
+unknown17
+
+annotated by18
+)
+#Recovered#typeBindingLCrossOrigin;020
+
+
+uses21
+
+RestController23
+,
+&Recovered#typeBindingLRestController;025
+
+RequestMapping27
+,
+&Recovered#typeBindingLRequestMapping;029
+;
+5com.pki.example.controller.AuthController.userService31
+
+field32
+
+private33
+
+userService34
+)
+#com.pki.example.service.UserService36
+
+is type37
+
+	Autowired39
+'
+!Recovered#typeBindingLAutowired;041
+>
+8com.pki.example.controller.AuthController.userRepository43
+
+userRepository44
+/
+)com.pki.example.repository.UserRepository46
+<
+6com.pki.example.controller.AuthController.emailService48
+
+emailService49
+*
+$com.pki.example.service.EmailService51
+@
+:com.pki.example.controller.AuthController.recaptchaService53
+
+recaptchaService54
+.
+(com.pki.example.service.RecaptchaService56
+I
+Ccom.pki.example.controller.AuthController.passwordResetTokenService58
+
+passwordResetTokenService59
+7
+1com.pki.example.service.PasswordResetTokenService61
+?
+9com.pki.example.controller.AuthController.passwordEncoder63
+
+passwordEncoder64
+
+PasswordEncoder66
+>
+8com.pki.example.controller.AuthController.securityConfig68
+
+securityConfig69
+3
+-com.pki.example.config.KeycloakSecurityConfig71
+g
+acom.pki.example.controller.AuthController#register(Lcom/pki/example/dto/UserDTO;)LResponseEntity;73
+
+method74
+
+register75
+
+ResponseEntity77
+
+returns78
+!
+com.pki.example.dto.UserDTO80
+
+	has param81
+
+PostMapping83
+)
+#Recovered#typeBindingLPostMapping;085
+
+RequestBody87
+)
+#Recovered#typeBindingLRequestBody;089
+-
+'org.springframework.http.ResponseEntity91
+
+
+references92
+z
+tcom.pki.example.service.UserService#register(Lcom/pki/example/dto/UserDTO;)Lorg/springframework/http/ResponseEntity;94
+
+calls95
+i
+ccom.pki.example.controller.AuthController#login(Lcom/pki/example/dto/LoginRequest;)LResponseEntity;97
+
+login98
+'
+ com.pki.example.dto.LoginRequest100
+í
+äcom.pki.example.service.UserService#login(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/springframework/http/ResponseEntity;102
+D
+=com.pki.example.dto.LoginRequest#getEmail()Ljava/lang/String;104
+G
+@com.pki.example.dto.LoginRequest#getPassword()Ljava/lang/String;106
+M
+Fcom.pki.example.dto.LoginRequest#getRecaptchaToken()Ljava/lang/String;108
+a
+Zcom.pki.example.controller.AuthController#activateUser(Ljava/lang/String;)LResponseEntity;110
+
+activateUser111
+
+
+GetMapping113
+)
+"Recovered#typeBindingLGetMapping;0115
+
+PathVariable117
++
+$Recovered#typeBindingLPathVariable;0119
+t
+mcom.pki.example.service.UserService#activateUser(Ljava/lang/String;)Lorg/springframework/http/ResponseEntity;121
+`
+Ycom.pki.example.controller.AuthController#getRole(Ljava/lang/Integer;)Ljava/lang/Integer;123
+
+getRole124
+Z
+Scom.pki.example.service.UserService#getRole(Ljava/lang/Integer;)Ljava/lang/Integer;126
+d
+]com.pki.example.controller.AuthController#getActiveSessions(LAuthentication;)LResponseEntity;128
+
+getActiveSessions129
+-
+&Recovered#typeBindingLAuthentication;0131
+
+PreAuthorize133
++
+$Recovered#typeBindingLPreAuthorize;0135
+'
+ com.pki.example.dto.TokenInfoDTO137
+"
+Recovered#typeBindingLJwt;0139
+e
+^com.pki.example.service.UserService#getActiveTokensForUser(Ljava/lang/String;)Ljava/util/List;141
+r
+kcom.pki.example.controller.AuthController#revokeToken(Ljava/lang/String;Ljava/lang/String;)LResponseEntity;143
+
+revokeToken144
+
+RequestParam146
++
+$Recovered#typeBindingLRequestParam;0148
+]
+Vcom.pki.example.service.UserService#revokeToken(Ljava/lang/String;Ljava/lang/String;)Z150
+`
+Ycom.pki.example.controller.AuthController#forgotPassword(Ljava/util/Map;)LResponseEntity;152
+
+forgotPassword153
+!
+com.pki.example.model.User155
+l
+ecom.pki.example.repository.UserRepository#findByEmail(Ljava/lang/String;)Lcom/pki/example/model/User;157
+s
+lcom.pki.example.service.PasswordResetTokenService#saveToken(Lcom/pki/example/model/User;Ljava/lang/String;)V159
+i
+bcom.pki.example.service.EmailService#sendPasswordResetEmail(Ljava/lang/String;Ljava/lang/String;)V161
+>
+7com.pki.example.model.User#getEmail()Ljava/lang/String;163
+_
+Xcom.pki.example.controller.AuthController#resetPassword(Ljava/util/Map;)LResponseEntity;165
+
+resetPassword166
+v
+ocom.pki.example.service.PasswordResetTokenService#validateToken(Ljava/lang/String;)Lcom/pki/example/model/User;168
+B
+;com.pki.example.model.User#setPassword(Ljava/lang/String;)V170
+]
+Vcom.pki.example.service.PasswordResetTokenService#invalidateToken(Ljava/lang/String;)V172J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576jí
+
+149
+14915017
+
+171
+17117217
+
+103
+10310417
+E
+127>
+12712874 *
+1Y Y(28:5B
+
+
+11
+12
+
+13
+129
+
+24
+242517
+
+118
+11811917
+
+120
+12012117
+
+167
+16716817
+E
+109>
+10911074 *
+1M M(28:5B
+
+
+11
+12
+
+13
+111
+
+134
+13413517
+
+28
+282917
+A
+30;
+303132 *
+1" "(28:5B
+
+
+11
+33
+
+
+13
+34
+
+79
+798017
+
+114
+11411517
+
+132
+13213317
+A
+96;
+969774 *
+1A A(28:5B
+
+
+11
+12
+
+
+13
+98
+
+65
+656617
+
+125
+12512617
+
+88
+888917
+
+130
+13013117
+
+50
+505117
+
+156
+15615717
+
+158
+15815917
+
+112
+11211317
+
+160
+16016117
+E
+151>
+15115274 *
+1m m(28:5B
+
+
+11
+12
+
+13
+153
+
+93
+939417
+
+107
+10710817
+
+60
+606117
+
+55
+555617
+
+101
+10110217
+
+145
+14514617
+A
+42;
+424332 *
+1% %(28:5B
+
+
+11
+33
+
+
+13
+44
+
+22
+222317
+
+169
+16917017
+
+105
+10510617
+;
+86
+8910 *
+1! !(:5B
+
+
+11
+12
+
+
+13
+14
+
+26
+262717
+
+45
+454617
+
+99
+9910017
+E
+122>
+12212374 *
+1S S(28:5B
+
+
+11
+12
+
+13
+124
+
+154
+15415517
+
+140
+14014117
+
+38
+383917
+
+82
+828317
+G
+164@
+16416574 *
+1é é(28:5B
+
+
+11
+12
+
+13
+166
+
+35
+353617
+
+86
+868717
+A
+62;
+626332 *
+11 1(28:5B
+
+
+11
+33
+
+
+13
+64
+A
+67;
+676832 *
+14 4(28:5B
+
+
+11
+33
+
+
+13
+69
+
+136
+13613717
+
+138
+13813917
+A
+52;
+525332 *
+1+ +(28:5B
+
+
+11
+33
+
+
+13
+54
+
+162
+16216317
+
+19
+192017
+
+70
+707117
+
+84
+848517
+A
+57;
+575832 *
+1. .(28:5B
+
+
+11
+33
+
+
+13
+59
+E
+142>
+14214374 *
+1a a(28:5B
+
+
+11
+12
+
+13
+144
+
+76
+767717
+
+15
+151617
+
+40
+404117
+
+147
+14714817
+
+90
+909117
+A
+72;
+727374 *
+17 7(28:5B
+
+
+11
+12
+
+
+13
+75
+A
+47;
+474832 *
+1( ((28:5B
+
+
+11
+33
+
+
+13
+49
+
+116
+11611717r˘'
+
+81518*
+1 (
+
+81921*
+1 (
+
+82218*
+1 (
+
+82421*
+1 (
+
+82618*
+1 (
+
+82821*
+1 (
+
+303537*
+1# #(
+
+303818*
+1" "(
+
+304021*
+1" "(
+
+303521*
+1# #(
+
+303521*
+1# #($
+
+424537*
+1& &(
+
+423818*
+1% %(
+
+424021*
+1% %(
+
+424521*
+1& &(
+
+424521*
+1& &(*
+
+475037*
+1) )(
+
+473818*
+1( ((
+
+474021*
+1( ((
+
+475021*
+1) )(
+
+475021*
+1) )(&
+
+525537*
+1, ,(
+
+523818*
+1+ +(
+
+524021*
+1+ +(
+
+525521*
+1, ,(
+
+525521*
+1, ,(.
+
+576037*
+1/ /(&
+
+573818*
+1. .(
+
+574021*
+1. .(
+
+576021*
+1/ /(&
+
+576021*
+1/' /(@
+
+626537*
+12 2(
+
+623818*
+11 1(
+
+624021*
+11 1(
+
+626521*
+12 2(
+
+626521*
+12 2(,
+
+677037*
+15 5(#
+
+673818*
+14 4(
+
+674021*
+14 4(
+
+677021*
+15 5(#
+
+677021*
+15$ 5(2
+
+727678*
+18 8(
+
+727981*
+184 8(;
+
+728218*
+17 7(
+
+728421*
+17 7(
+
+727621*
+18 8(
+
+727937*
+18< 8(C
+
+728618*
+18' 8((
+
+728821*
+18( 8(3
+
+727921*
+184 8(;
+
+729078*
+19 9(
+
+723592*
+19 9(
+
+729395*
+19 9($
+
+723092*
+19 9(
+
+723521*
+19 9(
+
+723092*
+19 9(
+
+967678*
+1B B(
+
+969981*
+1B1 B(=
+
+968218*
+1A A(
+
+968421*
+1A A(
+
+967621*
+1B B(
+
+969937*
+1B> B(J
+
+968618*
+1B$ B(%
+
+968821*
+1B% B(0
+
+969921*
+1B1 B(=
+
+969078*
+1D D(
+
+963592*
+1D D(
+
+9610195*
+1D D(!
+
+963092*
+1D D(
+
+963521*
+1D D(
+
+963092*
+1D D(
+
+969992*
+1E E(
+
+9610395*
+1E E(&
+
+969992*
+1F F(
+
+9610595*
+1F F()
+
+969992*
+1G G(
+
+9610795*
+1G G(/
+
+1097678*
+1N N(
+
+10911218*
+1M M(
+
+10911421*
+1M M(
+
+1097621*
+1N N(
+
+10911618*
+1N+ N(,
+
+10911821*
+1N, N(8
+
+1099078*
+1O O(
+
+1093592*
+1O O(
+
+10912095*
+1O O((
+
+1093092*
+1O O(
+
+1093521*
+1O O(
+
+1093092*
+1O O(
+
+12211218*
+1S S(
+
+12211421*
+1S S(
+
+12211618*
+1T T(
+
+12211821*
+1T T()
+
+1223592*
+1U U(#
+
+12212595*
+1U$ U(+
+
+1223092*
+1U U(#
+
+1223521*
+1U U(#
+
+1223092*
+1U U(#
+
+1277678*
+1[ [(
+
+12713081*
+1[A [(O
+
+12711218*
+1Y Y(
+
+12711421*
+1Y Y(
+
+12713218*
+1Z Z(
+
+12713421*
+1Z Z(
+
+1277621*
+1[ [(
+
+12713621*
+1[  [(,
+
+12713037*
+1[P [(^
+
+12713021*
+1[A [(O
+
+12713821*
+1\ \(
+
+1273592*
+1]" ](-
+
+12714095*
+1]. ](D
+
+1273092*
+1]" ](-
+
+1273521*
+1]" ](-
+
+1273092*
+1]" ](-
+
+1427678*
+1c c(
+
+1428218*
+1a a(
+
+1428421*
+1a a(
+
+14213218*
+1b b(
+
+14213421*
+1b b(
+
+1427621*
+1c c(
+
+14214518*
+1c* c(+
+
+14214721*
+1c+ c(7
+
+14214518*
+1cD c(E
+
+14214721*
+1cE c(Q
+
+1423592*
+1d d(&
+
+14214995*
+1d' d(2
+
+1423092*
+1d d(&
+
+1423521*
+1d d(&
+
+1423092*
+1d d(&
+
+1517678*
+1n n(
+
+1518218*
+1m m(
+
+1518421*
+1m m(
+
+1517621*
+1n n(
+
+1518618*
+1n- n(.
+
+1518821*
+1n. n(9
+
+15115437*
+1q q(
+
+15115421*
+1q q(
+
+15115478*
+1q q('
+
+1514592*
+1q q('
+
+15115695*
+1q( q(3
+
+1514292*
+1q q('
+
+1514521*
+1q q('
+
+1514292*
+1q q('
+
+1516092*
+1w w(&
+
+15115895*
+1w' w(0
+
+1515792*
+1w w(&
+
+1516021*
+1w w(&
+
+1515792*
+1w w(&
+
+1515092*
+1{ {(
+
+15116095*
+1{ {(4
+
+1514792*
+1{ {(
+
+1515021*
+1{ {(
+
+1514792*
+1{ {(
+
+15115492*
+1{5 {(9
+
+15116295*
+1{: {(B
+
+1647678*
+1è è(
+
+1648218*
+1é é(
+
+1648421*
+1é é(
+
+1647621*
+1è è(
+
+1648618*
+1è, è(-
+
+1648821*
+1è- è(8
+
+16415437*
+1ì ì(
+
+16415421*
+1ì	 ì(
+
+16415478*
+1ì ì(.
+
+1646092*
+1ì ì(.
+
+16416795*
+1ì/ ì(<
+
+1645792*
+1ì ì(.
+
+1646021*
+1ì ì(.
+
+1645792*
+1ì ì(.
+
+16415492*
+1ò	 ò(
+
+16416995*
+1ò ò(
+
+1646292*
+1ò ò()
+
+1646521*
+1ò ò()
+
+1646292*
+1ò ò()
+
+1644292*
+1ô	 ô(
+
+1644521*
+1ô	 ô(
+
+1644292*
+1ô	 ô(
+
+1646092*
+1õ	 õ("
+
+16417195*
+1õ# õ(2
+
+1645792*
+1õ	 õ("
+
+1646021*
+1õ	 õ("
+
+1645792*
+1õ	 õ("

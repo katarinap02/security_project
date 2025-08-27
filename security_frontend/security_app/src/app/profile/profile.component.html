@@ -10,9 +10,23 @@
         (click)="logout()">
   Logout
 </button>
-
 </mat-toolbar>
 
+<!--  Two-Factor Authentication Card -->
+<mat-card class="form-card">
+  <h2>Two-Factor Authentication</h2>
+  <button mat-raised-button color="primary" (click)="enable2FA()">
+    Enable 2FA
+  </button>
+
+  <div *ngIf="qrUrl">
+    <p>Scan this QR code with Google Authenticator:</p>
+    <qrcode [qrdata]="qrUrl" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
+  </div>
+</mat-card>
+
+
+<!--  Active Sessions -->
 <div class="form-container" *ngIf="showSessions">
   <mat-card class="form-card">
     <h2>Active Sessions</h2>

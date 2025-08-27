@@ -1,0 +1,5 @@
+2this; ;("com.pki.example.model.AuditLog)	userAgent; ;(-"java.lang.String";+
+)
+< <(""#set-field# userAgent:
+
+= =(*pC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/model/AuditLog.java

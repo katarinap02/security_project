@@ -1,23 +1,25 @@
 package com.pki.example.controller;
 
-import com.pki.example.dto.JwtResponse;
+import com.pki.example.config.KeycloakSecurityConfig;
 import com.pki.example.dto.LoginRequest;
 import com.pki.example.dto.TokenInfoDTO;
 import com.pki.example.dto.UserDTO;
-import com.pki.example.model.TokenInfo;
 import com.pki.example.model.User;
 import com.pki.example.repository.UserRepository;
 import com.pki.example.service.EmailService;
 import com.pki.example.service.PasswordResetTokenService;
 import com.pki.example.service.RecaptchaService;
 import com.pki.example.service.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.handler.UserRoleAuthorizationInterceptor;
+
 import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.List;
@@ -47,6 +49,9 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private KeycloakSecurityConfig securityConfig;
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDTO userDto) {
         return userService.register(userDto);
@@ -63,7 +68,8 @@ public class AuthController {
         return userService.login(
                 loginRequest.getEmail(),
                 loginRequest.getPassword(),
-                loginRequest.getRecaptchaToken()
+                loginRequest.getRecaptchaToken(),
+                loginRequest.getTwoFactorCode()
         );
     }
 
@@ -82,17 +88,17 @@ public class AuthController {
     }
 
     @GetMapping("/sessions")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_END_USER', 'ROLE_CA_USER')")
-    public ResponseEntity<List<TokenInfoDTO>> getActiveSessions(@RequestParam String email) {
-        List<TokenInfoDTO> sessions = userService.getActiveTokensForUser(email);
-        return ResponseEntity.ok(sessions);
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_END_USER','ROLE_CA_USER')")
+    public ResponseEntity<List<TokenInfoDTO>> getActiveSessions(Authentication authentication) {
+        String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+        return ResponseEntity.ok(userService.getActiveTokensForUser(email));
     }
 
 
     @PostMapping("/sessions/revoke")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_END_USER', 'ROLE_CA_USER')")
-    public ResponseEntity<?> revokeToken(@RequestParam String jti, @RequestParam String email) {
-        boolean revoked = userService.revokeToken(jti, email);
+    public ResponseEntity<?> revokeToken(@RequestParam String jti, @RequestParam String sub) {
+        boolean revoked = userService.revokeToken(jti, sub);
         if (revoked) {
             return ResponseEntity.ok(Map.of("message", "Token revoked successfully"));
         } else {
@@ -152,5 +158,11 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Password has been successfully reset."));
     }
 
+    @PostMapping("/enable-2fa")
+    public ResponseEntity<?> enable2FA(@RequestBody Map<String, String> request) {
+        String email = request.get("sub"); // stiže iz Angular-a
+        String qrUrl = userService.enable2FA(email);
+        return ResponseEntity.ok(Map.of("qrUrl", qrUrl));
+    }
 
 }

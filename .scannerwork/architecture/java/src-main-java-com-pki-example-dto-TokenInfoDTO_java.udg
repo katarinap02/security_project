@@ -1,0 +1,419 @@
+
+1.0rizovictanjaJavaFrontend"1756238113703*java2.B÷
+8
+3src/main/java/com/pki/example/dto/TokenInfoDTO.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.dto7
+%
+ com.pki.example.dto.TokenInfoDTO9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+TokenInfoDTO14
+*
+$com.pki.example.dto.TokenInfoDTO.jti16
+
+field17
+
+private18
+	
+jti19
+0
+*com.pki.example.dto.TokenInfoDTO.ipAddress21
+
+	ipAddress22
+0
+*com.pki.example.dto.TokenInfoDTO.userAgent24
+
+	userAgent25
+3
+-com.pki.example.dto.TokenInfoDTO.lastActivity27
+
+lastActivity28
+Q
+Kcom.pki.example.dto.TokenInfoDTO#<init>(Lcom/pki/example/model/TokenInfo;)V30
+
+method31
+%
+com.pki.example.model.TokenInfo33
+
+unknown34
+
+	has param35
+
+calls36
+
+is type37
+
+
+uses38
+
+
+references39
+@
+:com.pki.example.model.TokenInfo#getJti()Ljava/lang/String;41
+F
+@com.pki.example.model.TokenInfo#getIpAddress()Ljava/lang/String;43
+F
+@com.pki.example.model.TokenInfo#getUserAgent()Ljava/lang/String;45
+P
+Jcom.pki.example.model.TokenInfo#getLastActivity()Ljava/time/LocalDateTime;47
+A
+;com.pki.example.dto.TokenInfoDTO#getJti()Ljava/lang/String;49
+
+getJti50
+B
+<com.pki.example.dto.TokenInfoDTO#setJti(Ljava/lang/String;)V52
+
+setJti53
+G
+Acom.pki.example.dto.TokenInfoDTO#getIpAddress()Ljava/lang/String;55
+
+getIpAddress56
+H
+Bcom.pki.example.dto.TokenInfoDTO#setIpAddress(Ljava/lang/String;)V58
+
+setIpAddress59
+G
+Acom.pki.example.dto.TokenInfoDTO#getUserAgent()Ljava/lang/String;61
+
+getUserAgent62
+H
+Bcom.pki.example.dto.TokenInfoDTO#setUserAgent(Ljava/lang/String;)V64
+
+setUserAgent65
+J
+Dcom.pki.example.dto.TokenInfoDTO#getLastActivity()Ljava/lang/String;67
+
+getLastActivity68
+K
+Ecom.pki.example.dto.TokenInfoDTO#setLastActivity(Ljava/lang/String;)V70
+
+setLastActivity71J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576jˆ
+;
+86
+8910 *
+1 (:5B
+
+
+11
+12
+
+
+13
+14
+A
+15;
+151617 *
+1 (28:5B
+
+
+11
+18
+
+
+13
+19
+A
+23;
+232417 *
+1
+ 
+(28:5B
+
+
+11
+18
+
+
+13
+25
+A
+69;
+697031 *
+1) )(28:5B
+
+
+11
+12
+
+
+13
+71
+A
+54;
+545531 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+56
+A
+63;
+636431 *
+1# #(28:5B
+
+
+11
+12
+
+
+13
+65
+A
+20;
+202117 *
+1	 	(28:5B
+
+
+11
+18
+
+
+13
+22
+A
+51;
+515231 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+53
+
+40
+404134
+A
+29;
+293031 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+14
+
+44
+444534
+A
+60;
+606131 *
+1   (28:5B
+
+
+11
+12
+
+
+13
+62
+A
+66;
+666731 *
+1& &(28:5B
+
+
+11
+12
+
+
+13
+68
+
+42
+424334
+
+46
+464734
+A
+57;
+575831 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+59
+A
+26;
+262717 *
+1 (28:5B
+
+
+11
+18
+
+
+13
+28
+
+32
+323334
+A
+48;
+484931 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+50r§
+
+293235*
+1 ("
+
+29836*
+1 (
+
+293237*
+1# ((
+
+293238*
+1 ("
+
+29838*
+1	 (
+
+29839*
+1	 (
+
+291539*
+1 (
+
+293239*
+1 (
+
+294036*
+1 ( 
+
+29838*
+1	 (
+
+29839*
+1	 (
+
+292039*
+1 (
+
+293239*
+1 (
+
+294236*
+1  (,
+
+29838*
+1	 (
+
+29839*
+1	 (
+
+292339*
+1 (
+
+293239*
+1 (
+
+294436*
+1  (,
+
+29838*
+1	 (
+
+29839*
+1	 (
+
+292639*
+1 (
+
+293239*
+1 ("
+
+294636*
+1# (2
+
+481539*
+1 (
+
+51838*
+1	 (
+
+51839*
+1	 (
+
+511539*
+1 (
+
+542039*
+1 (
+
+57838*
+1	 (
+
+57839*
+1	 (
+
+572039*
+1 (
+
+602339*
+1! !(
+
+63838*
+1$	 $(
+
+63839*
+1$	 $(
+
+632339*
+1$ $(
+
+662639*
+1' '(
+
+69838*
+1*	 *(
+
+69839*
+1*	 *(
+
+692639*
+1* *(

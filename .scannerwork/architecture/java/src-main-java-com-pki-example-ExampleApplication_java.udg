@@ -1,0 +1,217 @@
+
+1.0rizovictanjaJavaFrontend"1756238113079*java2.BÙ
+:
+5src/main/java/com/pki/example/ExampleApplication.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example7
+'
+"com.pki.example.ExampleApplication9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+ExampleApplication14
+
+SpringBootApplication16
+
+unknown17
+
+annotated by18
+3
+-Recovered#typeBindingLSpringBootApplication;020
+
+
+uses21
+4
+.com.pki.example.ExampleApplication.certExample23
+
+field24
+
+private25
+
+certExample26
+5
+/com.pki.example.certificates.CertificateExample28
+
+is type29
+7
+1com.pki.example.ExampleApplication.keyStoreReader31
+
+keyStoreReader32
+.
+(com.pki.example.keystores.KeyStoreReader34
+7
+1com.pki.example.ExampleApplication.keyStoreWriter36
+
+keyStoreWriter37
+.
+(com.pki.example.keystores.KeyStoreWriter39
+0
+*com.pki.example.ExampleApplication.context41
+
+context42
+
+ApplicationContext44
+C
+=com.pki.example.ExampleApplication#main([Ljava/lang/String;)V46
+
+method47
+
+
+main48J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576j„
+
+15
+151617
+
+43
+434417
+
+38
+383917
+
+33
+333417
+
+19
+192017
+;
+86
+8910 *
+1 ( :5B
+
+
+11
+12
+
+
+13
+14
+
+27
+272817
+A
+30;
+303124 *
+1 (	28:5B
+
+
+11
+25
+
+
+13
+32
+A
+40;
+404124 *
+1 (	28:5B
+
+
+11
+25
+
+
+13
+42
+A
+45;
+454647 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+48
+A
+22;
+222324 *
+1 (	28:5B
+
+
+11
+25
+
+
+13
+26
+A
+35;
+353624 *
+1 (	28:5B
+
+
+11
+25
+
+
+13
+37r’
+
+81518*
+1 (
+
+81921*
+1 (
+
+222729*
+1 (#
+
+222721*
+1 (#
+
+222721*
+1$ (/
+
+303329*
+1 (
+
+303321*
+1 (
+
+303321*
+1  (.
+
+353829*
+1 (
+
+353821*
+1 (
+
+353821*
+1  (.
+
+404329*
+1 (#
+
+404321*
+1 (#
+
+404321*
+1$ (+
+
+45821*
+1 (+

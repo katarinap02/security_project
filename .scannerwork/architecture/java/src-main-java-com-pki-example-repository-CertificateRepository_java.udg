@@ -1,0 +1,98 @@
+
+1.0rizovictanjaJavaFrontend"1756238085077*java2.BÁ
+H
+Csrc/main/java/com/pki/example/repository/CertificateRepository.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.repository7
+5
+0com.pki.example.repository.CertificateRepository9
+
+	interface10
+
+access11
+
+public12
+
+simple-name13
+
+CertificateRepository14
++
+%Recovered#typeBindingLJpaRepository;016
+
+unknown17
+
+
+implements18
+
+
+uses19
+'
+!com.pki.example.model.Certificate21
+q
+kcom.pki.example.repository.CertificateRepository#findBySerialNumber(Ljava/lang/String;)Ljava/util/Optional;23
+
+method24
+
+findBySerialNumber25J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576j¨
+
+15
+151617
+;
+86
+8910 *
+1 (':5B
+
+
+11
+12
+
+
+13
+14
+
+20
+202117
+A
+22;
+222324 *
+1
+ 
+(28:5B
+
+
+11
+12
+
+
+13
+25ri
+
+81518*
+10 (=
+
+81519*
+10 (=
+
+82019*
+1> (I
+
+222019*
+1
+ 
+(

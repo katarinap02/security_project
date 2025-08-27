@@ -3,11 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs'; 
 import { UserDTO } from '../model/user';
 
+// interface LoginResponse {
+//   token: string;
+//   type: string;
+//   accessToken: string;
+// } 
 interface LoginResponse {
   token: string;
-  type: string;
-} 
-
+  expiresIn: number;
+  jti: string;
+}
 @Injectable({
   providedIn: 'root'
 })
@@ -23,18 +28,18 @@ export class AuthService {
   login(loginData: any): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, loginData).pipe(
       tap(res => {
-        localStorage.setItem('jwtToken', res.token); // čuvamo JWT token
+        localStorage.setItem('keycloakToken', res.token); // čuvamo JWT token
         localStorage.setItem('email', loginData.email);
       })
     );
   }
 
   getToken(): string | null {
-    return localStorage.getItem('jwtToken');
+    return localStorage.getItem('keycloakToken');
   }
 
   logout() {
-    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('keycloakToken');
   }
 
   isLoggedIn(): boolean {

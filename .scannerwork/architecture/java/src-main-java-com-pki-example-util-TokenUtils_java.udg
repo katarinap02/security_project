@@ -1,0 +1,1008 @@
+
+1.0rizovictanjaJavaFrontend"1756238112387*java2.Bæ
+7
+2src/main/java/com/pki/example/util/TokenUtils.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.util7
+$
+com.pki.example.util.TokenUtils9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+
+TokenUtils14
+
+	Component16
+
+unknown17
+
+annotated by18
+'
+!Recovered#typeBindingLComponent;020
+
+
+uses21
+.
+(com.pki.example.util.TokenUtils.APP_NAME23
+
+field24
+
+private25
+
+APP_NAME26
+
+Value28
+#
+Recovered#typeBindingLValue;030
+,
+&com.pki.example.util.TokenUtils.SECRET32
+
+SECRET33
+0
+*com.pki.example.util.TokenUtils.EXPIRES_IN35
+
+
+EXPIRES_IN36
+1
++com.pki.example.util.TokenUtils.AUTH_HEADER38
+
+AUTH_HEADER39
+2
+,com.pki.example.util.TokenUtils.AUDIENCE_WEB41
+
+AUDIENCE_WEB42
+9
+3com.pki.example.util.TokenUtils.SIGNATURE_ALGORITHM44
+
+SIGNATURE_ALGORITHM45
+
+SignatureAlgorithm47
+
+is type48
+Y
+Scom.pki.example.util.TokenUtils#generateToken(Ljava/lang/String;)Ljava/lang/String;50
+
+method51
+
+generateToken52
+
+
+references53
+J
+Dcom.pki.example.util.TokenUtils#generateAudience()Ljava/lang/String;55
+
+calls56
+N
+Hcom.pki.example.util.TokenUtils#generateExpirationDate()Ljava/util/Date;58
+
+generateAudience59
+
+generateExpirationDate60
+V
+Pcom.pki.example.util.TokenUtils#getToken(LHttpServletRequest;)Ljava/lang/String;62
+
+getToken63
+0
+*Recovered#typeBindingLHttpServletRequest;065
+
+	has param66
+e
+_com.pki.example.util.TokenUtils#getAuthHeaderFromHeader(LHttpServletRequest;)Ljava/lang/String;68
+]
+Wcom.pki.example.util.TokenUtils#getEmailFromToken(Ljava/lang/String;)Ljava/lang/String;70
+
+getEmailFromToken71
+$
+Recovered#typeBindingLClaims;073
+
+Claims75
+
+returns76
+W
+Qcom.pki.example.util.TokenUtils#getAllClaimsFromToken(Ljava/lang/String;)LClaims;78
+1
++Recovered#typeBindingLExpiredJwtException;080
+b
+\com.pki.example.util.TokenUtils#getIssuedAtDateFromToken(Ljava/lang/String;)Ljava/util/Date;82
+
+getIssuedAtDateFromToken83
+`
+Zcom.pki.example.util.TokenUtils#getAudienceFromToken(Ljava/lang/String;)Ljava/lang/String;85
+
+getAudienceFromToken86
+d
+^com.pki.example.util.TokenUtils#getExpirationDateFromToken(Ljava/lang/String;)Ljava/util/Date;88
+ 
+getExpirationDateFromToken89
+
+getAllClaimsFromToken90
+g
+acom.pki.example.util.TokenUtils#validateToken(Ljava/lang/String;LUserDetails;)Ljava/lang/Boolean;92
+
+validateToken93
+)
+#Recovered#typeBindingLUserDetails;095
+ 
+com.pki.example.model.User97
+O
+Icom.pki.example.model.User#getLastPasswordResetDate()Ljava/sql/Timestamp;99
+>
+7com.pki.example.model.User#getEmail()Ljava/lang/String;101
+|
+ucom.pki.example.util.TokenUtils#isCreatedBeforeLastPasswordReset(Ljava/util/Date;Ljava/util/Date;)Ljava/lang/Boolean;103
+'
+ isCreatedBeforeLastPasswordReset104
+6
+/com.pki.example.util.TokenUtils#getExpiredIn()I106
+
+getExpiredIn107
+
+getAuthHeaderFromHeader108
+2
++com.pki.example.util.TokenUtils.keycloakUrl110
+
+keycloakUrl111
+,
+%com.pki.example.util.TokenUtils.realm113
+
+realm114
+7
+0com.pki.example.util.TokenUtils.keycloakResource116
+
+keycloakResource117
+5
+.com.pki.example.util.TokenUtils.keycloakSecret119
+
+keycloakSecret120
+n
+gcom.pki.example.util.TokenUtils#loginToKeycloak(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;122
+
+loginToKeycloak123
++
+$Recovered#typeBindingLRestTemplate;0125
+*
+#Recovered#typeBindingLHttpHeaders;0127
+,
+%Recovered#typeBindingLMultiValueMap;0129
+)
+"Recovered#typeBindingLHttpEntity;0131
+-
+&Recovered#typeBindingLResponseEntity;0133
++
+$Recovered#typeBindingLObjectMapper;0135
+'
+ Recovered#typeBindingLJsonNode;0137
+7
+0Recovered#typeBindingLHttpClientErrorException;0139
+Q
+Jcom.pki.example.util.TokenUtils#validateKeycloakToken(Ljava/lang/String;)Z141
+
+validateKeycloakToken142
+f
+_com.pki.example.util.TokenUtils#getEmailFromKeycloakToken(Ljava/lang/String;)Ljava/lang/String;144
+ 
+getEmailFromKeycloakToken145J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576j
+C
+91=
+919251 *
+1û û(28:5B
+
+
+11
+12
+
+
+13
+93
+
+72
+727317
+C
+87=
+878851 *
+1Ê Ê(28:5B
+
+
+11
+12
+
+
+13
+89
+G
+112@
+11211324 *
+1® ®(28:5B
+
+
+11
+25
+
+13
+114
+
+46
+464717
+
+136
+13613717
+C
+84=
+848551 *
+1· ·(28:5B
+
+
+11
+12
+
+
+13
+86
+G
+143@
+14314451 *
+1ÿ ÿ(28:5B
+
+
+11
+12
+
+13
+145
+A
+43;
+434424 *
+1> >(	28:5B
+
+
+11
+25
+
+
+13
+45
+G
+105@
+10510651 *
+1˜ ˜(28:5B
+
+
+11
+12
+
+13
+107
+G
+109@
+10911024 *
+1« «(28:5B
+
+
+11
+25
+
+13
+111
+
+124
+12412517
+G
+115@
+11511624 *
+1± ±(28:5B
+
+
+11
+25
+
+13
+117
+G
+118@
+11811924 *
+1´ ´(28:5B
+
+
+11
+25
+
+13
+120
+
+96
+969717
+
+98
+989917
+A
+31;
+313224 *
+1) )(28:5B
+
+
+11
+12
+
+
+13
+33
+A
+37;
+373824 *
+11 1(28:5B
+
+
+11
+25
+
+
+13
+39
+A
+57;
+575851 *
+1p p(	28:5B
+
+
+11
+25
+
+
+13
+60
+;
+86
+8910 *
+1" "(:5B
+
+
+11
+12
+
+
+13
+14
+G
+121@
+12112251 *
+1À À(28:5B
+
+
+11
+12
+
+13
+123
+
+15
+151617
+
+126
+12612717
+
+132
+13213317
+
+19
+192017
+
+74
+747517
+
+128
+12812917
+
+94
+949517
+
+134
+13413517
+
+29
+293017
+
+100
+10010117
+D
+67>
+676851 *
+1£ £(28:5B
+
+
+11
+12
+
+13
+108
+
+79
+798017
+G
+102@
+10210351 *
+1 (	28:5B
+
+
+11
+25
+
+13
+104
+
+64
+646517
+C
+77=
+777851 *
+1Þ Þ(	28:5B
+
+
+11
+25
+
+
+13
+90
+A
+54;
+545551 *
+1Z Z(	28:5B
+
+
+11
+25
+
+
+13
+59
+A
+34;
+343524 *
+1- -(28:5B
+
+
+11
+25
+
+
+13
+36
+
+130
+13013117
+C
+69=
+697051 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+71
+G
+140@
+14014151 *
+1ê ê(28:5B
+
+
+11
+12
+
+13
+142
+A
+22;
+222324 *
+1% %(28:5B
+
+
+11
+25
+
+
+13
+26
+
+27
+272817
+A
+40;
+404124 *
+1; ;(	28:5B
+
+
+11
+25
+
+
+13
+42
+A
+61;
+616251 *
+1~ ~(28:5B
+
+
+11
+12
+
+
+13
+63
+C
+81=
+818251 *
+1¤ ¤(28:5B
+
+
+11
+12
+
+
+13
+83
+
+138
+13813917
+A
+49;
+495051 *
+1I I(28:5B
+
+
+11
+12
+
+
+13
+52r¡
+
+81518*
+1! !(
+
+81921*
+1! !(
+
+222718*
+1% %(
+
+222921*
+1% %(
+
+312718*
+1) )(
+
+312921*
+1) )(
+
+342718*
+1- -(
+
+342921*
+1- -(
+
+372718*
+11 1(
+
+372921*
+11 1(
+
+434648*
+1>
+ >(
+
+434621*
+1>
+ >(
+
+434621*
+1> >(0
+
+492253*
+1K K(
+
+49853*
+1M M("
+
+495456*
+1M M("
+
+49853*
+1O O(*
+
+495756*
+1O O(*
+
+494621*
+1P P("
+
+494353*
+1P P("
+
+493153*
+1P$ P(*
+
+544053*
+1h
+ h(
+
+573453*
+1q* q(4
+
+616466*
+1~ ~(+
+
+616448*
+1~, ~(3
+
+616421*
+1~ ~(+
+
+61853*
+1 (.
+
+616756*
+1 (.
+
+697248*
+1” ”(
+
+697221*
+1”
+ ”(
+
+697476*
+1” ”(
+
+69853*
+1” ”(
+
+697756*
+1” ”(4
+
+69853*
+1” ”(
+
+69821*
+1” ”(
+
+69853*
+1” ”(
+
+697948*
+1–  –("
+
+697921*
+1– –(
+
+817248*
+1§ §(
+
+817221*
+1§
+ §(
+
+817476*
+1§ §(
+
+81853*
+1§ §(
+
+817756*
+1§ §(4
+
+81853*
+1§ §(
+
+81821*
+1§ §(
+
+81853*
+1§ §(
+
+817948*
+1©  ©("
+
+817921*
+1© ©(
+
+847248*
+1º º(
+
+847221*
+1º
+ º(
+
+847476*
+1º º(
+
+84853*
+1º º(
+
+847756*
+1º º(4
+
+84853*
+1º º(
+
+84821*
+1º º(
+
+84853*
+1º º(
+
+847948*
+1¼  ¼("
+
+847921*
+1¼ ¼(
+
+877248*
+1Í Í(
+
+877221*
+1Í
+ Í(
+
+877476*
+1Í Í(
+
+87853*
+1Í Í(
+
+877756*
+1Í Í(4
+
+87853*
+1Í Í(
+
+87821*
+1Í Í(
+
+87853*
+1Í Í(
+
+877948*
+1Ï  Ï("
+
+877921*
+1Ï Ï(
+
+777476*
+1Þ
+ Þ(
+
+777421*
+1Þ
+ Þ(
+
+777248*
+1ß
+ ß(
+
+777221*
+1ß ß(	
+
+773153*
+1â â(
+
+777948*
+1å  å("
+
+777921*
+1å å(
+
+919466*
+1û- û(8
+
+919448*
+1û9 û(D
+
+919421*
+1û- û(8
+
+919648*
+1ü ü(
+
+919621*
+1ü ü(
+
+919621*
+1ü ü(
+
+91853*
+1ý ý()
+
+916956*
+1ý ý()
+
+91853*
+1þ þ(0
+
+918156*
+1þ þ(0
+
+919653*
+1ÿ/ ÿ(3
+
+919856*
+1ÿ4 ÿ(L
+
+919653*
+1‚ ‚(
+
+9110056*
+1‚ ‚(!
+
+91853*
+1ƒ ƒ((
+
+9110256*
+1ƒ ƒ((
+
+1053453*
+1™
+ ™(
+
+676466*
+1£( £(:
+
+676448*
+1£; £(B
+
+676421*
+1£( £(:
+
+673753*
+1¤ ¤('
+
+1092718*
+1« «(
+
+1092921*
+1« «(
+
+1122718*
+1® ®(
+
+1122921*
+1® ®(
+
+1152718*
+1± ±(
+
+1152921*
+1± ±(
+
+1182718*
+1´ ´(
+
+1182921*
+1´ ´(
+
+12110953*
+1Â Â(&
+
+12111253*
+1Â5 Â(:
+
+12112448*
+1Ä Ä(
+
+12112421*
+1Ä Ä(
+
+12112648*
+1Å Å(
+
+12112621*
+1Å Å(
+
+12112848*
+1È" È(&
+
+12112821*
+1È È(
+
+12111553*
+1Ê Ê(*
+
+12113048*
+1Ô. Ô(5
+
+12113021*
+1Ô Ô(
+
+12112821*
+1Ô Ô(
+
+12113248*
+1Ö Ö(#
+
+12113221*
+1Ö Ö(
+
+12113448*
+1Ù Ù(
+
+12113421*
+1Ù Ù(
+
+12113648*
+1Ú Ú(
+
+12113621*
+1Ú Ú(
+
+12113848*
+1Þ% Þ(&
+
+12113821*
+1Þ Þ($
+
+14010953*
+1ì ì()
+
+14011253*
+1ì9 ì(>
+
+14012448*
+1î î(
+
+14012421*
+1î î(
+
+14012648*
+1ï ï(
+
+14012621*
+1ï ï(
+
+14013048*
+1ò ò(
+
+14013021*
+1ò ò(
+
+14013248*
+1ó ó(#
+
+14013221*
+1ó ó(
+
+14313448*
+1… …(
+
+14313421*
+1… …(
+
+14313648*
+1† †(
+
+14313621*
+1† †(

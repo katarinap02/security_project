@@ -8,6 +8,9 @@ import com.pki.example.model.TokenInfo;
 import com.pki.example.model.User;
 import com.pki.example.repository.UserRepository;
 import com.pki.example.util.TokenUtils;
+import com.warrenstrange.googleauth.GoogleAuthenticator;
+import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
+import com.warrenstrange.googleauth.GoogleAuthenticatorQRGenerator;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -169,77 +172,17 @@ public class UserService implements UserDetailsService {
         return ResponseEntity.status(HttpStatus.CREATED).body(new UserDTO(user));
     }
 
-//    private void createKeycloakUser(String email, String password) {
-//        RestTemplate restTemplate = new RestTemplate();
-//
-//        // 1. Prvo dobiješ admin token
-//        String tokenEndpoint = keycloakUrl + "/realms/master/protocol/openid-connect/token";
-//
-//        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-//        body.add("grant_type", "password");
-//        body.add("client_id", "admin-cli"); // Keycloak default admin CLI client
-//        body.add("username", keycloakAdminUsername); // moraš imati admin username u application.properties
-//        body.add("password", keycloakAdminPassword);
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-//
-//        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-//        ResponseEntity<String> response = restTemplate.postForEntity(tokenEndpoint, request, String.class);
-//
-//        String adminToken = null;
-//        try {
-//            ObjectMapper mapper = new ObjectMapper();
-//
-//            // Proveravamo da li je response body null
-//            if (response.getBody() != null) {
-//                JsonNode node = mapper.readTree(response.getBody());
-//                if (node.has("access_token")) {
-//                    adminToken = node.get("access_token").asText();
-//                } else {
-//                    logger.error("Access token not found in Keycloak response: {}", response.getBody());
-//                }
-//            } else {
-//                logger.error("Keycloak response body is null");
-//            }
-//        } catch (Exception e) {
-//            logger.error("Failed to parse Keycloak token response", e);
-//        }
-//
-//        // 2. Kreiranje korisnika
-//        String createUserUrl = keycloakUrl + "/admin/realms/" + realm + "/users";
-//
-//        HttpHeaders createHeaders = new HttpHeaders();
-//        createHeaders.setContentType(MediaType.APPLICATION_JSON);
-//        createHeaders.setBearerAuth(adminToken);
-//
-//        Map<String, Object> keycloakUser = new HashMap<>();
-//        keycloakUser.put("username", email);
-//        keycloakUser.put("email", email);
-//        keycloakUser.put("enabled", true);
-//        keycloakUser.put("credentials", List.of(Map.of(
-//                "type", "password",
-//                "value", password,
-//                "temporary", false
-//        )));
-//
-//        HttpEntity<Map<String, Object>> createEntity = new HttpEntity<>(keycloakUser, createHeaders);
-//        restTemplate.postForEntity(createUserUrl, createEntity, String.class);
-//    }
 private void createKeycloakUser(String email, String password) {
     RestTemplate restTemplate = new RestTemplate();
 
     try {
         // 1️⃣ Dobijanje admin tokena
-        String tokenEndpoint = keycloakUrl + "/realms/security-app/protocol/openid-connect/token";
+        String tokenEndpoint = keycloakUrl + "realms/master/protocol/openid-connect/token";
         logger.info("Requesting admin token from Keycloak: {}", tokenEndpoint);
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "password");
-        //body.add("client_id", "admin-cli");
-        body.add("client_id", "security-app-client");
-        body.add("client_secret", "client-secret-if-needed");
-
+        body.add("client_id", "admin-cli"); // standardni admin client
         body.add("username", keycloakAdminUsername);
         body.add("password", keycloakAdminPassword);
 
@@ -256,7 +199,7 @@ private void createKeycloakUser(String email, String password) {
         authHeaders.setBearerAuth(adminToken);
 
         // 2️⃣ Provera da li korisnik već postoji
-        String searchUrl = keycloakUrl + "/admin/realms/security-app/users?username=" + email;
+        String searchUrl = keycloakUrl + "admin/realms/security-app/users?username=" + email;
         ResponseEntity<String> searchResponse = restTemplate.exchange(searchUrl, HttpMethod.GET, new HttpEntity<>(authHeaders), String.class);
         JsonNode usersNode = mapper.readTree(searchResponse.getBody());
 
@@ -270,17 +213,17 @@ private void createKeycloakUser(String email, String password) {
                     "value", password,
                     "temporary", false
             );
-            restTemplate.put(keycloakUrl + "/admin/realms/security-app/users/" + userId + "/reset-password",
+            restTemplate.put(keycloakUrl + "admin/realms/security-app/users/" + userId + "/reset-password",
                     new HttpEntity<>(credUpdate, authHeaders));
-            logger.info("Password updated for user: {}", email);
 
-            // Osiguraj da je enabled i emailVerified
             Map<String, Object> updateStatus = Map.of(
                     "enabled", true,
                     "emailVerified", true
             );
-            restTemplate.put(keycloakUrl + "/admin/realms/security-app/users/" + userId,
+            restTemplate.put(keycloakUrl + "admin/realms/security-app/users/" + userId,
                     new HttpEntity<>(updateStatus, authHeaders));
+
+            logger.info("Password and account updated successfully for user: {}", email);
 
         } else {
             // Korisnik ne postoji → kreiraj novog
@@ -288,6 +231,8 @@ private void createKeycloakUser(String email, String password) {
             newUser.put("username", email);
             newUser.put("email", email);
             newUser.put("enabled", true);
+            newUser.put("firstName", email);
+            newUser.put("lastName", email);
             newUser.put("emailVerified", true);
             newUser.put("credentials", List.of(Map.of(
                     "type", "password",
@@ -296,7 +241,7 @@ private void createKeycloakUser(String email, String password) {
             )));
 
             ResponseEntity<String> createResponse = restTemplate.postForEntity(
-                    keycloakUrl + "/admin/realms/security-app/users",
+                    keycloakUrl + "admin/realms/security-app/users",
                     new HttpEntity<>(newUser, authHeaders),
                     String.class
             );
@@ -317,27 +262,43 @@ private void createKeycloakUser(String email, String password) {
 
 
 
-    public ResponseEntity<?> login(String email, String password, String recaptchaToken) {
+    public ResponseEntity<?> login(String email, String password, String recaptchaToken, Integer twoFactorCode) {
         logger.info("Login attempt for email: {}", email);
 
-        // 1️⃣ Provera reCAPTCHA
+        //  Provera reCAPTCHA
         if (!recaptchaService.verify(recaptchaToken)) { // recaptchaService ili emailService, kako si implementirala
             logger.warn("Invalid reCAPTCHA for email: {}", email);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("CAPTCHA nije validna!");
         }
 
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nepostojeći korisnik");
+        }
+
+        // ako korisnik ima uključen 2FA
+        if (user.getTwoFaSecret() != null) {
+            GoogleAuthenticator gAuth = new GoogleAuthenticator();
+            boolean isCodeValid = gAuth.authorize(user.getTwoFaSecret(), twoFactorCode);
+
+            if (!isCodeValid) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan 2FA kod!");
+            }
+        }
+
         try {
-            // 2️⃣ Autentifikacija preko Keycloak-a
+            //  Autentifikacija preko Keycloak-a
             String keycloakToken = tokenUtils.loginToKeycloak(email, password);
             if (keycloakToken == null) {
                 logger.warn("Login failed via Keycloak for email: {}", email);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan email ili lozinka!");
             }
 
-            // 3️⃣ Kreiranje JTI i TokenInfo
+            // Kreiranje JTI i TokenInfo
             String jti = UUID.randomUUID().toString();
             TokenInfo tokenInfo = new TokenInfo(
                     jti,
+                    email,
                     request.getRemoteAddr(),
                     request.getHeader("User-Agent"),
                     LocalDateTime.now()
@@ -359,43 +320,6 @@ private void createKeycloakUser(String email, String password) {
         }
     }
 
-
-//public ResponseEntity<?> login(String email, String password) {
-//    logger.info("Login attempt for email: {}", email);
-//        try {
-//        // Autentifikacija korisnika
-//        Authentication authentication = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(email, password));
-//
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//
-//        // Generisanje JWT
-//        String jwt = tokenUtils.generateToken(email);
-//        int expiresIn = tokenUtils.getExpiredIn();
-//        // Kreiranje JTI (jedinstveni ID tokena)
-//        String jti = UUID.randomUUID().toString();
-//
-//        // Kreiranje TokenInfo objekta
-//        TokenInfo tokenInfo = new TokenInfo(
-//                jti,
-//                request.getRemoteAddr(),
-//                request.getHeader("User-Agent"),
-//                LocalDateTime.now()
-//        );
-//    // Dodaj u mapu aktivnih tokena
-//        activeTokens.put(jti, tokenInfo);
-//
-//        jtiToJwtMap.put(jti, jwt);
-//
-//            logger.info("Login successful for email: {}, IP: {}, User-Agent: {}", email,
-//                    request.getRemoteAddr(), request.getHeader("User-Agent"));
-//
-//        return ResponseEntity.ok(new JwtResponse(jwt, expiresIn, jti));
-//    } catch (Exception e) {
-//            logger.warn("Login failed for email: {}. Reason: {}", email, e.getMessage());
-//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan email ili lozinka!");
-//    }
-//}
 
     public ResponseEntity<?> activateUser(String token) {
         Optional<User> userOptional = userRepository.findByActivationToken(token);
@@ -431,16 +355,15 @@ private void createKeycloakUser(String email, String password) {
 
     public List<TokenInfoDTO> getActiveTokensForUser(String email) {
         List<TokenInfoDTO> tokensForUser = new ArrayList<>();
-        for (Map.Entry<String, TokenInfo> entry : activeTokens.entrySet()) {
-            String jti = entry.getKey();
-            TokenInfo tokenInfo = entry.getValue();
-            String tokenEmail = getEmailFromTokenByJti(jti);
-            if (email.equals(tokenEmail)) {
+        for (TokenInfo tokenInfo : activeTokens.values()) {
+            if (email.equals(tokenInfo.getEmail())) {
                 tokensForUser.add(new TokenInfoDTO(tokenInfo));
             }
         }
         return tokensForUser;
     }
+
+
 
 
     public String getEmailFromTokenByJti(String jti) {
@@ -450,22 +373,31 @@ private void createKeycloakUser(String email, String password) {
     }
 
 
-    public boolean revokeToken(String jti, String email) {
-        TokenInfo tokenInfo = activeTokens.get(jti);
-        if (tokenInfo != null) {
-            String tokenEmail = getEmailFromTokenByJti(jti);
-            if (tokenEmail == null || !email.equals(tokenEmail)) {
-                logger.warn("Failed attempt to revoke token {} for email {}", jti, email);
-                return false;
-            }
+    public boolean revokeToken(String jti, String sub) {
+        TokenInfo token = activeTokens.get(jti);
+        if (token != null && sub.equals(token.getSub())) {
             activeTokens.remove(jti);
-            jtiToJwtMap.remove(jti); // obavezno ukloni i iz mape
-            logger.info("Token revoked successfully: {} for email {}", jti, email);
+            jtiToJwtMap.remove(jti);
             return true;
         }
-        logger.warn("Token not found for revocation: {} by email {}", jti, email);
+        logger.warn("Failed attempt to revoke token {} for sub {}", jti, sub);
         return false;
     }
+
+    public String enable2FA(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) throw new RuntimeException("User not found");
+
+        GoogleAuthenticator gAuth = new GoogleAuthenticator();
+        GoogleAuthenticatorKey key = gAuth.createCredentials();
+        String secret = key.getKey();
+
+        user.setTwoFaSecret(secret);  // dodaj ovu kolonu u User entitet
+        userRepository.save(user);
+
+        return GoogleAuthenticatorQRGenerator.getOtpAuthURL("SecurityApp", email, key);
+    }
+
 
 
 

@@ -1,0 +1,123 @@
+
+7com.pki.example.model.User#hasRole(Ljava/lang/String;)Zx
+lC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/model/User.javaÈ È("8*è
+2
+Ó Ó(\
+Z
+
+Ó Ó("
+rolecom.pki.example.model.Role"__id*"
+
+__unknown_file (
+""ó
+î
+
+Ó Ó("
+rolecom.pki.example.model.Role"
+__arrayGet*2
+
+__unknown_file (
+
+%4java.util.List*"
+
+__unknown_file (
+""*
+4
+1*%
+3
+ ("
+
+ (
+""*£
+4
+Ô Ô(¨©
+
+Ô Ô(
+%5java.lang.String"6com.pki.example.model.Role#getName()Ljava/lang/String;*@
+
+__unknown_file ($
+"
+rolecom.pki.example.model.Role2	getName()⁄◊
+
+Ô Ô(/
+%6boolean",java.lang.String#equals(Ljava/lang/Object;)Z*4
+
+__unknown_file (
+
+%5java.lang.String*:
+
+__unknown_file (
+
+roleNamejava.lang.String2equals(Ljava/lang/Object;)*
+2
+3*á
+5
+Ó Ó(q
+o
+
+Ó Ó(#
+%4java.util.List"__id*E
+
+__unknown_file ()*'
+com.pki.example.model.User"
+roles*
+2*%
+6
+Î Î("
+
+Î Î(
+""*É
+7
+Í" Í(&q
+o
+
+Í" Í(,
+%2java.util.List"__id*E
+
+__unknown_file ()*'
+com.pki.example.model.User"
+roleswu
+
+Í" Í(6
+%3boolean"java.util.List#isEmpty()Z*2
+
+__unknown_file (
+
+%2java.util.List2	isEmpty()*
+5
+6*Ü
+8
+Í Í(q
+o
+
+Í Í(
+%0java.util.List"__id*E
+
+__unknown_file ()*'
+com.pki.example.model.User"
+rolesz
+x
+
+Í Í(
+%1boolean"	__compare*
+
+Í Í(
+==*$
+
+Í Í(
+
+%0java.util.List*
+
+Í Í(
+""*
+6
+7*%
+1
+Û Û("
+
+Û Û(
+"":*
+
+È È(*
+roleNamejava.lang.StringB
+com.pki.example.model.UserHX

@@ -16,6 +16,11 @@
         <mat-error *ngIf="loginForm.get('password')?.hasError('required')">Password is required</mat-error>
       </mat-form-field>
 
+      <mat-form-field appearance="outline" class="full-width">
+      <input matInput type="text" formControlName="twoFactorCode" placeholder="Authenticator Code">
+      </mat-form-field>
+
+
       <!-- Google reCAPTCHA v2 -->
       <div #captchaElem class="g-recaptcha" [attr.data-sitekey]="siteKey"></div>
 

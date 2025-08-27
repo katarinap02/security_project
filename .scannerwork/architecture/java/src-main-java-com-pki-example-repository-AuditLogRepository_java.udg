@@ -1,0 +1,92 @@
+
+1.0rizovictanjaJavaFrontend"1756238116551*java2.BÍ
+E
+@src/main/java/com/pki/example/repository/AuditLogRepository.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.repository7
+2
+-com.pki.example.repository.AuditLogRepository9
+
+	interface10
+
+access11
+
+public12
+
+simple-name13
+
+AuditLogRepository14
++
+%Recovered#typeBindingLJpaRepository;016
+
+unknown17
+
+
+implements18
+
+
+Repository20
+
+annotated by21
+(
+"Recovered#typeBindingLRepository;023
+
+
+uses24
+$
+com.pki.example.model.AuditLog26J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576jç
+
+15
+151617
+
+19
+192017
+
+22
+222317
+
+25
+252617
+;
+86
+8910 *
+1 ($:5B
+
+
+11
+12
+
+
+13
+14rÇ
+
+81518*
+1- (:
+
+81921*
+1 (
+
+82224*
+1 (
+
+81524*
+1- (:
+
+82524*
+1; (C

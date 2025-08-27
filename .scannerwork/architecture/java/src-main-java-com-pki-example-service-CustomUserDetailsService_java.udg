@@ -1,0 +1,273 @@
+
+1.0rizovictanjaJavaFrontend"1756238118677*java2.B›	
+H
+Csrc/main/java/com/pki/example/service/CustomUserDetailsService.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.service7
+5
+0com.pki.example.service.CustomUserDetailsService9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+CustomUserDetailsService14
+0
+*Recovered#typeBindingLUserDetailsService;016
+
+unknown17
+
+
+implements18
+
+Service20
+
+annotated by21
+%
+Recovered#typeBindingLService;023
+
+
+uses24
+E
+?com.pki.example.service.CustomUserDetailsService.userRepository26
+
+field27
+
+private28
+
+userRepository29
+/
+)com.pki.example.repository.UserRepository31
+
+is type32
+
+	Autowired34
+'
+!Recovered#typeBindingLAutowired;036
+=
+7com.pki.example.service.CustomUserDetailsService.logger38
+
+logger39
+
+Logger41
+j
+dcom.pki.example.service.CustomUserDetailsService#loadUserByUsername(Ljava/lang/String;)LUserDetails;43
+
+method44
+
+loadUserByUsername45
+
+UserDetails47
+
+returns48
+
+UsernameNotFoundException50
+
+
+references51
+ 
+com.pki.example.model.User53
+k
+ecom.pki.example.repository.UserRepository#findByEmail(Ljava/lang/String;)Lcom/pki/example/model/User;55
+
+calls56J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576jâ
+
+49
+495017
+
+22
+222317
+
+15
+151617
+
+19
+192017
+A
+42;
+424344 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+45
+
+40
+404117
+A
+25;
+252627 *
+1 (28:5B
+
+
+11
+28
+
+
+13
+29
+
+30
+303117
+;
+86
+8910 *
+1 (&:5B
+
+
+11
+12
+
+
+13
+14
+
+54
+545517
+
+52
+525317
+
+46
+464717
+
+33
+333417
+
+35
+353617
+A
+37;
+373827 *
+1 (28:5B
+
+
+11
+28
+
+
+13
+39rö
+
+81518*
+12 (D
+
+81921*
+1 (
+
+82224*
+1 (	
+
+81524*
+12 (D
+
+253032*
+1 (
+
+253321*
+1 (
+
+253524*
+1 (
+
+253024*
+1 (
+
+253024*
+1 (*
+
+374032*
+1 ( 
+
+374024*
+1 ( 
+
+374024*
+1! ('
+
+37824*
+1B (Z
+
+424648*
+1 (
+
+424624*
+1 (
+
+424924*
+1@ (Y
+
+423751*
+1	 (
+
+424024*
+1	 (
+
+423751*
+1	 (
+
+425232*
+1 (
+
+425224*
+1	 (
+
+425248*
+1 (#
+
+423051*
+1 (#
+
+425456*
+1$ (/
+
+422551*
+1 (#
+
+423024*
+1 (#
+
+422551*
+1 (#
+
+423751*
+1 (
+
+424024*
+1 (
+
+423751*
+1 (
+
+423751*
+1! !(
+
+424024*
+1! !(
+
+423751*
+1! !(

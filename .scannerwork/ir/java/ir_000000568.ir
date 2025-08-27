@@ -1,0 +1,9 @@
+4this (" com.pki.example.dto.LoginRequest%email ($"java.lang.String(password& (5"java.lang.String.recaptchaToken7 (L"java.lang.String"•'
+%
+ ("#set-field# email:*
+(
+ ( "#set-field# password:0
+.
+ (,"#set-field# recaptchaToken:
+
+ (*rC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/dto/LoginRequest.java

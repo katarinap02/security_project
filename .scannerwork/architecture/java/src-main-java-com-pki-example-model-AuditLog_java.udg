@@ -1,0 +1,610 @@
+
+1.0rizovictanjaJavaFrontend"1756238118029*java2.Bè
+6
+1src/main/java/com/pki/example/model/AuditLog.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.model7
+#
+com.pki.example.model.AuditLog9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+AuditLog14
+
+Entity16
+
+unknown17
+
+annotated by18
+$
+Recovered#typeBindingLEntity;020
+
+
+uses21
+
+Table23
+#
+Recovered#typeBindingLTable;025
+'
+!com.pki.example.model.AuditLog.id27
+
+field28
+
+private29
+
+id30
+
+Id32
+ 
+Recovered#typeBindingLId;034
+
+GeneratedValue36
+,
+&Recovered#typeBindingLGeneratedValue;038
+*
+$com.pki.example.model.AuditLog.email40
+
+email41
++
+%com.pki.example.model.AuditLog.action43
+
+action44
+.
+(com.pki.example.model.AuditLog.ipAddress46
+
+	ipAddress47
+.
+(com.pki.example.model.AuditLog.userAgent49
+
+	userAgent50
+.
+(com.pki.example.model.AuditLog.timestamp52
+
+	timestamp53
++
+%com.pki.example.model.AuditLog.status55
+
+status56
+,
+&com.pki.example.model.AuditLog.details58
+
+details59
+?
+9com.pki.example.model.AuditLog#getId()Ljava/lang/Integer;61
+
+method62
+
+getId63
+
+
+references64
+@
+:com.pki.example.model.AuditLog#setId(Ljava/lang/Integer;)V66
+
+setId67
+A
+;com.pki.example.model.AuditLog#getEmail()Ljava/lang/String;69
+
+getEmail70
+B
+<com.pki.example.model.AuditLog#setEmail(Ljava/lang/String;)V72
+
+setEmail73
+B
+<com.pki.example.model.AuditLog#getAction()Ljava/lang/String;75
+
+	getAction76
+C
+=com.pki.example.model.AuditLog#setAction(Ljava/lang/String;)V78
+
+	setAction79
+E
+?com.pki.example.model.AuditLog#getIpAddress()Ljava/lang/String;81
+
+getIpAddress82
+F
+@com.pki.example.model.AuditLog#setIpAddress(Ljava/lang/String;)V84
+
+setIpAddress85
+E
+?com.pki.example.model.AuditLog#getUserAgent()Ljava/lang/String;87
+
+getUserAgent88
+F
+@com.pki.example.model.AuditLog#setUserAgent(Ljava/lang/String;)V90
+
+setUserAgent91
+L
+Fcom.pki.example.model.AuditLog#getTimestamp()Ljava/time/LocalDateTime;93
+
+getTimestamp94
+M
+Gcom.pki.example.model.AuditLog#setTimestamp(Ljava/time/LocalDateTime;)V96
+
+setTimestamp97
+B
+<com.pki.example.model.AuditLog#getStatus()Ljava/lang/String;99
+
+	getStatus100
+D
+=com.pki.example.model.AuditLog#setStatus(Ljava/lang/String;)V102
+
+	setStatus103
+D
+=com.pki.example.model.AuditLog#getDetails()Ljava/lang/String;105
+
+
+getDetails106
+E
+>com.pki.example.model.AuditLog#setDetails(Ljava/lang/String;)V108
+
+
+setDetails109J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576j≤
+
+15
+151617
+A
+65;
+656662 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+67
+A
+92;
+929362 *
+1? ?(28:5B
+
+
+11
+12
+
+
+13
+94
+A
+68;
+686962 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+70
+A
+80;
+808162 *
+1/ /(28:5B
+
+
+11
+12
+
+
+13
+82
+A
+39;
+394028 *
+1 (28:5B
+
+
+11
+29
+
+
+13
+41
+A
+51;
+515228 *
+1 (28:5B
+
+
+11
+29
+
+
+13
+53
+E
+104>
+10410562 *
+1O O(28:5B
+
+
+11
+12
+
+13
+106
+A
+42;
+424328 *
+1 (28:5B
+
+
+11
+29
+
+
+13
+44
+A
+26;
+262728 *
+1
+ 
+(28:5B
+
+
+11
+29
+
+
+13
+30
+
+35
+353617
+A
+71;
+717262 *
+1# #(28:5B
+
+
+11
+12
+
+
+13
+73
+A
+89;
+899062 *
+1; ;(28:5B
+
+
+11
+12
+
+
+13
+91
+
+37
+373817
+A
+77;
+777862 *
+1+ +(28:5B
+
+
+11
+12
+
+
+13
+79
+;
+86
+8910 *
+1 (:5B
+
+
+11
+12
+
+
+13
+14
+E
+107>
+10710862 *
+1S S(28:5B
+
+
+11
+12
+
+13
+109
+A
+60;
+606162 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+63
+B
+98<
+989962 *
+1G G(28:5B
+
+
+11
+12
+
+13
+100
+A
+83;
+838462 *
+13 3(28:5B
+
+
+11
+12
+
+
+13
+85
+A
+86;
+868762 *
+17 7(28:5B
+
+
+11
+12
+
+
+13
+88
+
+22
+222317
+A
+45;
+454628 *
+1 (28:5B
+
+
+11
+29
+
+
+13
+47
+A
+74;
+747562 *
+1' '(28:5B
+
+
+11
+12
+
+
+13
+76
+
+24
+242517
+A
+54;
+545528 *
+1 (28:5B
+
+
+11
+29
+
+
+13
+56
+A
+57;
+575828 *
+1 (28:5B
+
+
+11
+29
+
+
+13
+59
+A
+48;
+484928 *
+1 (28:5B
+
+
+11
+29
+
+
+13
+50
+A
+95;
+959662 *
+1C C(28:5B
+
+
+11
+12
+
+
+13
+97
+
+19
+192017
+E
+101>
+10110262 *
+1K K(28:5B
+
+
+11
+12
+
+13
+103
+
+31
+313217
+
+33
+333417r´
+
+81518*
+1 (
+
+81921*
+1 (
+
+82218*
+1 (
+
+82421*
+1 (
+
+263118*
+1
+ 
+(
+
+263321*
+1
+ 
+(
+
+263518*
+1 (
+
+263721*
+1 (
+
+602664*
+1 (
+
+65821*
+1	 (
+
+65864*
+1	 (
+
+652664*
+1 (
+
+683964*
+1   (
+
+71821*
+1$	 $(
+
+71864*
+1$	 $(
+
+713964*
+1$ $(
+
+744264*
+1( ((
+
+77821*
+1,	 ,(
+
+77864*
+1,	 ,(
+
+774264*
+1, ,(
+
+804564*
+10 0(
+
+83821*
+14	 4(
+
+83864*
+14	 4(
+
+834564*
+14 4(
+
+864864*
+18 8(
+
+89821*
+1<	 <(
+
+89864*
+1<	 <(
+
+894864*
+1< <(
+
+925164*
+1@ @(
+
+95821*
+1D	 D(
+
+95864*
+1D	 D(
+
+955164*
+1D D(
+
+985464*
+1H H(
+
+101821*
+1L	 L(
+
+101864*
+1L	 L(
+
+1015464*
+1L L(
+
+1045764*
+1P P(
+
+107821*
+1T	 T(
+
+107864*
+1T	 T(
+
+1075764*
+1T T(

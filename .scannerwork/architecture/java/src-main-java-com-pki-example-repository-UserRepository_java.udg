@@ -1,0 +1,223 @@
+
+1.0rizovictanjaJavaFrontend"1756238090886*java2.Bç	
+A
+<src/main/java/com/pki/example/repository/UserRepository.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.repository7
+.
+)com.pki.example.repository.UserRepository9
+
+	interface10
+
+access11
+
+public12
+
+simple-name13
+
+UserRepository14
++
+%Recovered#typeBindingLJpaRepository;016
+
+unknown17
+
+
+implements18
+
+
+uses19
+ 
+com.pki.example.model.User21
+k
+ecom.pki.example.repository.UserRepository#findByEmail(Ljava/lang/String;)Lcom/pki/example/model/User;23
+
+method24
+
+findByEmail25
+
+returns26
+a
+[com.pki.example.repository.UserRepository#findById(Ljava/lang/Integer;)Ljava/util/Optional;28
+
+findById29
+
+Query31
+
+annotated by32
+#
+Recovered#typeBindingLQuery;034
+R
+Lcom.pki.example.repository.UserRepository#existsByEmail(Ljava/lang/String;)Z36
+
+existsByEmail37
+m
+gcom.pki.example.repository.UserRepository#findByActivationToken(Ljava/lang/String;)Ljava/util/Optional;39
+
+findByActivationToken40
+j
+dcom.pki.example.repository.UserRepository#findRoleIdByUserId(Ljava/lang/Integer;)Ljava/lang/Integer;42
+
+findRoleIdByUserId43
+
+Param45
+#
+Recovered#typeBindingLParam;047J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576jÑ
+
+15
+151617
+A
+22;
+222324 *
+1 (	28:5B
+
+
+11
+12
+
+
+13
+25
+
+20
+202117
+
+30
+303117
+A
+38;
+383924 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+40
+A
+41;
+414224 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+43
+
+44
+444517
+
+46
+464717
+A
+35;
+353624 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+37
+
+33
+333417
+;
+86
+8910 *
+1
+ 
+( :5B
+
+
+11
+12
+
+
+13
+14
+A
+27;
+272824 *
+1 (28:5B
+
+
+11
+12
+
+
+13
+29rí
+
+81518*
+1
+) 
+(6
+
+81519*
+1
+) 
+(6
+
+82019*
+1
+7 
+(;
+
+222026*
+1 (	
+
+222019*
+1 (	
+
+273032*
+1 (
+
+273319*
+1 (
+
+272019*
+1 (
+
+353032*
+1 (
+
+353319*
+1 (
+
+382019*
+1 (
+
+413032*
+1 (
+
+413319*
+1 (
+
+414432*
+1  (!
+
+414619*
+1! (&

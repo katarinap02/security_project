@@ -1,0 +1,266 @@
+
+1.0rizovictanjaJavaFrontend"1756238117721*java2.BŠ
+
+@
+;src/main/java/com/pki/example/dto/IssuerCertificateDTO.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.dto7
+-
+(com.pki.example.dto.IssuerCertificateDTO9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+IssuerCertificateDTO14
+
+
+Data16
+
+unknown17
+
+annotated by18
+"
+Recovered#typeBindingLData;020
+
+
+uses21
+9
+3com.pki.example.dto.IssuerCertificateDTO.commonName23
+
+field24
+
+private25
+
+
+commonName26
+6
+0com.pki.example.dto.IssuerCertificateDTO.surname28
+
+surname29
+8
+2com.pki.example.dto.IssuerCertificateDTO.givenName31
+
+	givenName32
+;
+5com.pki.example.dto.IssuerCertificateDTO.organization34
+
+organization35
+A
+;com.pki.example.dto.IssuerCertificateDTO.organizationalUnit37
+
+organizationalUnit38
+6
+0com.pki.example.dto.IssuerCertificateDTO.country40
+
+country41
+4
+.com.pki.example.dto.IssuerCertificateDTO.email43
+
+email44
+9
+3com.pki.example.dto.IssuerCertificateDTO.ownerEmail46
+
+
+ownerEmail47
+3
+-com.pki.example.dto.IssuerCertificateDTO.type49
+8
+2com.pki.example.dto.IssuerCertificateDTO.validFrom51
+
+	validFrom52
+6
+0com.pki.example.dto.IssuerCertificateDTO.validTo54
+
+validTo55
+A
+;com.pki.example.dto.IssuerCertificateDTO.issuerSerialNumber57
+
+issuerSerialNumber58J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576jˆ
+A
+56;
+565724 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+58
+A
+39;
+394024 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+41
+A
+36;
+363724 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+38
+A
+45;
+454624 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+47
+A
+22;
+222324 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+26
+
+15
+151617
+
+19
+192017
+A
+42;
+424324 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+44
+;
+86
+8910 *
+1	 	(":5B
+
+
+11
+12
+
+
+13
+14
+A
+53;
+535424 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+55
+A
+27;
+272824 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+29
+A
+50;
+505124 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+52
+A
+30;
+303124 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+32
+A
+33;
+333424 *
+1 (28:5B
+
+
+11
+25
+
+
+13
+35
+@
+48:
+484924 *
+1 (28:5B
+
+
+11
+25
+	
+13
+3r4
+
+81518*
+1 (
+
+81921*
+1 (

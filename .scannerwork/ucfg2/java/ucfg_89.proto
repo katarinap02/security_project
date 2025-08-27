@@ -1,0 +1,15 @@
+
+;com.pki.example.dto.TokenInfoDTO#getJti()Ljava/lang/String;|
+rC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/dto/TokenInfoDTO.java ("1*ª
+1 (u
+s
+ (
+%0java.lang.String"__id*I
+
+__unknown_file (-*+"
+ com.pki.example.dto.TokenInfoDTO"
+jti"$
+ (
+
+%0java.lang.StringB$"
+ com.pki.example.dto.TokenInfoDTOH

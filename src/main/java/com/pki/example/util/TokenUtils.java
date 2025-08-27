@@ -319,7 +319,7 @@ public class TokenUtils {
 //
 	public String loginToKeycloak(String email, String password) {
 		try {
-			String tokenEndpoint = keycloakUrl + "/realms/" + realm + "/protocol/openid-connect/token";
+			String tokenEndpoint = keycloakUrl + "realms/" + realm + "/protocol/openid-connect/token";
 
 			RestTemplate restTemplate = new RestTemplate();
 			HttpHeaders headers = new HttpHeaders();
@@ -330,9 +330,9 @@ public class TokenUtils {
 			body.add("client_id", keycloakResource);
 
 			// dodaj secret samo ako je client confidential
-			if (keycloakSecret != null && !keycloakSecret.isEmpty()) {
-				body.add("client_secret", keycloakSecret);
-			}
+//			if (keycloakSecret != null && !keycloakSecret.isEmpty()) {
+//				body.add("client_secret", keycloakSecret);
+//			}
 
 			body.add("username", email);
 			body.add("password", password);

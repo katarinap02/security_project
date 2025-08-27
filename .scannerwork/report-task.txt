@@ -1,0 +1,7 @@
+organization=rizovictanja
+projectKey=rizovictanja
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.66557
+dashboardUrl=https://sonarcloud.io/dashboard?id=rizovictanja
+ceTaskId=AZjn9GcCszaZcTJwcReu
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZjn9GcCszaZcTJwcReu

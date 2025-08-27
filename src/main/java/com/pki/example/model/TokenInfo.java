@@ -7,9 +7,13 @@ public class TokenInfo {
     private String ipAddress;
     private String userAgent;
     private LocalDateTime lastActivity;
+    private String email;
+    private String sub;
 
-    public TokenInfo(String jti, String ipAddress, String userAgent, LocalDateTime lastActivity) {
+    public TokenInfo(String jti, String email, String ipAddress, String userAgent, LocalDateTime lastActivity) {
         this.jti = jti;
+        this.email = email;
+        this.sub = email;
         this.ipAddress = ipAddress;
         this.userAgent = userAgent;
         this.lastActivity = lastActivity;
@@ -24,4 +28,8 @@ public class TokenInfo {
     public void setUserAgent(String userAgent) { this.userAgent = userAgent; }
     public LocalDateTime getLastActivity() { return lastActivity; }
     public void setLastActivity(LocalDateTime lastActivity) { this.lastActivity = lastActivity; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getSub() { return sub; }
+    public void setSub(String sub) { this.sub = sub; }
 }

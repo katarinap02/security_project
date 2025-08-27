@@ -1,0 +1,135 @@
+
+Vcom.pki.example.service.UserService#revokeToken(Ljava/lang/String;Ljava/lang/String;)Z
+uC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/service/UserService.java‹ ‹("4*ú
+2
+Ž Ž(€
+~
+
+Ž Ž(
+%5java.util.Map"__id*U
+
+__unknown_file (9*7%
+#com.pki.example.service.UserService"
+activeTokens­
+ª
+
+Ž Ž($%
+%6com.pki.example.model.TokenInfo"__mapRemove*1
+
+__unknown_file (
+
+%5java.util.Map*5
+
+__unknown_file (
+
+jtijava.lang.String
+}
+
+ (
+%7java.util.Map"__id*T
+
+__unknown_file (8*6%
+#com.pki.example.service.UserService"
+jtiToJwtMapž
+›
+
+ (#
+%8java.lang.String"__mapRemove*1
+
+__unknown_file (
+
+%7java.util.Map*5
+
+__unknown_file (
+
+jtijava.lang.String"
+
+ (
+""*§
+3
+ ( µ²
+
+( (6
+%3java.lang.String":com.pki.example.model.TokenInfo#getSub()Ljava/lang/String;*F
+
+__unknown_file (*
+(
+tokencom.pki.example.model.TokenInfo2getSub()ÕÒ
+
+ (7
+%4boolean",java.lang.String#equals(Ljava/lang/Object;)Z*5
+
+__unknown_file (
+
+subjava.lang.String*4
+
+__unknown_file (
+
+%3java.lang.String2equals(Ljava/lang/Object;)*
+2
+1*à
+4
+Œ Œ(&€
+~
+
+Œ Œ(&
+%0java.util.Map"__id*U
+
+__unknown_file (9*7%
+#com.pki.example.service.UserService"
+activeTokensª
+§
+
+Œ Œ(/%
+%1com.pki.example.model.TokenInfo"__mapGet*1
+
+__unknown_file (
+
+%0java.util.Map*5
+
+__unknown_file (
+
+jtijava.lang.String„
+
+
+Œ Œ(0(
+tokencom.pki.example.model.TokenInfo"__id*C
+
+__unknown_file ('
+%
+%1com.pki.example.model.TokenInfo
+Œ
+
+ (
+%2boolean"	__compare*
+
+ (
+!=*8
+
+ (*
+(
+tokencom.pki.example.model.TokenInfo*
+
+ (
+""*
+3
+1*e
+1
+’ ’(>
+<
+
+’ ’(
+%9"__id*"
+
+__unknown_file (
+"""
+
+“ “(
+"":%
+
+‹ ‹(*
+jtijava.lang.String:%
+
+‹+ ‹(5
+subjava.lang.StringB'%
+#com.pki.example.service.UserServiceHX

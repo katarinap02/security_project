@@ -1,0 +1,70 @@
+
+Ycom.pki.example.controller.AuthController#getRole(Ljava/lang/Integer;)Ljava/lang/Integer;…
+{C:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/controller/AuthController.javaT T("startingBlock*¦
+startingBlockT T(4
+
+S S(
+%2"
+__annotate**
+
+__unknown_file (
+
+GetMapping*5
+
+__unknown_file (
+
+idjava.lang.Integer„
+
+T T((
+%3"
+__annotate*,
+
+__unknown_file (
+PathVariable*5
+
+__unknown_file (
+
+idjava.lang.Integer{
+y
+T1 T(3
+idjava.lang.Integer"__annotation*"
+
+__unknown_file (
+
+%2*"
+
+__unknown_file (
+
+%3*
+1*Õ
+1U U("š
+—
+U U(")
+%0#com.pki.example.service.UserService"__id*Z
+
+__unknown_file (>*<+
+)com.pki.example.controller.AuthController"
+userService™–
+U U(.
+%1java.lang.Integer"Scom.pki.example.service.UserService#getRole(Ljava/lang/Integer;)Ljava/lang/Integer;*G
+
+__unknown_file (+
+)
+%0#com.pki.example.service.UserService*5
+
+__unknown_file (
+
+idjava.lang.Integer2getRole(Ljava/lang/Integer;)d
+b
+U U(/
+rolejava.lang.Integer"__id*5
+
+__unknown_file (
+
+%1java.lang.Integer"'
+V V(
+
+rolejava.lang.Integer:#
+T T(3
+idjava.lang.IntegerB-+
+)com.pki.example.controller.AuthControllerH

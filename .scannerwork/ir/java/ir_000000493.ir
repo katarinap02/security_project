@@ -1,0 +1,18 @@
+/this ("com.pki.example.dto.UserDTO#id ("java.lang.Integer%email (+"java.lang.String$name- (8"java.lang.String'surname: (H"java.lang.String(passwordJ (Y"java.lang.String/confirmPassword[ (q"java.lang.String-organization	s (†"java.lang.String"¿$
+"
+ (	"#set-field# id:'
+%
+ (
+"#set-field# email:&
+$
+ ("#set-field# name:)
+'
+ ("#set-field# surname:*
+(
+ ( "#set-field# password:1
+/
+ (."#set-field# confirmPassword:.
+,
+ (("#set-field# organization:
+
+ (*mC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/dto/UserDTO.java

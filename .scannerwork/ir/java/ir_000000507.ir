@@ -1,0 +1,19 @@
+5this< <("!com.pki.example.model.Certificate#id< <(!"java.lang.Integer,serialNumber<# <(6"java.lang.String'	validFrom<8 <(F"java.util.Date%validTo<H <(T"java.util.Date9type<V <(j"%com.pki.example.model.CertificateType1keystoreFileName	<l <(ƒ"java.lang.String;encryptedKeystorePassword
+<… <(¥"java.lang.String"Õ$
+"
+= =(	"#set-field# id:.
+,
+> >((
+"#set-field# serialNumber:+
+)
+? ?(""#set-field# validFrom:)
+'
+@ @("#set-field# validTo:&
+$
+A A("#set-field# type:2
+0
+B B(0"#set-field# keystoreFileName:;
+9
+C C(B"'%#set-field# encryptedKeystorePassword:
+
+D D(*sC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/model/Certificate.java

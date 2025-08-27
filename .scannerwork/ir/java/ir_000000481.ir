@@ -1,0 +1,10 @@
+<this ("(com.pki.example.model.PasswordResetToken%token (*"java.lang.String.user, (5"com.pki.example.model.User1
+expiryDate7 (O"java.time.LocalDateTime"'
+%
+ ("#set-field# token:&
+$
+ ("#set-field# user:,
+*
+ ($"#set-field# expiryDate:
+
+   (*zC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/model/PasswordResetToken.java

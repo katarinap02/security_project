@@ -1,0 +1,235 @@
+
+1.0rizovictanjaJavaFrontend"1756238116337*java2.B™
+?
+:src/main/java/com/pki/example/data/CertifacateExample.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.pki.example.data7
+,
+'com.pki.example.data.CertifacateExample9
+
+class10
+
+access11
+
+public12
+
+simple-name13
+
+CertifacateExample14
+
+Getter16
+
+unknown17
+
+annotated by18
+$
+Recovered#typeBindingLGetter;020
+
+
+uses21
+
+Setter23
+$
+Recovered#typeBindingLSetter;025
+
+AllArgsConstructor27
+0
+*Recovered#typeBindingLAllArgsConstructor;029
+5
+/com.pki.example.data.CertifacateExample.subject31
+
+field32
+
+private33
+
+subject34
+"
+com.pki.example.data.Subject36
+
+is type37
+4
+.com.pki.example.data.CertifacateExample.issuer39
+
+issuer40
+!
+com.pki.example.data.Issuer42
+:
+4com.pki.example.data.CertifacateExample.serialNumber44
+
+serialNumber45
+7
+1com.pki.example.data.CertifacateExample.startDate47
+
+	startDate48
+5
+/com.pki.example.data.CertifacateExample.endDate50
+
+endDate51
+=
+7com.pki.example.data.CertifacateExample.x509Certificate53
+
+x509Certificate54J
+
+1
+12
+
+
+3
+4Z
+
+5	
+576jï
+A
+38;
+383932 *
+1 (28:5B
+
+
+11
+33
+
+
+13
+40
+A
+49;
+495032 *
+1 (28:5B
+
+
+11
+33
+
+
+13
+51
+
+41
+414217
+
+26
+262717
+
+15
+151617
+A
+30;
+303132 *
+1 (28:5B
+
+
+11
+33
+
+
+13
+34
+;
+86
+8910 *
+1 ( :5B
+
+
+11
+12
+
+
+13
+14
+
+19
+192017
+
+28
+282917
+
+24
+242517
+A
+52;
+525332 *
+1 (28:5B
+
+
+11
+33
+
+
+13
+54
+
+35
+353617
+A
+46;
+464732 *
+1 (28:5B
+
+
+11
+33
+
+
+13
+48
+
+22
+222317
+A
+43;
+434432 *
+1 (28:5B
+
+
+11
+33
+
+
+13
+45r¾
+
+81518*
+1
+ 
+(
+
+81921*
+1
+ 
+(
+
+82218*
+1 (
+
+82421*
+1 (
+
+82618*
+1 (
+
+82821*
+1 (
+
+303537*
+1 (
+
+303521*
+1 (
+
+303521*
+1 (
+
+384137*
+1 (
+
+384121*
+1 (
+
+384121*
+1 (

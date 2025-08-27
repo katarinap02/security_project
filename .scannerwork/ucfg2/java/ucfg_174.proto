@@ -1,0 +1,16 @@
+
+@com.pki.example.dto.LoginRequest#getPassword()Ljava/lang/String;|
+rC:/Users/KORISNIK/Desktop/Bezbednost/Projekat/security_project/src/main/java/com/pki/example/dto/LoginRequest.java ("1*¯
+1 (z
+x
+ (
+%0java.lang.String"__id*N
+
+__unknown_file (2*0"
+ com.pki.example.dto.LoginRequest"
+
+password"$
+ (
+
+%0java.lang.StringB$"
+ com.pki.example.dto.LoginRequestH

@@ -57,10 +57,6 @@ public class AuthController {
         return userService.register(userDto);
     }
 
-//    @PostMapping("/login")
-//    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-//        return userService.login(request.getEmail(), request.getPassword());
-//    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {

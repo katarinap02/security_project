@@ -13,10 +13,7 @@ public class RoleService {
 	private RoleRepository roleRepository;
 
 
-	public Role findById(Long id) {
-		Role auth = this.roleRepository.getOne(id);
-		return auth;
-	}
+
 
 	public List<Role> findByName(String name) {
 		List<Role> roles = this.roleRepository.findByName(name);

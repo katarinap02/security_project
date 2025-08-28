@@ -4,6 +4,9 @@ import com.pki.example.data.Issuer;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
@@ -13,6 +16,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Enumeration;
+
 
 @Component
 public class KeyStoreReader {
@@ -22,6 +27,8 @@ public class KeyStoreReader {
     // - Privatni kljucevi
     // - Tajni kljucevi, koji se koriste u simetricnima siframa
     private KeyStore keyStore;
+
+    private static final Logger logger = LoggerFactory.getLogger(KeyStoreReader.class);
 
     public KeyStoreReader() {
         try {
@@ -45,64 +52,50 @@ public class KeyStoreReader {
      */
     public Issuer readIssuerFromStore(String keyStoreFile, String alias, char[] password, char[] keyPass) {
         try {
-            //Datoteka se ucitava
-            BufferedInputStream in = new BufferedInputStream(new FileInputStream(keyStoreFile));
-            keyStore.load(in, password);
+            // keyStoreFile = "keystores/root1.jks"
+            ClassPathResource resource = new ClassPathResource(keyStoreFile);
+            KeyStore keyStore = KeyStore.getInstance("JKS");
 
-            //Iscitava se sertifikat koji ima dati alias
+            try (InputStream is = resource.getInputStream()) {
+                keyStore.load(is, password);
+            }
+
             Certificate cert = keyStore.getCertificate(alias);
+            if (cert == null) {
+                throw new RuntimeException("CA certificate not found in keystore");
+            }
 
-            //Iscitava se privatni kljuc vezan za javni kljuc koji se nalazi na sertifikatu sa datim aliasom
             PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, keyPass);
 
             X500Name issuerName = new JcaX509CertificateHolder((X509Certificate) cert).getSubject();
             return new Issuer(privateKey, cert.getPublicKey(), issuerName);
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (CertificateException e) {
-            e.printStackTrace();
-        } catch (UnrecoverableKeyException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Greška pri učitavanju keystore-a: " + e.getMessage(), e);
         }
-        return null;
     }
+
+
+
 
     /**
      * Ucitava sertifikat is KS fajla
      */
-    public Certificate readCertificate(String keyStoreFile, String keyStorePass, String alias) {
-        try {
-            //kreiramo instancu KeyStore
-            KeyStore ks = KeyStore.getInstance("JKS", "SUN");
-            //ucitavamo podatke
-            BufferedInputStream in = new BufferedInputStream(new FileInputStream(keyStoreFile));
-            ks.load(in, keyStorePass.toCharArray());
-
-            if(ks.isKeyEntry(alias)) {
-                Certificate cert = ks.getCertificate(alias);
-                return cert;
-            }
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (CertificateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+    public java.security.cert.Certificate readCertificate(String keystoreFileName, String keystorePassword, String alias) throws Exception {
+        // Učitaj keystore iz resources foldera
+        ClassPathResource resource = new ClassPathResource(keystoreFileName);
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        try (InputStream is = resource.getInputStream()) {
+            keyStore.load(is, keystorePassword.toCharArray());
         }
-        return null;
+
+        java.security.cert.Certificate cert = keyStore.getCertificate(alias);
+        if (cert == null) {
+            throw new RuntimeException("Certificate with alias " + alias + " not found in keystore");
+        }
+        return cert;
     }
+
 
     /**
      * Ucitava privatni kljuc is KS fajla

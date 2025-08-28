@@ -13,10 +13,12 @@ import com.pki.example.model.CertificateType;
 import com.pki.example.model.User;
 import com.pki.example.repository.CertificateRepository;
 import com.pki.example.repository.UserRepository;
+import com.pki.example.util.TokenUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -35,6 +37,11 @@ public class CertificateService {
     private final UserRepository userRepository;
 
     @Autowired
+    private HttpServletRequest request;
+    @Autowired
+    private TokenUtils tokenUtils;
+
+    @Autowired
     public CertificateService(CertificateRepository certificateRepository, UserRepository userRepository,CertificateFactory certificateFactory, KeystoreService keystoreService) {
         this.certificateRepository = certificateRepository;
         this.certificateFactory = certificateFactory;
@@ -44,6 +51,13 @@ public class CertificateService {
     }
 
     public CertificateResponseDTO issueCertificate(IssuerCertificateDTO dto, User ulogovaniKorisnik) {
+
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
+
+        String token = authHeader.substring(7);
+        String email = tokenUtils.getEmailFromToken(token);
+        ulogovaniKorisnik = userRepository.findByEmail(email);
 
         if (ulogovaniKorisnik == null) {
             throw new SecurityException("Access denied. No information about the logged-in user.");

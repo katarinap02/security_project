@@ -1,15 +1,24 @@
 package com.pki.example.controller;
 
+import com.pki.example.dto.CSRDTO;
 import com.pki.example.model.CA;
 import com.pki.example.model.CSR;
 import com.pki.example.repository.CARepository;
 import com.pki.example.repository.CSRRepository;
 import com.pki.example.service.CSRService;
+import com.pki.example.service.KeystoreService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 @RestController
@@ -20,6 +29,8 @@ public class CSRController {
     @Autowired
     private CARepository caRepository;
 
+    @Value("${app.keystore.encryption-key}")
+    private String globalKey;
 
     @GetMapping()
     public ResponseEntity<List<CSR>> getAllCSRs() {
@@ -33,15 +44,16 @@ public class CSRController {
 
 
     @PostMapping("/upload")
-    public ResponseEntity<CSR> uploadCSR(@RequestParam("file") MultipartFile csrFile,
-                                         @RequestParam("caId") Long caId,
-                                         @RequestParam("validityDays") int validityDays) {
+    public ResponseEntity<CSRDTO> uploadCSR(@RequestParam("file") MultipartFile csrFile,
+                                            @RequestParam("caId") Long caId,
+                                            @RequestParam("validityDays") int validityDays) {
 
         try{
             CA ca = caRepository.findById(caId).orElseThrow(() -> new IllegalArgumentException("Ne postoji odabrana CA"));
-            CSR csr = csrService.uploadCSR(csrFile, ca, validityDays);
+            CSRDTO csr = csrService.uploadCSR(csrFile, ca, validityDays);
             return ResponseEntity.ok(csr);
         }catch (Exception e){
+            e.printStackTrace(); // ili loguj e.getMessage()
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -53,9 +65,29 @@ public class CSRController {
         return csrService.getPendingRequestsForCa(caId);
     }
 
+
+    @GetMapping("/enkodiraj")
+    public ResponseEntity<String> bla() {
+        try {
+            String rootPassword = "RootCApassw0rd!!";
+            String intermediatePassword = "IntermedPassw0rd";
+
+            KeystoreService ksService = new KeystoreService();
+            String encryptedRoot = ksService.encryptPassword(rootPassword.toCharArray(), globalKey);
+            String encryptedIntermediate = ksService.encryptPassword(intermediatePassword.toCharArray(), globalKey);
+
+            System.out.println("Encrypted Root: " + encryptedRoot);
+            System.out.println("Encrypted Intermediate: " + encryptedIntermediate);
+            return ResponseEntity.ok(encryptedRoot + ", " + encryptedIntermediate);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Encryption failed");
+        }
+    }
+
     // CA odobrava zahtev
     @PostMapping("/{csrId}/approve")
-    public CSR approveRequest(
+    public CSRDTO approveRequest(
             @PathVariable Long csrId,
             @RequestParam int validityDays
     ) {
@@ -65,10 +97,9 @@ public class CSRController {
     // CA odbija zahtev
     @PostMapping("/{csrId}/reject")
     public CSR rejectRequest(
-            @PathVariable Long csrId,
-            @RequestParam String reason
+            @PathVariable Long csrId
     ) {
-        return csrService.rejectRequest(csrId, reason);
+        return csrService.rejectRequest(csrId);
     }
 
     // korisnik vidi svoje CSR-ove

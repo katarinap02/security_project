@@ -1,9 +1,14 @@
 package com.pki.example.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
+@Getter
+@Setter
 public class CA {
 
     @Id
@@ -15,57 +20,21 @@ public class CA {
 
     @Lob
     private byte[] certificateBytes;
+
     @Lob
     private byte[] privateKeyBytes;
+
     @OneToMany(mappedBy = "ca")
     private List<CSR> signedCSRs;
 
+    private String keystoreFileName;
 
-    public Long getId() {
-        return id;
-    }
+    private String keystorePassword;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    private String keyPassword;
 
-    public String getName() {
-        return name;
-    }
+    private boolean isRoot;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    private String serialNumber;
 
-    public int getMaxCertificateDuration() {
-        return maxCertificateDuration;
-    }
-
-    public void setMaxCertificateDuration(int maxCertificateDuration) {
-        this.maxCertificateDuration = maxCertificateDuration;
-    }
-
-    public byte[] getCertificateBytes() {
-        return certificateBytes;
-    }
-
-    public void setCertificateBytes(byte[] certificateBytes) {
-        this.certificateBytes = certificateBytes;
-    }
-
-    public byte[] getPrivateKeyBytes() {
-        return privateKeyBytes;
-    }
-
-    public void setPrivateKeyBytes(byte[] privateKeyBytes) {
-        this.privateKeyBytes = privateKeyBytes;
-    }
-
-    public List<CSR> getSignedCSRs() {
-        return signedCSRs;
-    }
-
-    public void setSignedCSRs(List<CSR> signedCSRs) {
-        this.signedCSRs = signedCSRs;
-    }
 }

@@ -4,13 +4,12 @@ import com.pki.example.config.KeycloakSecurityConfig;
 import com.pki.example.dto.LoginRequest;
 import com.pki.example.dto.TokenInfoDTO;
 import com.pki.example.dto.UserDTO;
+import com.pki.example.model.Role;
 import com.pki.example.model.User;
 import com.pki.example.repository.UserRepository;
-import com.pki.example.service.EmailService;
-import com.pki.example.service.PasswordResetTokenService;
-import com.pki.example.service.RecaptchaService;
-import com.pki.example.service.UserService;
+import com.pki.example.service.*;
 
+import com.warrenstrange.googleauth.GoogleAuthenticator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -44,6 +43,9 @@ public class AuthController {
     private RecaptchaService recaptchaService;
 
     @Autowired
+    private RoleService roleService;
+
+    @Autowired
     private PasswordResetTokenService passwordResetTokenService;
 
     @Autowired
@@ -55,6 +57,12 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDTO userDto) {
         return userService.register(userDto);
+    }
+
+    @PostMapping("/register-ca")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<?> registerCAUser(@RequestBody UserDTO userDto) {
+        return userService.registerCAUser(userDto);
     }
 
 
@@ -146,9 +154,27 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid or expired token"));
         }
 
+        //  Update lozinke u bazi
         user.setPassword(passwordEncoder.encode(newPassword));
+
+        // Ako je CA user → postavi firstLogin=false
+        List<Role> roles = roleService.findByName("ROLE_CA_USER");
+        if (user.getRoles().stream().anyMatch(roles::contains)) {
+            user.setFirstLogin(false);
+        }
+
         userRepository.save(user);
 
+        //  Update lozinke u Keycloak-u
+        try {
+            userService.updateKeycloakPassword(user.getEmail(), newPassword); // helper metod iz mog prethodnog odgovora
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Password updated locally, but failed to update in Keycloak: " + e.getMessage()));
+        }
+
+        //  Poništi token
         passwordResetTokenService.invalidateToken(token);
 
         return ResponseEntity.ok(Map.of("message", "Password has been successfully reset."));
@@ -160,5 +186,47 @@ public class AuthController {
         String qrUrl = userService.enable2FA(email);
         return ResponseEntity.ok(Map.of("qrUrl", qrUrl));
     }
+
+    @PostMapping("/check-2fa")
+    public ResponseEntity<?> checkTwoFactor(@RequestBody Map<String, Object> body) {
+        String email = (String) body.get("email");
+
+        Object codeObj = body.get("twoFactorCode");
+        Integer code = null;
+
+        // Ako codeObj postoji, pokušaj parsiranje
+        if (codeObj != null) {
+            try {
+                if (codeObj instanceof Integer) {
+                    code = (Integer) codeObj;
+                } else if (codeObj instanceof String) {
+                    code = Integer.parseInt(((String) codeObj).trim());
+                } else {
+                    return ResponseEntity.badRequest().body(Map.of("message", "Invalid 2FA code format", "success", false));
+                }
+            } catch (NumberFormatException e) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Invalid 2FA code format", "success", false));
+            }
+        }
+
+        User user = userRepository.findByEmail(email);
+        if (user == null || user.getTwoFaSecret() == null) {
+            // Ako korisnik nema 2FA, vrati false
+            return ResponseEntity.ok(Map.of("success", false));
+        }
+
+        // Ako korisnik ima 2FA, ali nije poslao kod
+        if (code == null) {
+            return ResponseEntity.ok(Map.of("success", false));
+        }
+
+        GoogleAuthenticator gAuth = new GoogleAuthenticator();
+        boolean isCodeValid = gAuth.authorize(user.getTwoFaSecret(), code);
+
+        return ResponseEntity.ok(Map.of("success", isCodeValid));
+    }
+
+
+
 
 }

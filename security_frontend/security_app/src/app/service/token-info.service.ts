@@ -36,4 +36,7 @@ enable2FA(sub: string) {
   return this.http.post<{ qrUrl: string }>(`http://localhost:8081/api/users/enable-2fa`, { sub });
 }
 
+
+
+
 }

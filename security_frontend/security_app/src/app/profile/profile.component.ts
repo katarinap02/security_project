@@ -12,6 +12,9 @@ import { Router, RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { jwtDecode } from 'jwt-decode';
 import { QRCodeModule } from 'angularx-qrcode'; 
+import Swal from 'sweetalert2';
+import { AuthService } from '../service/auth.service';
+import { TwoFactorService } from '../service/two-factor.service';
 
 
 @Component({
@@ -40,7 +43,16 @@ export class ProfileComponent implements OnInit {
   currentJti: string = '';
   qrUrl: string = ''; 
 
-  constructor(private tokenService: TokenInfoService, private router: Router) {}
+
+  isAdmin: boolean = false;
+  showCARegistration: boolean = false;
+  caEmail: string = '';
+  caName: string = '';
+  caSurname: string = '';
+  caOrganization: string = '';
+
+
+  constructor(private tokenService: TokenInfoService, private router: Router, private authService: AuthService, private twoFactorService: TwoFactorService) {}
 
   ngOnInit() {
     const token = localStorage.getItem('keycloakToken');
@@ -48,18 +60,35 @@ export class ProfileComponent implements OnInit {
       const decoded: any = jwtDecode(token);
       this.userSub = decoded.email; 
       localStorage.setItem('sub', this.userSub);
+      
+      this.isAdmin = decoded.resource_access?.['my-app']?.roles?.includes('ROLE_ADMIN') || false;
+      console.log('ROLEE:', this.isAdmin);
     }
 
-    this.currentJti = localStorage.getItem('jti') || '';
+    //this.currentJti = localStorage.getItem('jti') || '';
+
+
     console.log("USER SUB:", this.userSub);
 
     this.loadTokens();
   }
 
+  openCARegistration() {
+  this.showCARegistration = true;
+}
+
+closeCARegistration() {
+  this.showCARegistration = false;
+}
+
+
   enable2FA() {
     this.tokenService.enable2FA(this.userSub).subscribe({
       next: (res: any) => {
-        this.qrUrl = res.qrUrl;   // 👈 backend vraća QR kod
+        console.log('QR URL from backend:', res.qrUrl);
+        this.qrUrl = res.qrUrl;   // backend vraća QR kod
+              // aktiviraj showTwoFactor u LoginComponent
+      this.twoFactorService.setShowTwoFactor(true);
       },
           error: (err) => {
       console.error('Error enabling 2FA', err);
@@ -67,16 +96,27 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+
   loadTokens() {
-    this.tokenService.getActiveSessions().subscribe({
-      next: data => {
-        console.log("Current JTI:", this.currentJti);
-        console.log("Tokens:", data);
-        this.tokens = data;
-      },
-      error: err => console.error(err)
-    });
-  }
+  this.tokenService.getActiveSessions().subscribe({
+    next: data => {
+      
+      console.log("LocalStorage JTI:", localStorage.getItem('jti'));
+      console.log("Tokens:", data);
+      this.tokens = data;
+
+      // Nađi token sa najnovijim lastActivity
+      const latestToken = this.tokens
+        .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())[0];
+
+      this.currentJti = latestToken?.jti || '';
+      
+      console.log("Updated current JTI:", this.currentJti);
+    },
+    error: err => console.error(err)
+  });
+}
+
 
 revoke(jti: string) {
   const email = this.userSub; // email, ne UUID
@@ -103,6 +143,51 @@ revoke(jti: string) {
     sessionStorage.clear();
     this.router.navigate(['/login']);
   }
+
+
+  submitCARegistration(form: any) {
+  if (form.invalid) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Invalid input',
+      text: 'Please fill in all fields correctly.'
+    });
+    return;
+  }
+
+  const user = {
+    email: this.caEmail,
+    name: this.caName,
+    surname: this.caSurname,
+    organization: this.caOrganization
+  };
+
+  // Pozovi backend endpoint za registraciju CA korisnika
+  this.authService.registerCAUser(user).subscribe({  
+    next: () => {
+      Swal.fire({
+        icon: 'success',
+        title: 'CA User registered',
+        text: 'Temporary password has been sent to the user.'
+      });
+
+      // Reset forme
+      this.caEmail = '';
+      this.caName = '';
+      this.caSurname = '';
+      this.caOrganization = '';
+      this.showCARegistration = false;
+    },
+    error: err => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Registration failed',
+        text: err.error?.message || 'An error occurred.'
+      });
+    }
+  });
+}
+
 }
 
 

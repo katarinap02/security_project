@@ -69,6 +69,9 @@ public class User implements UserDetails {
     @Column(name = "two_fa_secret")
     private String twoFaSecret;
 
+    @Column(name = "first_login")
+    private boolean firstLogin = false;
+
 
     public User(Integer id, String name, String surname, String email, String password,
                 boolean activated, LocalDateTime creationTime, String organization,
@@ -172,6 +175,14 @@ public class User implements UserDetails {
 
     public List<Role> getRoles() {
         return roles;
+    }
+
+    public boolean isFirstLogin() {
+        return firstLogin;
+    }
+
+    public void setFirstLogin(boolean firstLogin) {
+        this.firstLogin = firstLogin;
     }
 
     @JsonIgnore

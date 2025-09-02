@@ -48,11 +48,13 @@ public class KeycloakSecurityConfig {
                                 "/api/users/activate/**",
                                 "/api/users/forgot-password",
                                 "/api/users/reset-password",
-                                "/api/users/enable-2fa"
+                                "/api/users/enable-2fa",
+                                "/api/users/{email}/2fa",
+                                "/api/users/check-2fa"
+
                         ).permitAll()
-                        .antMatchers("/api/users/sessions/**").hasRole("END_USER")
-                        .antMatchers("/api/users/sessions/**").hasRole("CA_USER")
-                        .antMatchers("/api/users/sessions/**").hasRole("ADMIN")
+                        .antMatchers("/api/users/sessions/**").hasAnyRole("END_USER", "CA_USER", "ADMIN")
+                        .antMatchers("/api/users/register-ca").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

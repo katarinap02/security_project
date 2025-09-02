@@ -20,7 +20,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-
 import org.springframework.http.*;
 
 
@@ -397,5 +396,18 @@ public class TokenUtils {
 		}
 		return null;
 	}
+	public String getJtiFromToken(String token) {
+		try {
+			Claims claims = Jwts.parser()
+					.setSigningKey(SECRET)
+					.parseClaimsJws(token)
+					.getBody();
+			return claims.getId(); // ovo je JTI iz tokena
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 
 }

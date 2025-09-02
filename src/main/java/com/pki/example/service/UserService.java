@@ -159,7 +159,7 @@ public class UserService implements UserDetailsService {
 
         // --- Kreiranje korisnika u Keycloak-u ---
         try {
-            createKeycloakUser(userDto.getEmail(), userDto.getPassword());
+            createKeycloakUser(userDto.getEmail(), userDto.getPassword(), "ROLE_END_USER");
             logger.info("User also created in Keycloak: {}", userDto.getEmail());
         } catch (Exception e) {
             logger.error("Failed to create user in Keycloak for email: {}", userDto.getEmail(), e);
@@ -172,98 +172,198 @@ public class UserService implements UserDetailsService {
         return ResponseEntity.status(HttpStatus.CREATED).body(new UserDTO(user));
     }
 
-private void createKeycloakUser(String email, String password) {
-    RestTemplate restTemplate = new RestTemplate();
+    @Transactional
+    public synchronized ResponseEntity<?> registerCAUser(UserDTO userDto) {
+        logger.info("Admin creating CA user with email: {}", userDto.getEmail());
 
-    try {
-        // 1️⃣ Dobijanje admin tokena
-        String tokenEndpoint = keycloakUrl + "realms/master/protocol/openid-connect/token";
-        logger.info("Requesting admin token from Keycloak: {}", tokenEndpoint);
-
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "password");
-        body.add("client_id", "admin-cli"); // standardni admin client
-        body.add("username", keycloakAdminUsername);
-        body.add("password", keycloakAdminPassword);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        ResponseEntity<String> response = restTemplate.postForEntity(tokenEndpoint, new HttpEntity<>(body, headers), String.class);
-        ObjectMapper mapper = new ObjectMapper();
-        String adminToken = mapper.readTree(response.getBody()).get("access_token").asText();
-        logger.info("Admin token retrieved successfully");
-
-        HttpHeaders authHeaders = new HttpHeaders();
-        authHeaders.setContentType(MediaType.APPLICATION_JSON);
-        authHeaders.setBearerAuth(adminToken);
-
-        // 2️⃣ Provera da li korisnik već postoji
-        String searchUrl = keycloakUrl + "admin/realms/security-app/users?username=" + email;
-        ResponseEntity<String> searchResponse = restTemplate.exchange(searchUrl, HttpMethod.GET, new HttpEntity<>(authHeaders), String.class);
-        JsonNode usersNode = mapper.readTree(searchResponse.getBody());
-
-        if (usersNode.isArray() && usersNode.size() > 0) {
-            // Korisnik postoji → update lozinke
-            String userId = usersNode.get(0).get("id").asText();
-            logger.info("User exists, updating password: {}", email);
-
-            Map<String, Object> credUpdate = Map.of(
-                    "type", "password",
-                    "value", password,
-                    "temporary", false
-            );
-            restTemplate.put(keycloakUrl + "admin/realms/security-app/users/" + userId + "/reset-password",
-                    new HttpEntity<>(credUpdate, authHeaders));
-
-            Map<String, Object> updateStatus = Map.of(
-                    "enabled", true,
-                    "emailVerified", true
-            );
-            restTemplate.put(keycloakUrl + "admin/realms/security-app/users/" + userId,
-                    new HttpEntity<>(updateStatus, authHeaders));
-
-            logger.info("Password and account updated successfully for user: {}", email);
-
-        } else {
-            // Korisnik ne postoji → kreiraj novog
-            Map<String, Object> newUser = new HashMap<>();
-            newUser.put("username", email);
-            newUser.put("email", email);
-            newUser.put("enabled", true);
-            newUser.put("firstName", email);
-            newUser.put("lastName", email);
-            newUser.put("emailVerified", true);
-            newUser.put("credentials", List.of(Map.of(
-                    "type", "password",
-                    "value", password,
-                    "temporary", false
-            )));
-
-            ResponseEntity<String> createResponse = restTemplate.postForEntity(
-                    keycloakUrl + "admin/realms/security-app/users",
-                    new HttpEntity<>(newUser, authHeaders),
-                    String.class
-            );
-
-            if (createResponse.getStatusCode().is2xxSuccessful()) {
-                logger.info("User created successfully: {}", email);
-            } else {
-                logger.error("Failed to create user: {}", createResponse.getBody());
-            }
+        if (userDto.getEmail() == null || userDto.getEmail().isEmpty()) {
+            return ResponseEntity.badRequest().body("Email address is required!");
+        }
+        if (userRepository.existsByEmail(userDto.getEmail())) {
+            return ResponseEntity.badRequest().body("Email already exists!");
         }
 
-    } catch (HttpClientErrorException e) {
-        logger.error("HTTP error when calling Keycloak: status {}, body {}", e.getStatusCode(), e.getResponseBodyAsString());
-    } catch (Exception e) {
-        logger.error("Unexpected error during Keycloak user creation/update", e);
-    }
-}
+        // 1️⃣ Generišemo nasumičnu privremenu lozinku
+        String rawPassword = UUID.randomUUID().toString().substring(0, 10); // 10 karaktera
+        String encodedPassword = passwordEncoder.encode(rawPassword);
 
+        char[] userSymmetricKey = keystoreService.generateRandomPassword();
+        String encryptedUserKey = keystoreService.encryptUserSymmetricKey(new String(userSymmetricKey));
+
+        User user = new User();
+        user.setEmail(userDto.getEmail());
+        user.setPassword(encodedPassword);
+        user.setName(StringEscapeUtils.escapeHtml4(userDto.getName()));
+        user.setSurname(StringEscapeUtils.escapeHtml4(userDto.getSurname()));
+        user.setOrganization(StringEscapeUtils.escapeHtml4(userDto.getOrganization()));
+        user.setEncryptedUserSymmetricKey(encryptedUserKey);
+        user.setActivated(true);      // CA user odmah aktivan
+        user.setEnabled(true);
+        user.setFirstLogin(true);     //  nova kolona u entitetu User
+        user.setCreationTime(LocalDateTime.now());
+
+        List<Role> roles = roleService.findByName("ROLE_CA_USER");
+        user.setRoles(roles);
+
+        userRepository.save(user);
+
+        try {
+            createKeycloakUser(userDto.getEmail(), rawPassword,  "ROLE_CA_USER");
+            logger.info("CA user also created in Keycloak: {}", userDto.getEmail());
+        } catch (Exception e) {
+            logger.error("Failed to create CA user in Keycloak", e);
+        }
+
+        // 2️⃣ Pošalji email korisniku sa privremenom lozinkom
+        emailService.sendCAUserWelcomeEmail(user.getEmail(), rawPassword);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(new UserDTO(user));
+    }
+
+    private void createKeycloakUser(String email, String password, String roleName) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+
+            // 1️⃣ Dobijanje admin tokena
+            String tokenEndpoint = keycloakUrl + "realms/master/protocol/openid-connect/token";
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("grant_type", "password");
+            body.add("client_id", "admin-cli");
+            body.add("username", keycloakAdminUsername);
+            body.add("password", keycloakAdminPassword);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            logger.info("Requesting admin token from {}", tokenEndpoint);
+            ResponseEntity<String> response = restTemplate.postForEntity(tokenEndpoint, new HttpEntity<>(body, headers), String.class);
+            logger.info("Admin token response status: {}, body: {}", response.getStatusCode(), response.getBody());
+
+            String adminToken = mapper.readTree(response.getBody()).get("access_token").asText();
+            logger.info("Admin token received successfully.");
+
+            HttpHeaders authHeaders = new HttpHeaders();
+            authHeaders.setContentType(MediaType.APPLICATION_JSON);
+            authHeaders.setBearerAuth(adminToken);
+
+            // 2️⃣ Provera da li korisnik već postoji
+            String searchUrl = keycloakUrl + "admin/realms/security-app/users?username=" + email;
+            logger.info("Checking if user exists: {}", searchUrl);
+            ResponseEntity<String> searchResponse = restTemplate.exchange(searchUrl, HttpMethod.GET, new HttpEntity<>(authHeaders), String.class);
+            logger.info("User search response: {}", searchResponse.getBody());
+
+            JsonNode usersNode = mapper.readTree(searchResponse.getBody());
+
+            String userId;
+            if (usersNode.isArray() && usersNode.size() > 0) {
+                // Korisnik postoji → update lozinke
+                userId = usersNode.get(0).get("id").asText();
+                logger.info("User {} already exists with ID {}", email, userId);
+
+                Map<String, Object> credUpdate = Map.of(
+                        "type", "password",
+                        "value", password,
+                        "temporary", false
+                );
+                restTemplate.put(keycloakUrl + "admin/realms/security-app/users/" + userId + "/reset-password",
+                        new HttpEntity<>(credUpdate, authHeaders));
+                logger.info("Password updated for user {}", userId);
+
+                Map<String, Object> updateStatus = Map.of(
+                        "enabled", true,
+                        "emailVerified", true
+                );
+                restTemplate.put(keycloakUrl + "admin/realms/security-app/users/" + userId,
+                        new HttpEntity<>(updateStatus, authHeaders));
+                logger.info("User {} enabled and email verified.", userId);
+
+            } else {
+                // Korisnik ne postoji → kreiraj novog
+                logger.info("Creating new user: {}", email);
+                Map<String, Object> newUser = new HashMap<>();
+                newUser.put("username", email);
+                newUser.put("email", email);
+                newUser.put("enabled", true);
+                newUser.put("firstName", email);
+                newUser.put("lastName", email);
+                newUser.put("emailVerified", true);
+                newUser.put("credentials", List.of(Map.of(
+                        "type", "password",
+                        "value", password,
+                        "temporary", false
+                )));
+
+                ResponseEntity<String> createResponse = restTemplate.postForEntity(
+                        keycloakUrl + "admin/realms/security-app/users",
+                        new HttpEntity<>(newUser, authHeaders),
+                        String.class
+                );
+
+                logger.info("Create user response status: {}, body: {}", createResponse.getStatusCode(), createResponse.getBody());
+                if (!createResponse.getStatusCode().is2xxSuccessful()) {
+                    throw new RuntimeException("Failed to create user: " + createResponse.getBody());
+                }
+
+                // Preuzmi ID novokreiranog korisnika
+                ResponseEntity<String> userResp = restTemplate.exchange(searchUrl, HttpMethod.GET, new HttpEntity<>(authHeaders), String.class);
+                userId = mapper.readTree(userResp.getBody()).get(0).get("id").asText();
+                logger.info("New user {} created with ID {}", email, userId);
+            }
+
+            // 3️⃣ Preuzmi client ID (za client role)
+            String clientId = "my-app";
+            String clientsUrl = keycloakUrl + "admin/realms/security-app/clients?clientId=" + clientId;
+            logger.info("Fetching client UUID from Keycloak: {}", clientsUrl);
+            ResponseEntity<String> clientsResp = restTemplate.exchange(clientsUrl, HttpMethod.GET, new HttpEntity<>(authHeaders), String.class);
+            logger.info("Client response status: {}, body: {}", clientsResp.getStatusCode(), clientsResp.getBody());
+
+            JsonNode clientNode = mapper.readTree(clientsResp.getBody()).get(0);
+            String clientUuid = clientNode.get("id").asText();
+            logger.info("Resolved client UUID: {}", clientUuid);
+
+            // 4️⃣ Preuzmi ID role
+            String rolesUrl = keycloakUrl + "admin/realms/security-app/clients/" + clientUuid + "/roles";
+            logger.info("Fetching roles from Keycloak: {}", rolesUrl);
+            ResponseEntity<String> rolesResp = restTemplate.exchange(rolesUrl, HttpMethod.GET, new HttpEntity<>(authHeaders), String.class);
+            logger.info("Roles response status: {}, body: {}", rolesResp.getStatusCode(), rolesResp.getBody());
+
+            JsonNode rolesNode = mapper.readTree(rolesResp.getBody());
+            String roleId = null;
+            for (JsonNode role : rolesNode) {
+                if (role.get("name").asText().equals(roleName)) {
+                    roleId = role.get("id").asText();
+                    logger.info("Found role {} with ID {}", roleName, roleId);
+                    break;
+                }
+            }
+            if (roleId == null) {
+                logger.error("Role not found in Keycloak: {}", roleName);
+                throw new RuntimeException("Role not found in Keycloak: " + roleName);
+            }
+
+            // 5️⃣ Dodeli rolu korisniku
+            String assignRoleUrl = keycloakUrl + "admin/realms/security-app/users/" + userId + "/role-mappings/clients/" + clientUuid;
+            List<Map<String, Object>> rolesToAssign = List.of(Map.of(
+                    "id", roleId,
+                    "name", roleName
+            ));
+
+            logger.info("Assigning role {} (ID: {}) to user {} via {}", roleName, roleId, userId, assignRoleUrl);
+            ResponseEntity<String> assignResp = restTemplate.postForEntity(assignRoleUrl, new HttpEntity<>(rolesToAssign, authHeaders), String.class);
+            logger.info("Role assignment response status: {}, body: {}", assignResp.getStatusCode(), assignResp.getBody());
+
+        } catch (Exception e) {
+            logger.error("Error during Keycloak user creation and role assignment", e);
+            throw new RuntimeException(e);
+        }
+    }
 
 
     public ResponseEntity<?> login(String email, String password, String recaptchaToken, Integer twoFactorCode) {
         logger.info("Login attempt for email: {}", email);
+
 
         //  Provera reCAPTCHA
         if (!recaptchaService.verify(recaptchaToken)) { // recaptchaService ili emailService, kako si implementirala
@@ -275,6 +375,11 @@ private void createKeycloakUser(String email, String password) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nepostojeći korisnik");
         }
+        if (user.isFirstLogin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Password change required on first login.");
+        }
+
 
         // ako korisnik ima uključen 2FA
         if (user.getTwoFaSecret() != null) {
@@ -293,6 +398,7 @@ private void createKeycloakUser(String email, String password) {
                 logger.warn("Login failed via Keycloak for email: {}", email);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan email ili lozinka!");
             }
+
 
             // Kreiranje JTI i TokenInfo
             String jti = UUID.randomUUID().toString();
@@ -388,17 +494,76 @@ private void createKeycloakUser(String email, String password) {
         User user = userRepository.findByEmail(email);
         if (user == null) throw new RuntimeException("User not found");
 
+        // Ako već postoji secret, ne generišemo novi svaki put
+        if (user.getTwoFaSecret() != null && !user.getTwoFaSecret().isEmpty()) {
+            return GoogleAuthenticatorQRGenerator.getOtpAuthURL(
+                    "SecurityApp", email,
+                    new GoogleAuthenticatorKey.Builder(user.getTwoFaSecret()).build()
+            );
+        }
+
+        // Generisanje novog secret-a
         GoogleAuthenticator gAuth = new GoogleAuthenticator();
         GoogleAuthenticatorKey key = gAuth.createCredentials();
         String secret = key.getKey();
 
-        user.setTwoFaSecret(secret);  // dodaj ovu kolonu u User entitet
+        System.out.println("Issuer: SecurityApp");
+        System.out.println("Account: " + email);
+        System.out.println("Secret: " + secret);
+
+        user.setTwoFaSecret(secret);
         userRepository.save(user);
 
-        return GoogleAuthenticatorQRGenerator.getOtpAuthURL("SecurityApp", email, key);
+        String otpAuthURL = GoogleAuthenticatorQRGenerator.getOtpAuthURL("SecurityApp", email, key);
+        System.out.println("OTP URL: " + otpAuthURL); // ili Logger
+        return otpAuthURL;
+        //return GoogleAuthenticatorQRGenerator.getOtpAuthURL("SecurityApp", email, key);
     }
 
 
+    public void updateKeycloakPassword(String email, String newPassword) throws Exception {
+        RestTemplate restTemplate = new RestTemplate();
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Dobij admin token
+        String tokenEndpoint = keycloakUrl + "realms/master/protocol/openid-connect/token";
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "password");
+        body.add("client_id", "admin-cli");
+        body.add("username", keycloakAdminUsername);
+        body.add("password", keycloakAdminPassword);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(tokenEndpoint, new HttpEntity<>(body, headers), String.class);
+        String adminToken = mapper.readTree(response.getBody()).get("access_token").asText();
+
+        HttpHeaders authHeaders = new HttpHeaders();
+        authHeaders.setContentType(MediaType.APPLICATION_JSON);
+        authHeaders.setBearerAuth(adminToken);
+
+        // Nađi userId u Keycloak-u
+        String searchUrl = keycloakUrl + "admin/realms/security-app/users?username=" + email;
+        ResponseEntity<String> searchResponse = restTemplate.exchange(searchUrl, HttpMethod.GET, new HttpEntity<>(authHeaders), String.class);
+        JsonNode usersNode = mapper.readTree(searchResponse.getBody());
+        if (!usersNode.isArray() || usersNode.size() == 0) {
+            throw new RuntimeException("User not found in Keycloak: " + email);
+        }
+        String userId = usersNode.get(0).get("id").asText();
+
+        // Reset password
+        Map<String, Object> credUpdate = Map.of(
+                "type", "password",
+                "value", newPassword,
+                "temporary", false
+        );
+
+        restTemplate.put(
+                keycloakUrl + "admin/realms/security-app/users/" + userId + "/reset-password",
+                new HttpEntity<>(credUpdate, authHeaders)
+        );
+    }
 
 
 }

@@ -54,6 +54,17 @@ export class ProfileComponent implements OnInit {
 
   constructor(private tokenService: TokenInfoService, private router: Router, private authService: AuthService, private twoFactorService: TwoFactorService) {}
 
+  activeTab: 'sessions' | 'twoFactor' | null = null; 
+
+  toggleSessions() {
+    this.activeTab = this.activeTab === 'sessions' ? null : 'sessions';
+    this.showSessions = !this.showSessions;
+  }
+
+  toggleTwoFactor() {
+    this.activeTab = this.activeTab === 'twoFactor' ? null : 'twoFactor';
+  }
+
   ngOnInit() {
     const token = localStorage.getItem('keycloakToken');
     if (token) {
@@ -134,9 +145,7 @@ revoke(jti: string) {
 }
 
 
-  toggleSessions() {
-    this.showSessions = !this.showSessions;
-  }
+
 
   logout() {
     localStorage.clear();

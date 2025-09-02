@@ -1,39 +1,46 @@
- <mat-toolbar color="primary" class="toolbar">
+<mat-toolbar color="primary" class="toolbar">
   <span class="spacer"></span>
-  
-  <!-- Dugme Active Sessions -->
-  <button mat-button (click)="toggleSessions()">Active Sessions</button>
 
-  <!-- Dugme za registraciju CA korisnika -->
-<button *ngIf="isAdmin" mat-raised-button color="accent" (click)="openCARegistration()">
-  Register CA User
-</button>
-
-
-  <!-- Dugme Logout -->
-  <button mat-raised-button 
-        [ngStyle]="{'background-color':'rgba(0,0,0,0.2)', 'color':'white'}" 
-        (click)="logout()">
-  Logout
-</button>
-</mat-toolbar>
-
-<!--  Two-Factor Authentication Card -->
-<mat-card class="form-card">
-  <h2>Two-Factor Authentication</h2>
-  <button mat-raised-button color="primary" (click)="enable2FA()">
+  <!-- Dugme Enable 2FA -->
+  <button mat-button color="accent" (click)="toggleTwoFactor()" class="toolbar-button">
     Enable 2FA
   </button>
 
-  <div *ngIf="qrUrl">
-    <p>Scan this QR code with Google Authenticator:</p>
-    <qrcode [qrdata]="qrUrl" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
-  </div>
-</mat-card>
+  <!-- Dugme Active Sessions -->
+  <button mat-button (click)="toggleSessions()" class="toolbar-button">
+    Active Sessions
+  </button>
 
+  <!-- Dugme za registraciju CA korisnika -->
+  <button *ngIf="isAdmin" mat-raised-button color="accent" (click)="openCARegistration()" class="toolbar-button">
+    Register CA User
+  </button>
 
-<!--  Active Sessions -->
-<div class="form-container" *ngIf="showSessions">
+  <!-- Dugme Logout -->
+  <button mat-raised-button 
+          [ngStyle]="{'background-color':'rgba(0,0,0,0.2)', 'color':'white'}" 
+          (click)="logout()">
+    Logout
+  </button>
+</mat-toolbar>
+
+<!-- Two-Factor Authentication -->
+<div class="form-container" *ngIf="activeTab === 'twoFactor'">
+  <mat-card class="form-card">
+    <h2>Two-Factor Authentication</h2>
+    <button mat-raised-button color="primary" (click)="enable2FA()">
+      Enable 2FA
+    </button>
+
+    <div *ngIf="qrUrl">
+      <p>Scan this QR code with Google Authenticator:</p>
+      <qrcode [qrdata]="qrUrl" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
+    </div>
+  </mat-card>
+</div>
+
+<!-- Active Sessions -->
+<div class="form-container" *ngIf="activeTab === 'sessions'">
   <mat-card class="form-card">
     <h2>Active Sessions</h2>
     <p class="subtitle">Manage devices currently logged in</p>
@@ -48,31 +55,32 @@
             <th>Actions</th>
           </tr>
         </thead>
-
         <tbody>
-  <tr *ngFor="let token of tokens" [ngClass]="{'current-session': token.jti === currentJti}">
-    <td>{{token.ipAddress}}</td>
-    <td>{{token.userAgent}}</td>
-    <td>{{token.lastActivity | date:'short'}}</td>
-    <td>
-      <ng-container *ngIf="token.jti === currentJti; else otherSession">
-        <button mat-raised-button color="primary" class="logout-btn" (click)="revoke(token.jti)">
-          This Session (Logout)
-        </button>
-      </ng-container>
-      <ng-template #otherSession>
-        <button mat-raised-button color="warn" (click)="revoke(token.jti)">
-          Revoke
-        </button>
-      </ng-template>
-    </td>
-  </tr>
-</tbody>
-
+          <tr *ngFor="let token of tokens" [ngClass]="{'current-session': token.jti === currentJti}">
+            <td>{{token.ipAddress}}</td>
+            <td>{{token.userAgent}}</td>
+            <td>{{token.lastActivity | date:'short'}}</td>
+            <td>
+              <ng-container *ngIf="token.jti === currentJti; else otherSession">
+                <button mat-raised-button color="primary" class="logout-btn" (click)="revoke(token.jti)">
+                  This Session (Logout)
+                </button>
+              </ng-container>
+              <ng-template #otherSession>
+                <button mat-raised-button color="warn" (click)="revoke(token.jti)">
+                  Revoke
+                </button>
+              </ng-template>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
   </mat-card>
-</div> 
+</div>
+
+<!-- Forma za registraciju CA korisnika ostaje isto -->
+
 
 <!-- Forma za registraciju CA korisnika -->
 <div class="form-container" *ngIf="showCARegistration">

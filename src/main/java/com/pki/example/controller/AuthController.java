@@ -9,7 +9,10 @@ import com.pki.example.model.User;
 import com.pki.example.repository.UserRepository;
 import com.pki.example.service.*;
 
+import com.pki.example.util.TotpTestUtil;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +26,8 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.List;
 import java.util.Map;
+
+
 
 
 @CrossOrigin(origins = "http://localhost:4200")
@@ -53,6 +58,8 @@ public class AuthController {
 
     @Autowired
     private KeycloakSecurityConfig securityConfig;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDTO userDto) {
@@ -224,6 +231,27 @@ public class AuthController {
         boolean isCodeValid = gAuth.authorize(user.getTwoFaSecret(), code);
 
         return ResponseEntity.ok(Map.of("success", isCodeValid));
+    }
+
+    @GetMapping("/test-totp/{email}")
+    public ResponseEntity<String> testTotp(@PathVariable String email) {
+        try {
+            User user = userRepository.findByEmail(email);
+            if (user == null || user.getTwoFaSecret() == null) {
+                return ResponseEntity.badRequest().body("User not found or 2FA not enabled");
+            }
+
+            String secretFromDb = user.getTwoFaSecret(); // povlači iz baze
+            String currentOtp = TotpTestUtil.generateCurrentCode(secretFromDb);
+
+            logger.warn(">>> Trenutni generisani kod za korisnika {} (secret: {}) je: {}",
+                    email, secretFromDb, currentOtp);
+
+            return ResponseEntity.ok("Trenutni kod: " + currentOtp);
+        } catch (Exception e) {
+            logger.error("Greška prilikom generisanja TOTP", e);
+            return ResponseEntity.status(500).body("Greška: " + e.getMessage());
+        }
     }
 
 

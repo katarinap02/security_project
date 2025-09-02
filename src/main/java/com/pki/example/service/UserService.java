@@ -362,6 +362,8 @@ public class UserService implements UserDetailsService {
 
 
     public ResponseEntity<?> login(String email, String password, String recaptchaToken, Integer twoFactorCode) {
+        logger.warn("2FA code from frontend: {}", twoFactorCode);
+
         logger.info("Login attempt for email: {}", email);
 
 
@@ -373,6 +375,7 @@ public class UserService implements UserDetailsService {
 
         User user = userRepository.findByEmail(email);
         if (user == null) {
+            logger.warn("Usao u find by email: {}", email);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nepostojeći korisnik");
         }
         if (user.isFirstLogin()) {
@@ -382,11 +385,23 @@ public class UserService implements UserDetailsService {
 
 
         // ako korisnik ima uključen 2FA
-        if (user.getTwoFaSecret() != null) {
+        if (user.getTwoFaSecret() != null && !user.getTwoFaSecret().isEmpty()) {
+            logger.warn("Usao u 2fa proveru");
+            if (twoFactorCode == null) {
+                logger.warn("Obavezan 2fa");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("2FA kod je obavezan!");
+            }
+
             GoogleAuthenticator gAuth = new GoogleAuthenticator();
+
+            logger.warn("Secret from DB: {}", user.getTwoFaSecret());
+            logger.warn("Code from frontend: {}", twoFactorCode);
+
             boolean isCodeValid = gAuth.authorize(user.getTwoFaSecret(), twoFactorCode);
+            logger.warn("Validation result: {}", isCodeValid);
 
             if (!isCodeValid) {
+                logger.warn("Pogresan 2fa:{}", user.getTwoFaSecret());
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan 2FA kod!");
             }
         }
@@ -394,12 +409,13 @@ public class UserService implements UserDetailsService {
         try {
             //  Autentifikacija preko Keycloak-a
             String keycloakToken = tokenUtils.loginToKeycloak(email, password);
+            logger.info("Keycloak token returned: {}", keycloakToken);
             if (keycloakToken == null) {
                 logger.warn("Login failed via Keycloak for email: {}", email);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan email ili lozinka!");
             }
 
-
+            logger.warn("Prosao keycloak");
             // Kreiranje JTI i TokenInfo
             String jti = UUID.randomUUID().toString();
             TokenInfo tokenInfo = new TokenInfo(
@@ -494,31 +510,27 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByEmail(email);
         if (user == null) throw new RuntimeException("User not found");
 
-        // Ako već postoji secret, ne generišemo novi svaki put
+        GoogleAuthenticator gAuth = new GoogleAuthenticator();
+        GoogleAuthenticatorKey key;
+
+        // Ako već postoji secret, koristi ga direktno
         if (user.getTwoFaSecret() != null && !user.getTwoFaSecret().isEmpty()) {
-            return GoogleAuthenticatorQRGenerator.getOtpAuthURL(
-                    "SecurityApp", email,
-                    new GoogleAuthenticatorKey.Builder(user.getTwoFaSecret()).build()
-            );
+            key = new GoogleAuthenticatorKey.Builder(user.getTwoFaSecret()).build();
+        } else {
+            // Generisanje novog secret-a
+            key = gAuth.createCredentials();
+            user.setTwoFaSecret(key.getKey());  // Čuvaj BAŠ Base32 secret
+            userRepository.save(user);
         }
 
-        // Generisanje novog secret-a
-        GoogleAuthenticator gAuth = new GoogleAuthenticator();
-        GoogleAuthenticatorKey key = gAuth.createCredentials();
-        String secret = key.getKey();
-
-        System.out.println("Issuer: SecurityApp");
-        System.out.println("Account: " + email);
-        System.out.println("Secret: " + secret);
-
-        user.setTwoFaSecret(secret);
-        userRepository.save(user);
-
         String otpAuthURL = GoogleAuthenticatorQRGenerator.getOtpAuthURL("SecurityApp", email, key);
-        System.out.println("OTP URL: " + otpAuthURL); // ili Logger
+
+        logger.warn("Generated OTPAuthURL: {}", otpAuthURL);
+        logger.warn("Stored secret for user {}: {}", email, key.getKey());
+
         return otpAuthURL;
-        //return GoogleAuthenticatorQRGenerator.getOtpAuthURL("SecurityApp", email, key);
     }
+
 
 
     public void updateKeycloakPassword(String email, String newPassword) throws Exception {

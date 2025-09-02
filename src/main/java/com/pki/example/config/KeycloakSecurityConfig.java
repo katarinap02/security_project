@@ -50,7 +50,8 @@ public class KeycloakSecurityConfig {
                                 "/api/users/reset-password",
                                 "/api/users/enable-2fa",
                                 "/api/users/{email}/2fa",
-                                "/api/users/check-2fa"
+                                "/api/users/check-2fa",
+                                "/api/users/test-totp/{email}"
 
                         ).permitAll()
                         .antMatchers("/api/users/sessions/**").hasAnyRole("END_USER", "CA_USER", "ADMIN")

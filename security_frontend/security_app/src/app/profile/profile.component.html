@@ -34,7 +34,9 @@
 
     <div *ngIf="qrUrl">
       <p>Scan this QR code with Google Authenticator:</p>
-      <qrcode [qrdata]="qrUrl" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
+      <!-- <qrcode [qrdata]="qrUrl" [width]="256" [errorCorrectionLevel]="'M'"></qrcode> -->
+       <img *ngIf="qrUrl" [src]="qrUrl" alt="QR Code for 2FA">
+
     </div>
   </mat-card>
 </div>

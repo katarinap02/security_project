@@ -19,7 +19,7 @@ public class EmailService {
 
 
     public void sendActivationEmail(String email, String token) {
-        String activationLink = "http://localhost:8080/api/users/activate/" + token;
+        String activationLink = "http://localhost:8081/api/users/activate/" + token;
 
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -47,6 +47,27 @@ public class EmailService {
             logger.info("Password reset email sent successfully to {}", email);
         } catch (Exception e) {
             logger.error("Failed to send password reset email to {}: {}", email, e.getMessage(), e);
+        }
+    }
+
+    public void sendCAUserWelcomeEmail(String email, String tempPassword) {
+        String subject = "Dobrodošli - Vaša privremena lozinka";
+        String text = "Poštovani,\n\n" +
+                "Administrator Vam je kreirao nalog kao CA korisniku.\n" +
+                "Vaša privremena lozinka je: " + tempPassword + "\n\n" +
+                "Molimo Vas da je promenite pri prvom logovanju.\n\n" +
+                "Pozdrav,\nSecurityApp tim";
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(email);
+            message.setSubject(subject);
+            message.setText(text);
+
+            mailSender.send(message);
+            logger.info("Welcome email (CA User) sent successfully to {}", email);
+        } catch (Exception e) {
+            logger.error("Failed to send CA User welcome email to {}: {}", email, e.getMessage(), e);
         }
     }
 

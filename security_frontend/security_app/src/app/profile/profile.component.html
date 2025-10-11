@@ -1,19 +1,48 @@
- <mat-toolbar color="primary" class="toolbar">
+<mat-toolbar color="primary" class="toolbar">
   <span class="spacer"></span>
-  
+
+  <!-- Dugme Enable 2FA -->
+  <button mat-button color="accent" (click)="toggleTwoFactor()" class="toolbar-button">
+    Enable 2FA
+  </button>
+
   <!-- Dugme Active Sessions -->
-  <button mat-button (click)="toggleSessions()">Active Sessions</button>
+  <button mat-button (click)="toggleSessions()" class="toolbar-button">
+    Active Sessions
+  </button>
+
+  <!-- Dugme za registraciju CA korisnika -->
+  <button *ngIf="isAdmin" mat-raised-button color="accent" (click)="openCARegistration()" class="toolbar-button">
+    Register CA User
+  </button>
 
   <!-- Dugme Logout -->
   <button mat-raised-button 
-        [ngStyle]="{'background-color':'rgba(0,0,0,0.2)', 'color':'white'}" 
-        (click)="logout()">
-  Logout
-</button>
-
+          [ngStyle]="{'background-color':'rgba(0,0,0,0.2)', 'color':'white'}" 
+          (click)="logout()">
+    Logout
+  </button>
 </mat-toolbar>
 
-<div class="form-container" *ngIf="showSessions">
+<!-- Two-Factor Authentication -->
+<div class="form-container" *ngIf="activeTab === 'twoFactor'">
+  <mat-card class="form-card">
+    <h2>Two-Factor Authentication</h2>
+    <button mat-raised-button color="primary" (click)="enable2FA()">
+      Enable 2FA
+    </button>
+
+    <div *ngIf="qrUrl">
+      <p>Scan this QR code with Google Authenticator:</p>
+      <!-- <qrcode [qrdata]="qrUrl" [width]="256" [errorCorrectionLevel]="'M'"></qrcode> -->
+       <img *ngIf="qrUrl" [src]="qrUrl" alt="QR Code for 2FA">
+
+    </div>
+  </mat-card>
+</div>
+
+<!-- Active Sessions -->
+<div class="form-container" *ngIf="activeTab === 'sessions'">
   <mat-card class="form-card">
     <h2>Active Sessions</h2>
     <p class="subtitle">Manage devices currently logged in</p>
@@ -28,41 +57,30 @@
             <th>Actions</th>
           </tr>
         </thead>
-        <!-- <tbody>
+        <tbody>
           <tr *ngFor="let token of tokens" [ngClass]="{'current-session': token.jti === currentJti}">
             <td>{{token.ipAddress}}</td>
             <td>{{token.userAgent}}</td>
             <td>{{token.lastActivity | date:'short'}}</td>
             <td>
-              <button mat-raised-button color="warn" (click)="revoke(token.jti)">Revoke</button>
+              <ng-container *ngIf="token.jti === currentJti; else otherSession">
+                <button mat-raised-button color="primary" class="logout-btn" (click)="revoke(token.jti)">
+                  This Session (Logout)
+                </button>
+              </ng-container>
+              <ng-template #otherSession>
+                <button mat-raised-button color="warn" (click)="revoke(token.jti)">
+                  Revoke
+                </button>
+              </ng-template>
             </td>
           </tr>
-
-        </tbody> -->
-        <tbody>
-  <tr *ngFor="let token of tokens" [ngClass]="{'current-session': token.jti === currentJti}">
-    <td>{{token.ipAddress}}</td>
-    <td>{{token.userAgent}}</td>
-    <td>{{token.lastActivity | date:'short'}}</td>
-    <td>
-      <ng-container *ngIf="token.jti === currentJti; else otherSession">
-        <button mat-raised-button color="primary" class="logout-btn" (click)="logout()">
-          This Session (Logout)
-        </button>
-      </ng-container>
-      <ng-template #otherSession>
-        <button mat-raised-button color="warn" (click)="revoke(token.jti)">
-          Revoke
-        </button>
-      </ng-template>
-    </td>
-  </tr>
-</tbody>
-
+        </tbody>
       </table>
     </div>
     
   </mat-card>
+<<<<<<< HEAD
 </div> 
 <div class="certificate-buttons">
       <button mat-raised-button color="primary" routerLink="/add-cerficate">
@@ -72,3 +90,42 @@
         📜 Certificate Overview
       </button>
     </div>
+=======
+</div>
+
+<!-- Forma za registraciju CA korisnika ostaje isto -->
+
+
+<!-- Forma za registraciju CA korisnika -->
+<div class="form-container" *ngIf="showCARegistration">
+  <mat-card class="form-card">
+    <h2>Register CA User</h2>
+    <p class="subtitle">Admin can add a new CA user. Password will be generated automatically.</p>
+
+    <form #caForm="ngForm" (ngSubmit)="submitCARegistration(caForm)" class="form">
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput name="email" [(ngModel)]="caEmail" placeholder="Email" required email>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput name="name" [(ngModel)]="caName" placeholder="Name" required>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput name="surname" [(ngModel)]="caSurname" placeholder="Surname" required>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <input matInput name="organization" [(ngModel)]="caOrganization" placeholder="Organization" required>
+      </mat-form-field>
+
+      <div class="form-actions">
+        <button mat-raised-button color="accent" type="submit">Register CA User</button>
+        <button mat-button type="button" (click)="closeCARegistration()">Cancel</button>
+      </div>
+    </form>
+  </mat-card>
+</div>
+
+>>>>>>> 2fec10de9269b3a238cf6b6b51404feaae942741

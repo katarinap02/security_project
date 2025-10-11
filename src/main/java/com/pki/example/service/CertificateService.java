@@ -7,7 +7,6 @@ import com.pki.example.dto.CertificateResponseDTO;
 import com.pki.example.dto.IssuerCertificateDTO;
 import com.pki.example.exception.InvalidIssuerException;
 import com.pki.example.exception.ResourceNotFoundException;
-import com.pki.example.keystores.KeyStoreWriter;
 import com.pki.example.model.Certificate;
 import com.pki.example.model.CertificateType;
 import com.pki.example.model.User;

@@ -1,26 +1,28 @@
-
-
 import { HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
-import { inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AuthService } from '../service/auth.service';
 
+/**
+ * Interceptor koji automatski dodaje Keycloak token
+ * u Authorization header svakog HTTP zahteva.
+ */
 export const authInterceptor: HttpInterceptorFn = (
-  req: HttpRequest<unknown>, 
+  req: HttpRequest<unknown>,
   next: HttpHandlerFn
 ): Observable<HttpEvent<unknown>> => {
-  
-  const authService = inject(AuthService);
-  const token = authService.getToken();
+
+  // ✅ Uzmi token iz localStorage-a (gde ga čuvaš posle login-a)
+  const token = localStorage.getItem('keycloakToken');
 
   if (token) {
+    // ✅ Kloniraj zahtev i dodaj Authorization header
     const clonedRequest = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
       }
     });
-
-    return next(clonedRequest); 
+    return next(clonedRequest);
   }
+
+  // 🔸 Ako token ne postoji — prosledi zahtev bez izmene
   return next(req);
 };

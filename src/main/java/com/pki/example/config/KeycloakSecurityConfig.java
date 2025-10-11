@@ -12,6 +12,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
@@ -54,6 +59,7 @@ public class KeycloakSecurityConfig {
                                 "/api/users/test-totp/{email}"
 
                         ).permitAll()
+                        .antMatchers("/api/certificates/issue").hasAnyRole("ADMIN", "CA_USER")
                         .antMatchers("/api/users/sessions/**").hasAnyRole("END_USER", "CA_USER", "ADMIN")
                         .antMatchers("/api/users/register-ca").hasRole("ADMIN")
                         .anyRequest().authenticated()
@@ -65,5 +71,18 @@ public class KeycloakSecurityConfig {
                 .cors();
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:4200")); // frontend adresa
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

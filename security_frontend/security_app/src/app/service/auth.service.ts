@@ -46,12 +46,8 @@ registerCAUser(user: { email: string; name: string; surname: string; organizatio
   }
 
   getToken(): string | null {
-<<<<<<< HEAD
-    return localStorage.getItem('jwtToken');
-    
-=======
     return localStorage.getItem('keycloakToken');
->>>>>>> 2fec10de9269b3a238cf6b6b51404feaae942741
+
   }
 
   logout() {
@@ -70,10 +66,11 @@ registerCAUser(user: { email: string; name: string; surname: string; organizatio
     return this.http.post(`${this.apiUrl}/reset-password`, { token, password });
   }
 
-<<<<<<< HEAD
+
   getRoleIdsByEmail(email: string): Observable<number[]> {
     return this.http.get<number[]>(`${this.apiUrl}/roles/ids/${email}`);
-=======
+  }
+
   checkTwoFactor(email: string, twoFactorCode: string | number): Observable<boolean> {
     return this.http.post<{ success: boolean }>(`${this.apiUrl}/check-2fa`, { email, twoFactorCode })
       .pipe(
@@ -83,7 +80,6 @@ registerCAUser(user: { email: string; name: string; surname: string; organizatio
           return of(false);
         })
       );
->>>>>>> 2fec10de9269b3a238cf6b6b51404feaae942741
   }
 
 }

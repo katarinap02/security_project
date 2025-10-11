@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../service/auth.service';
+import { jwtDecode } from 'jwt-decode';
 
 @Component({
   selector: 'app-issue-certificate-form-component',
@@ -32,7 +33,7 @@ export class IssueCertificateFormComponentComponent implements OnInit {
   certificateForm!: FormGroup;
   userRoles: number[] = [];
   pom: number = 0;
-  userEmail: string | null = localStorage.getItem('email');
+  userEmail: string | null = localStorage.getItem('sub');
 
   constructor(
     private fb: FormBuilder,
@@ -54,7 +55,9 @@ export class IssueCertificateFormComponentComponent implements OnInit {
       validTo: ['', Validators.required],
       type: ['ROOT', Validators.required],
       issuerSerialNumber: ['']
+      
     });
+    console.log(this.userEmail)
 
     this.proveriUloge();
   }
@@ -87,6 +90,37 @@ export class IssueCertificateFormComponentComponent implements OnInit {
   }
 
   proveriUloge() {
+  const token = localStorage.getItem('keycloakToken');
+
+  if (token) {
+    const decoded: any = jwtDecode(token);
+    const roles = decoded.resource_access?.['my-app']?.roles || [];
+
+    console.log('Role iz tokena:', roles);
+
+    // ROLE_ADMIN → 1
+    // ROLE_CA_USER → 2
+    if (roles.includes('ROLE_ADMIN')) {
+      this.pom = 1;
+    } 
+    else if (roles.includes('ROLE_CA_USER')) {
+      this.pom = 2;
+
+      // disable + set value za ownerEmail ako je CA korisnik
+      this.certificateForm.get('ownerEmail')?.disable();
+      this.certificateForm.patchValue({
+        ownerEmail: this.userEmail,
+        type: 'INTERMEDIATE'
+      });
+    } else {
+      this.pom = 0;
+    }
+  } else {
+    console.warn('Token nije pronađen u localStorage.');
+  }
+}
+/*
+  proveriUloge() {
     if (this.userEmail) {
       this.authService.getRoleIdsByEmail(this.userEmail).subscribe({
         next: (roleIds) => {
@@ -112,6 +146,6 @@ export class IssueCertificateFormComponentComponent implements OnInit {
         }
       });
     }
-  }
+  }*/
 
 }

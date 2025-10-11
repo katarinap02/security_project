@@ -1,98 +1,298 @@
+/* Container za forme */
 .form-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 80vh;
-  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-  padding: 20px;
+  min-height: 85vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 30px 20px;
 }
 
+/* Osnovna kartica */
 .form-card {
-  width: 700px;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  background-color: #f5f7fa;
+  width: 100%;
+  max-width: 900px;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
   text-align: center;
+  animation: slideIn 0.4s ease-out;
 }
 
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Poseban stil za sessions karticu */
+.sessions-card {
+  max-width: 1100px;
+}
+
+/* Naslovi */
 .form-card h2 {
-  color: #333;
-  margin-bottom: 5px;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 600;
 }
 
 .subtitle {
-  color: #555;
-  margin-bottom: 25px;
-  font-size: 14px;
+  color: #6c757d;
+  margin-bottom: 30px;
+  font-size: 15px;
+  font-weight: 400;
 }
 
+/* Tabela container */
 .table-container {
   overflow-x: auto;
+  margin: 25px 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+/* Tabela stilovi */
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: left;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 th, td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #ddd;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e9ecef;
 }
 
 th {
-  background-color: #e0e4e8;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
   font-weight: 600;
-  color: #333;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
+/* Specifični stilovi za ćelije */
+.ip-cell {
+  font-family: 'Courier New', monospace;
+  color: #495057;
+  font-weight: 500;
+}
+
+.device-cell {
+  color: #6c757d;
+  font-size: 13px;
+}
+
+.time-cell {
+  color: #868e96;
+  font-size: 13px;
+}
+
+.action-cell {
+  text-align: center;
+}
+
+/* Hover efekat za redove */
 tr:hover {
-  background-color: #f1f3f5;
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
 }
 
-button {
-  font-size: 12px;
-  padding: 6px 12px;
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Trenutna sesija */
+.current-session {
+  background: linear-gradient(90deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.05));
+  border-left: 4px solid #4caf50;
+  font-weight: 600;
+}
+
+.current-session:hover {
+  background: linear-gradient(90deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.08));
+}
+
+/* Dugmad u tabeli */
+.logout-btn {
+  font-size: 14px;
+  padding: 10px 24px;
   border-radius: 8px;
+  min-width: 180px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
 }
 
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.revoke-btn {
+  font-size: 13px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  min-width: 120px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.revoke-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.button-icon {
+  margin-right: 6px;
+  font-size: 16px;
+}
+
+/* Certificate dugmad */
+.certificate-buttons {
+  margin: 30px auto;
+  max-width: 900px;
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.cert-btn {
+  min-width: 200px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.cert-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Toolbar */
 .toolbar {
   display: flex;
   justify-content: flex-end;
+  padding: 12px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-button {
+  margin: 0 8px;
+  font-weight: 500;
 }
 
 .spacer {
   flex: 1 1 auto;
 }
 
-/* .current-session {
-  background-color: rgba(0, 128, 0, 0.2); 
-} */
-
-.current-session {
-  background-color: rgba(76, 175, 80, 0.1); /* blago zelenkasta */
-  font-weight: bold;
-}
-
-.logout-btn {
-  font-size: 14px;      /* veći font */
-  padding: 10px 20px;   /* više prostora oko teksta */
-  border-radius: 10px;  /* malo zaobljenije */
-  min-width: 150px;     /* šire dugme */
-}
-.certificate-buttons {
+/* QR Code sekcija */
+.qr-section {
   margin-top: 30px;
+  padding: 25px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed #dee2e6;
+}
+
+.qr-section p {
+  font-size: 16px;
+  color: #495057;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.qr-image {
+  max-width: 256px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Forma za CA registraciju */
+.form {
+  margin-top: 25px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.form-actions {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 15px;
+  margin-top: 30px;
 }
 
-.certificate-buttons button {
+.submit-btn {
+  padding: 12px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
   min-width: 180px;
-  padding: 12px 20px;
-  font-size: 14px;
-  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
 }
 
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.cancel-btn {
+  padding: 12px 32px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+  min-width: 120px;
+}
+
+/* Responsive dizajn */
+@media (max-width: 768px) {
+  .form-card {
+    padding: 25px;
+  }
+  
+  th, td {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+  
+  .logout-btn {
+    min-width: 140px;
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+  
+  .cert-btn {
+    min-width: 160px;
+    font-size: 14px;
+  }
+  
+  .certificate-buttons {
+    gap: 15px;
+  }
+}

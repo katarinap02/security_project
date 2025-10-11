@@ -44,6 +44,7 @@ export class ProfileComponent implements OnInit {
   qrUrl: string = ''; 
 
 
+
   isAdmin: boolean = false;
   showCARegistration: boolean = false;
   caEmail: string = '';

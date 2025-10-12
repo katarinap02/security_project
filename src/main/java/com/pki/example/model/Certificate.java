@@ -1,8 +1,5 @@
 package com.pki.example.model;
 
-
-
-
 import com.fasterxml.jackson.annotation.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -50,21 +47,31 @@ public class Certificate {
     @JsonBackReference
     private User owner;
 
-    // da li je validan sertifikat i zasto je povucen
-    private boolean isRevoked = false;
-    private String revocationReason;
+    // ✅ Revocation polja
+    @Column(name = "revoked")
+    private boolean revoked = false;  // ✅ Jednostavnije
 
-    //fajl i enkriptovana lozinka za taj fajl
+    @Enumerated(EnumType.STRING)
+    @Column(name = "revocation_reason")
+    private RevocationReason revocationReason;
+
+    @Column(name = "revocation_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date revocationDate;
+
+    // Keystore polja
     @Column(nullable = false)
     private String keystoreFileName;
 
-    @Setter
     @Column(nullable = false)
     private String encryptedKeystorePassword;
 
+    // Konstruktori
     public Certificate() {}
 
-    public Certificate(String serialNumber, Date validFrom, Date validTo, CertificateType type, String keystoreFileName, String encryptedKeystorePassword) {
+    public Certificate(String serialNumber, Date validFrom, Date validTo,
+                       CertificateType type, String keystoreFileName,
+                       String encryptedKeystorePassword) {
         this.serialNumber = serialNumber;
         this.validFrom = validFrom;
         this.validTo = validTo;
@@ -72,6 +79,5 @@ public class Certificate {
         this.keystoreFileName = keystoreFileName;
         this.encryptedKeystorePassword = encryptedKeystorePassword;
     }
-
 
 }

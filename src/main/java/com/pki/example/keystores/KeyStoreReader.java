@@ -54,7 +54,8 @@ public class KeyStoreReader {
             PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, keyPass);
 
             X500Name issuerName = new JcaX509CertificateHolder((X509Certificate) cert).getSubject();
-            return new Issuer(privateKey, cert.getPublicKey(), issuerName);
+            String serialNumber = ((X509Certificate) cert).getSerialNumber().toString();
+            return new Issuer(privateKey, cert.getPublicKey(), issuerName, serialNumber);
         } catch (KeyStoreException e) {
             e.printStackTrace();
         } catch (FileNotFoundException e) {

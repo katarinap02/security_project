@@ -69,6 +69,7 @@ public class CertificateService {
         Certificate issuerRecord = null; //izdavalac u obliku sertifikata
 
         CertificateType type = CertificateType.fromString(dto.getType());
+        String serialNumber = String.valueOf(System.currentTimeMillis()); //treba mi malo ranije
 
 
         if (type == CertificateType.ROOT) {
@@ -81,7 +82,7 @@ public class CertificateService {
             // Za ROOT, kreiramo novog, samopotpisanog izdavaoca
             KeyPair rootKeyPair = certificateFactory.generateKeyPair();
             Subject selfSignedSubject = certificateFactory.createSubject(dto, rootKeyPair.getPublic());
-            issuerData = certificateFactory.createIssuer(rootKeyPair.getPrivate(), rootKeyPair.getPublic(), selfSignedSubject.getX500Name());
+            issuerData = certificateFactory.createIssuer(rootKeyPair.getPrivate(), rootKeyPair.getPublic(), selfSignedSubject.getX500Name(), serialNumber);
         } else {
             // Za INTERMEDIATE pronalazimo postojećeg izdavaoca u našoj bazi
             issuerRecord = validateAndGetIssuerRecord(dto.getIssuerSerialNumber());
@@ -121,7 +122,7 @@ public class CertificateService {
             X509Certificate issuerX509Cert = keystoreService.readCertificate(issuerRecord.getKeystoreFileName(), issuerKeystorePassword, issuerRecord.getSerialNumber());
             X500Name issuerX500Name = new X500Name(issuerX509Cert.getSubjectX500Principal().getName());
 
-            issuerData = certificateFactory.createIssuer(issuerPrivateKey, issuerX509Cert.getPublicKey(), issuerX500Name);
+            issuerData = certificateFactory.createIssuer(issuerPrivateKey, issuerX509Cert.getPublicKey(), issuerX500Name, issuerRecord.getSerialNumber());
 
         }
         //************** PRIPREMA SUBJECT-A *************//
@@ -131,7 +132,7 @@ public class CertificateService {
 
 
         // ************** GENERISANJE X.509 SERTIFIKATA i ekstenzija ***************//
-        String serialNumber = String.valueOf(System.currentTimeMillis());
+
         X509Certificate x509Cert = certificateGenerator.generateCertificate(
                 subjectData,
                 issuerData,
@@ -201,7 +202,9 @@ public class CertificateService {
                 .orElseThrow(() -> new ResourceNotFoundException("Issuer with serial number " + issuerSerialNumber + " not found."));
 
         if (issuer.isRevoked()) {
-            throw new InvalidIssuerException("Issuer certificate is revoked.");
+            throw new InvalidIssuerException(
+                    "Issuer certificate is revoked. Reason: " + issuer.getRevocationReason().getDescription()
+            );
         }
         if (issuer.getValidTo().before(new Date())) {
             throw new InvalidIssuerException("Issuer certificate has expired.");

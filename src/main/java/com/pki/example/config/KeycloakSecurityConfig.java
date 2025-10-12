@@ -60,6 +60,7 @@ public class KeycloakSecurityConfig {
 
                         ).permitAll()
                         .antMatchers("/api/certificates/issue").hasAnyRole("ADMIN", "CA_USER")
+                        .antMatchers("/api/certificates/revoke").hasAnyRole("ADMIN", "CA_USER")
                         .antMatchers("/api/users/sessions/**").hasAnyRole("END_USER", "CA_USER", "ADMIN")
                         .antMatchers("/api/users/register-ca").hasRole("ADMIN")
                         .anyRequest().authenticated()

@@ -3,12 +3,11 @@ package com.pki.example.certificates;
 import com.pki.example.data.Issuer;
 import com.pki.example.data.Subject;
 import com.pki.example.model.CertificateType;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
@@ -108,6 +107,54 @@ public class CertificateGenerator {
                 // End-Entity ključevi se tipično koriste za digitalni potpis i enkripciju.
                 certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment));
             }
+
+            //  CRL Distribution Point: Gde preuzeti CRL listu
+            // Ovo se dodaje SVIM sertifikatima koji imaju issuer-a (ROOT ne treba jer je self-signed)
+            if (type != CertificateType.ROOT) {
+                // URL gde će biti dostupna CRL lista za ovog issuer-a
+                String issuerSerialNumber = issuer.getSerialNumber();
+                String crlUrl = "http://localhost:8081/api/crl/" + issuerSerialNumber + ".crl";
+
+                // Kreira GeneralName sa URL-om
+                GeneralName generalName = new GeneralName(
+                        GeneralName.uniformResourceIdentifier,
+                        crlUrl
+                );
+
+                // Kreira DistributionPointName sa GeneralNames
+                GeneralNames generalNames = new GeneralNames(generalName);
+                DistributionPointName distributionPointName = new DistributionPointName(generalNames);
+
+                // Kreira DistributionPoint
+                DistributionPoint distributionPoint = new DistributionPoint(
+                        distributionPointName,
+                        null,  // reasons (null = svi razlozi)
+                        null   // cRLIssuer (null = isti issuer kao i za sertifikat)
+                );
+
+                // Dodaje u CRLDistPoint ekstenziju
+                CRLDistPoint crlDistPoint = new CRLDistPoint(new DistributionPoint[] { distributionPoint });
+
+                certGen.addExtension(
+                        Extension.cRLDistributionPoints,
+                        false,  // non-critical (aplikacije mogu da ignorišu ako ne razumeju)
+                        crlDistPoint
+                );
+
+                System.out.println("✅ Added CRL Distribution Point: " + crlUrl);
+            }
+
+            // 4. ✅ Authority Key Identifier: ID javnog ključa issuer-a (olakšava proveru lanca)
+            if (type != CertificateType.ROOT) {
+                JcaX509ExtensionUtils extUtils = new JcaX509ExtensionUtils();
+                AuthorityKeyIdentifier aki = extUtils.createAuthorityKeyIdentifier(issuer.getPublicKey());
+                certGen.addExtension(Extension.authorityKeyIdentifier, false, aki);
+            }
+
+            // 5. ✅ Subject Key Identifier: ID javnog ključa subject-a
+            JcaX509ExtensionUtils extUtils = new JcaX509ExtensionUtils();
+            SubjectKeyIdentifier ski = extUtils.createSubjectKeyIdentifier(subject.getPublicKey());
+            certGen.addExtension(Extension.subjectKeyIdentifier, false, ski);
 
             X509CertificateHolder certHolder = certGen.build(contentSigner);
 

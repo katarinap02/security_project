@@ -66,25 +66,6 @@ public class CSRController {
     }
 
 
-    @GetMapping("/enkodiraj")
-    public ResponseEntity<String> bla() {
-        try {
-            String rootPassword = "RootCApassw0rd!!";
-            String intermediatePassword = "IntermedPassw0rd";
-
-            KeystoreService ksService = new KeystoreService();
-            String encryptedRoot = ksService.encryptPassword(rootPassword.toCharArray(), globalKey);
-            String encryptedIntermediate = ksService.encryptPassword(intermediatePassword.toCharArray(), globalKey);
-
-            System.out.println("Encrypted Root: " + encryptedRoot);
-            System.out.println("Encrypted Intermediate: " + encryptedIntermediate);
-            return ResponseEntity.ok(encryptedRoot + ", " + encryptedIntermediate);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("Encryption failed");
-        }
-    }
-
     // CA odobrava zahtev
     @PostMapping("/{csrId}/approve")
     public CSRDTO approveRequest(

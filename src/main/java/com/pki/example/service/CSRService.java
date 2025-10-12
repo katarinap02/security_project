@@ -83,7 +83,6 @@ public class CSRService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userService.loadUserByUsername(email);
 
-        // Postavi korisnika u CSR
 
         CSR csrEntity = new CSR();
         csrEntity.setSubject(subject);

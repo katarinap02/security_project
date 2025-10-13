@@ -176,4 +176,56 @@ public class KeystoreService {
         return passwordBuilder.toString().toCharArray();
     }
 
+    public void appendKeyPairAndChain(String keystoreFileName, char[] keystorePassword, String alias,
+                                      PrivateKey privateKey, X509Certificate[] certificateChain) {
+        try {
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+
+            // Učitaj postojeći keystore
+            try (FileInputStream fis = new FileInputStream("keystores/" + keystoreFileName)) {
+                keyStore.load(fis, keystorePassword);
+            }
+
+            // Dodaj novi entry
+            keyStore.setKeyEntry(alias, privateKey, keystorePassword, certificateChain);
+
+            // Sačuvaj nazad u isti fajl
+            try (FileOutputStream fos = new FileOutputStream("keystores/" + keystoreFileName)) {
+                keyStore.store(fos, keystorePassword);
+            }
+
+            System.out.println("✅ Appended key entry to keystore: " + keystoreFileName + " (alias: " + alias + ")");
+
+        } catch (Exception e) {
+            throw new KeyStoreOperationException("Failed to append key entry to keystore: " + keystoreFileName);
+        }
     }
+
+
+     // Dodaje trusted certificate u POSTOJEĆI keystore (za END_ENTITY)
+    public void appendTrustedCertificate(String keystoreFileName, char[] keystorePassword,
+                                         String alias, X509Certificate certificate) {
+        try {
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+
+            // Učitaj postojeći keystore
+            try (FileInputStream fis = new FileInputStream("keystores/" + keystoreFileName)) {
+                keyStore.load(fis, keystorePassword);
+            }
+
+            // Dodaj novi trusted entry
+            keyStore.setCertificateEntry(alias, certificate);
+
+            // Sačuvaj nazad u isti fajl
+            try (FileOutputStream fos = new FileOutputStream("keystores/" + keystoreFileName)) {
+                keyStore.store(fos, keystorePassword);
+            }
+
+            System.out.println("✅ Appended trusted certificate to keystore: " + keystoreFileName + " (alias: " + alias + ")");
+
+        } catch (Exception e) {
+            throw new KeyStoreOperationException("Failed to append trusted certificate to keystore: " + keystoreFileName);
+        }
+    }
+
+}

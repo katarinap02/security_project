@@ -71,7 +71,6 @@ public class CertificateService {
         CertificateType type = CertificateType.fromString(dto.getType());
         String serialNumber = String.valueOf(System.currentTimeMillis()); //treba mi malo ranije
 
-
         if (type == CertificateType.ROOT) {
 
             //prava pristupa
@@ -99,6 +98,7 @@ public class CertificateService {
 
             }
 
+            // Učitavanje podataka izdavaoca
             User issuerOwner = issuerRecord.getOwner();
             if (issuerOwner == null) {
                 throw new InvalidIssuerException("Issuer certificate does not have a valid owner.");
@@ -149,18 +149,23 @@ public class CertificateService {
         String encryptedPassword = keystoreService.encryptPassword(newKeystorePassword, decryptedOwnerKey);
 
         if (type == CertificateType.END_ENTITY) {
-            keystoreService.writeTrustedCertificate(keystoreFileName, newKeystorePassword, serialNumber, x509Cert);
+            // ✅ EE sertifikat — koristi tvoju metodu appendTrustedCertificate
+            keystoreService.appendTrustedCertificate(
+                    keystoreFileName,
+                    newKeystorePassword,
+                    serialNumber,
+                    x509Cert
+            );
         } else {
+            // ✅ ROOT ili INTERMEDIATE — koristi appendKeyPairAndChain
             List<X509Certificate> chainList = new ArrayList<>();
             chainList.add(x509Cert);
-
             if (issuerRecord != null) {
                 X509Certificate[] issuerChain = buildCertificateChain(issuerRecord);
                 chainList.addAll(Arrays.asList(issuerChain));
             }
 
-            // 3. Čuvamo privatni ključ i kompletan lanac u keystore
-            keystoreService.writeKeyPairAndChain(
+            keystoreService.appendKeyPairAndChain(
                     keystoreFileName,
                     newKeystorePassword,
                     serialNumber,

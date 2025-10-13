@@ -48,7 +48,7 @@ public class Certificate {
     private User owner;
 
     // ✅ Revocation polja
-    @Column(name = "revoked")
+    @Column(name = "is_revoked")
     private boolean revoked = false;  // ✅ Jednostavnije
 
     @Enumerated(EnumType.STRING)

@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn
-): Observable<HttpEvent<unknown>> => {
+): Observable<HttpEvent<unknown>> => {/*
 
   // ✅ Uzmi token iz localStorage-a (gde ga čuvaš posle login-a)
   const token = localStorage.getItem('keycloakToken');
@@ -21,7 +21,7 @@ export const authInterceptor: HttpInterceptorFn = (
       }
     });
     return next(clonedRequest);
-  }
+  }*/
 
   // 🔸 Ako token ne postoji — prosledi zahtev bez izmene
   return next(req);

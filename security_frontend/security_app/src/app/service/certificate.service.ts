@@ -21,8 +21,10 @@ export class CertificateService {
     email = decoded.preferred_username; // ili decoded.preferred_username
   }
 
+  const headers = { 'Authorization': `Bearer ${token}` };
+
   // Pošalji DTO + email u body
-  return this.http.post<Certificate>(`${this.apiUrl}/issue`, { dto, email });
+  return this.http.post<Certificate>(`${this.apiUrl}/issue`, { dto, email }, {headers});
 }
 
 }

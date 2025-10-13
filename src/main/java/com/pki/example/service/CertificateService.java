@@ -180,7 +180,7 @@ public class CertificateService {
             String decryptedOwnerKey = keystoreService.decryptUserSymmetricKey(owner.getEncryptedUserSymmetricKey());
             encryptedPassword = keystoreService.encryptPassword(keystorePassword, decryptedOwnerKey);
 
-            // *** ISPRAVLJENO: Gradimo lanac koristeći već učitani issuerX509Cert ***
+            // Gradimo lanac koristeći već učitani issuerX509Cert
             List<X509Certificate> chainList = new ArrayList<>();
             chainList.add(x509Cert); // Novi sertifikat na vrhu lanca
 
@@ -233,7 +233,7 @@ public class CertificateService {
     }
 
 
-    // *** NOVA HELPER METODA: Prima već učitani issuer sertifikat ***
+    //Prima već učitani issuer sertifikat 
     private X509Certificate[] buildCertificateChainFromCert(Certificate certificateRecord, X509Certificate x509Cert) {
         List<X509Certificate> chain = new ArrayList<>();
         chain.add(x509Cert); // Dodaj trenutni sertifikat u lanac

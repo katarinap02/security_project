@@ -293,6 +293,10 @@ public class CertificateService {
         if (validFrom.after(validTo)) {
             throw new IllegalArgumentException("Valid From date must be before Valid To date.");
         }
+        Date today = new Date();
+        if (validFrom.before(today)) {
+            throw new IllegalArgumentException("Valid From date cannot be in the past. It must be today or later.");
+        }
 
         Date issuerValidFrom = issuerRecord.getValidFrom();
         Date issuerValidTo = issuerRecord.getValidTo();

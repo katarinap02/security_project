@@ -29,9 +29,20 @@
     
     <!-- Show this field only if type is NOT ROOT -->
     <div *ngIf="certificateForm.get('type')?.value !== 'ROOT'">
-      <label for="issuer">Issuer Serial Number:</label>
-      <input id="issuer" formControlName="issuerSerialNumber" placeholder="Enter CA certificate serial number">
-    </div>
+        <label for="issuer">Issuer Serial Number:</label>
+        <select id="issuer" formControlName="issuerSerialNumber">
+          <option value="" disabled selected>Select issuer certificate</option>
+          <option *ngIf="availableIssuers.length === 0" disabled>
+            No valid issuers available
+          </option>
+          <option *ngFor="let issuer of availableIssuers" [value]="issuer.serialNumber">
+            {{ issuer.serialNumber }} ({{ issuer.type }}) - {{ issuer.ownerEmail }}
+          </option>
+        </select>
+        <small *ngIf="availableIssuers.length > 0" style="display: block; margin-top: 5px; color: #666;">
+          Only valid CA certificates (non-expired, non-revoked) are shown
+        </small>
+      </div>
 
     <label for="validFrom">Valid From:</label>
     <input id="validFrom" type="date" formControlName="validFrom">

@@ -1,0 +1,50 @@
+.certificate-card {
+  margin: 20px;
+  padding: 20px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+h2 {
+  margin-bottom: 16px;
+  color: #1976d2;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th.mat-header-cell {
+  background-color: #1976d2;
+  color: white;
+  font-weight: 600;
+  text-align: left;
+}
+
+td.mat-cell {
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #333;
+}
+
+td.mat-cell.revoked {
+  color: #d32f2f;
+  font-weight: bold;
+}
+
+td.mat-cell.expired {
+  color: #f57c00;
+  font-weight: bold;
+}
+
+button {
+  min-width: 100px;
+  font-size: 13px;
+}
+
+mat-progress-spinner {
+  display: block;
+  margin: 40px auto;
+}

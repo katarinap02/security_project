@@ -83,6 +83,7 @@ public class CertificateService {
 
         } else {
             issuerRecord = validateAndGetIssuerRecord(dto.getIssuerSerialNumber());
+            validateCertificateDates(dto.getValidFrom(), dto.getValidTo(), issuerRecord);
 
             if (ulogovaniKorisnik.hasRole("ROLE_CA_USER")) {
                 if (!issuerRecord.getOwner().getId().equals(ulogovaniKorisnik.getId())) {
@@ -285,6 +286,39 @@ public class CertificateService {
         }
 
         return issuer;
+    }
+
+    private void validateCertificateDates(Date validFrom, Date validTo, Certificate issuerRecord) {
+        if (validFrom == null || validTo == null) {
+            throw new IllegalArgumentException("Valid From and Valid To dates must be provided.");
+        }
+
+        if (validFrom.after(validTo)) {
+            throw new IllegalArgumentException("Valid From date must be before Valid To date.");
+        }
+
+        Date issuerValidFrom = issuerRecord.getValidFrom();
+        Date issuerValidTo = issuerRecord.getValidTo();
+
+        // Provera da li je validFrom novog sertifikata pre issuer-ovog validFrom
+        if (validFrom.before(issuerValidFrom)) {
+            throw new InvalidIssuerException(
+                    String.format("Certificate cannot be valid before issuer's validity period. " +
+                                    "Issuer valid from: %s, requested valid from: %s",
+                            issuerValidFrom, validFrom)
+            );
+        }
+
+        // Provera da li je validTo novog sertifikata posle issuer-ovog validTo
+        if (validTo.after(issuerValidTo)) {
+            throw new InvalidIssuerException(
+                    String.format("Certificate cannot be valid after issuer's validity period. " +
+                                    "Issuer valid to: %s, requested valid to: %s",
+                            issuerValidTo, validTo)
+            );
+        }
+
+        System.out.println("✅ Certificate dates validated successfully within issuer's validity period.");
     }
 
     // REKONSTRUKCIJA LANCA SERTIFIKATA

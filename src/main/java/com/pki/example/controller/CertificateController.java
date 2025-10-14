@@ -2,6 +2,7 @@ package com.pki.example.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pki.example.dto.CertificateResponseDTO;
+import com.pki.example.dto.CertificateViewDTO;
 import com.pki.example.dto.IssuerCertificateDTO;
 import com.pki.example.dto.RevokeCertificateDTO;
 import com.pki.example.exception.InvalidIssuerException;
@@ -9,17 +10,21 @@ import com.pki.example.exception.ResourceNotFoundException;
 import com.pki.example.model.Certificate;
 import com.pki.example.model.User;
 import com.pki.example.service.CertificateService;
+import com.pki.example.service.CertificateViewService;
 import com.pki.example.service.RevocationService;
 import com.pki.example.service.UserService;
-import io.jsonwebtoken.Jwt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:4200")
@@ -30,12 +35,14 @@ public class CertificateController {
     private final CertificateService certificateService;
     private final UserService userService;
     private final RevocationService revocationService;
+    private final CertificateViewService certificateViewService;
 
     @Autowired
-    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService) {
+    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService, CertificateViewService certificateViewService) {
         this.certificateService = certificateService;
         this.userService = userService;
         this.revocationService = revocationService;
+        this.certificateViewService = certificateViewService;
 
     }
 
@@ -117,6 +124,22 @@ public class CertificateController {
                 "revoked", isRevoked
         ));
     }
+
+    @GetMapping("/user")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_END_USER','ROLE_CA_USER')")
+    public ResponseEntity<List<CertificateViewDTO>> getCertificatesForCurrentUser(Authentication authentication) {
+        String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+        User user = userService.loadUserByUsername(email);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<CertificateViewDTO> certificates = certificateViewService.getCertificatesForUser(user);
+        return ResponseEntity.ok(certificates);
+    }
+
+
 
 
 }

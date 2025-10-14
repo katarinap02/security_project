@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { IssueCertificateDTO } from '../model/issuerCertificateDto';
+import { CertificateDTO } from '../model/certificateDto';
 import { Certificate } from '../model/certificate';
 import { jwtDecode } from 'jwt-decode';
 
@@ -26,5 +27,19 @@ export class CertificateService {
   // Pošalji DTO + email u body
   return this.http.post<Certificate>(`${this.apiUrl}/issue`, { dto, email }, {headers});
 }
+
+getCertificatesForUser(): Observable<CertificateDTO[]> {
+  const token = localStorage.getItem('keycloakToken');
+  let email = '';
+  if (token) {
+    const decoded: any = jwtDecode(token);
+    email = decoded.preferred_username; 
+  }
+
+  const headers = { 'Authorization': `Bearer ${token}` };
+
+  return this.http.get<CertificateDTO[]>(`${this.apiUrl}/user`, { headers });
+}
+
 
 }

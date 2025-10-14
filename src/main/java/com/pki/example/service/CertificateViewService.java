@@ -45,10 +45,6 @@ public class CertificateViewService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Pronalazi sve sertifikate u lancu za CA korisnika
-     * Koristi Set sa visited ID-jevima da spreči beskonačnu rekurziju
-     */
     private List<Certificate> getCertificateChainForCAUser(User caUser) {
         try {
             // 1. Pronađi sve sertifikate gde je CA_USER owner
@@ -68,16 +64,12 @@ public class CertificateViewService {
             return new ArrayList<>(allCertificates);
 
         } catch (Exception e) {
-            System.err.println("❌ Error getting certificate chain: " + e.getMessage());
+            System.err.println("Error getting certificate chain: " + e.getMessage());
             e.printStackTrace();
             return new ArrayList<>();
         }
     }
 
-    /**
-     * Rekurzivno pronalazi sve child sertifikate
-     * Koristi Set visited ID-jeva da spreči cikluse
-     */
     private List<Certificate> findAllChildCertificates(Certificate parent, Set<Integer> processedIds) {
         // Spreči ponovnu obradu istog sertifikata (zaštita od ciklusa)
         if (parent == null || parent.getId() == null || processedIds.contains(parent.getId())) {
@@ -102,15 +94,11 @@ public class CertificateViewService {
             return allChildren;
 
         } catch (Exception e) {
-            System.err.println("⚠️ Error processing children for " + parent.getSerialNumber() + ": " + e.getMessage());
+            System.err.println(" Error processing children for " + parent.getSerialNumber() + ": " + e.getMessage());
             return Collections.emptyList();
         }
     }
 
-    /**
-     * Konvertuje Certificate u CertificateViewDTO
-     * Sve relacije se učitavaju unutar @Transactional konteksta
-     */
     private CertificateViewDTO convertToDTO(Certificate cert) {
         CertificateViewDTO dto = new CertificateViewDTO();
 
@@ -133,7 +121,7 @@ public class CertificateViewService {
                 dto.setOwnerEmail(cert.getOwner().getEmail());
             } else {
                 dto.setOwnerEmail("Unknown");
-                System.err.println("⚠️ Certificate " + cert.getSerialNumber() + " has no owner!");
+                System.err.println(" Certificate " + cert.getSerialNumber() + " has no owner!");
             }
 
             // Issuer informacije - pristupamo u @Transactional kontekstu
@@ -154,7 +142,6 @@ public class CertificateViewService {
         } catch (Exception e) {
             System.err.println("❌ Error converting certificate " + cert.getSerialNumber() + " to DTO: " + e.getMessage());
             e.printStackTrace();
-            // VratiDTO sa osnovnim podacima
             dto.setSerialNumber(cert.getSerialNumber());
             dto.setOwnerEmail("Error loading data");
             dto.setIssuerSerialNumber("Error loading data");

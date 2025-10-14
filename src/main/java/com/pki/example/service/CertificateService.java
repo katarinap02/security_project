@@ -9,6 +9,7 @@ import com.pki.example.exception.InvalidIssuerException;
 import com.pki.example.exception.ResourceNotFoundException;
 import com.pki.example.model.Certificate;
 import com.pki.example.model.CertificateType;
+import com.pki.example.model.Role;
 import com.pki.example.model.User;
 import com.pki.example.repository.CertificateRepository;
 import com.pki.example.repository.UserRepository;
@@ -164,8 +165,6 @@ public class CertificateService {
                     new X509Certificate[]{x509Cert}
             );
 
-            System.out.println("✅ ROOT certificate saved to NEW keystore: " + keystoreFileName);
-
         } else {
             // INTERMEDIATE ili END_ENTITY: Dodaj u ISSUER-ov postojeći keystore
             keystoreFileName = issuerRecord.getKeystoreFileName();
@@ -196,7 +195,6 @@ public class CertificateService {
                         serialNumber,
                         x509Cert
                 );
-                System.out.println("✅ END_ENTITY certificate appended to keystore: " + keystoreFileName);
             } else {
                 keystoreService.appendKeyPairAndChain(
                         keystoreFileName,
@@ -205,7 +203,6 @@ public class CertificateService {
                         subjectKeyPair.getPrivate(),
                         chainList.toArray(new X509Certificate[0])
                 );
-                System.out.println("✅ INTERMEDIATE certificate appended to keystore: " + keystoreFileName);
             }
         }
 
@@ -317,40 +314,6 @@ public class CertificateService {
                             issuerValidTo, validTo)
             );
         }
-
-        System.out.println("✅ Certificate dates validated successfully within issuer's validity period.");
     }
 
-    // REKONSTRUKCIJA LANCA SERTIFIKATA
-/*
-    private X509Certificate[] buildCertificateChain(Certificate certificate) {
-        List<X509Certificate> chain = new ArrayList<>();
-
-        // Počinjemo od izdavaoca i pratimo lanac unazad
-        Certificate current = certificate;
-        while (current != null) {
-            // Učitavamo X509 sertifikat za trenutnog issuer-a
-            char[] password = keystoreService.decryptPassword(
-                    current.getEncryptedKeystorePassword(),
-                    keystoreService.decryptUserSymmetricKey(current.getOwner().getEncryptedUserSymmetricKey())
-            );
-            X509Certificate cert = keystoreService.readCertificate(
-                    current.getKeystoreFileName(),
-                    password,
-                    current.getSerialNumber()
-            );
-            chain.add(cert);
-
-            // Prekidamo ako smo stigli do ROOT-a
-            if (current.getIssuer() != null && current.getIssuer().getId().equals(current.getId())) {
-                break;
-            }
-
-            current = current.getIssuer(); // Idemo na sledećeg u lancu
-        }
-
-        return chain.toArray(new X509Certificate[0]);
-    }
-
-*/
 }

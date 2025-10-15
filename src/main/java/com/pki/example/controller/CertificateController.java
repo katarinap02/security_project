@@ -72,28 +72,19 @@ public class CertificateController {
     }
 
     @PostMapping("/revoke")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
-    public ResponseEntity<?> revokeCertificate(@RequestBody Map<String, Object> body) {
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_END_USER','ROLE_CA_USER')")
+    public ResponseEntity<?> revokeCertificate(
+            @RequestBody RevokeCertificateDTO dto,
+            Authentication authentication) {
         try {
-            // Izvuci DTO iz body-ja
-            RevokeCertificateDTO dto = new ObjectMapper()
-                    .convertValue(body.get("dto"), RevokeCertificateDTO.class);
+            String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
 
-            // Izvuci email iz body-ja
-            String email = (String) body.get("email");
-
-            if (email == null || email.isBlank()) {
-                return ResponseEntity.status(400).body(Map.of("error", "Email is required"));
-            }
-
-            // Pronađi korisnika
             User currentUser = userService.loadUserByUsername(email);
-
             if (currentUser == null) {
-                return ResponseEntity.status(401).body(Map.of("error", "User not authenticated"));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "User not authenticated"));
             }
 
-            // Povuci sertifikat
             revocationService.revokeCertificate(dto, currentUser);
 
             return ResponseEntity.ok(Map.of(
@@ -104,16 +95,18 @@ public class CertificateController {
             ));
 
         } catch (SecurityException e) {
-            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         } catch (ResourceNotFoundException e) {
-            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", "Internal server error: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Internal server error: " + e.getMessage()));
         }
     }
+
 
     @GetMapping("/{serialNumber}/status")
     public ResponseEntity<?> checkCertificateStatus(@PathVariable String serialNumber) {

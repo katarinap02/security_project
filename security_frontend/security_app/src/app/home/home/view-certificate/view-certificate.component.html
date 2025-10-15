@@ -23,12 +23,6 @@
       <td mat-cell *matCellDef="let cert"> {{ cert.ownerEmail }} </td>
     </ng-container>
 
-    <!-- Issuer -->
-    <ng-container matColumnDef="issuerEmail">
-      <th mat-header-cell *matHeaderCellDef> Issuer </th>
-      <td mat-cell *matCellDef="let cert"> {{ cert.issuerEmail || '-' }} </td>
-    </ng-container>
-
     <!-- Issuer Serial -->
     <ng-container matColumnDef="issuerSerialNumber">
       <th mat-header-cell *matHeaderCellDef> Issuer Serial </th>
@@ -72,14 +66,32 @@
     </ng-container>
 
     <!-- Actions -->
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef> Actions </th>
-      <td mat-cell *matCellDef="let cert">
-        <button mat-raised-button color="primary" (click)="downloadCertificate(cert)">📥 Download</button>
-      </td>
-    </ng-container>
+<ng-container matColumnDef="actions">
+  <th mat-header-cell *matHeaderCellDef> Actions </th>
+  <td mat-cell *matCellDef="let cert" class="buttons">
+    <button mat-raised-button color="primary" (click)="downloadCertificate(cert)">
+      📥 Download
+    </button>
+  </td>
+</ng-container>
+
+<ng-container matColumnDef="actions2">
+  <th mat-header-cell *matHeaderCellDef> Actions </th>
+  <td mat-cell *matCellDef="let cert" class="buttons">
+    <button 
+      mat-raised-button 
+      color="warn" 
+      (click)="revokeCertificate(cert)"
+      [disabled]="cert.isRevoked || cert.expired">
+      ❌ Revoke
+    </button>
+  </td>
+</ng-container>
+
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
 </div>
+
+

@@ -32,11 +32,11 @@ import { CertificateService } from '../../../service/certificate.service';
   styleUrls: ['./view-certificate.component.css'],
 })
 export class ViewCertificateComponent implements OnInit {
+
   displayedColumns: string[] = [
     'serialNumber',
     'type',
     'ownerEmail',
-    'issuerEmail',
     'issuerSerialNumber',
     'validFrom',
     'validTo',
@@ -44,7 +44,8 @@ export class ViewCertificateComponent implements OnInit {
     'revocationReason',
     'revocationDate',
     'expired',
-    'actions'
+    'actions',
+    'actions2'
   ];
 
   dataSource = new MatTableDataSource<CertificateDTO>([]);
@@ -105,6 +106,10 @@ export class ViewCertificateComponent implements OnInit {
       console.error('Download failed:', err);
     }
   });
+}
+
+revokeCertificate(_t140: any) {
+throw new Error('Method not implemented.');
 }
 
 }

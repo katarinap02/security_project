@@ -20,10 +20,7 @@ import org.springframework.stereotype.Service;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class CertificateService {
@@ -294,7 +291,7 @@ public class CertificateService {
             throw new IllegalArgumentException("Valid From date must be before Valid To date.");
         }
         Date today = new Date();
-        if (validFrom.before(today)) {
+        if (validFrom.before(removeTime(today))) {
             throw new IllegalArgumentException("Valid From date cannot be in the past. It must be today or later.");
         }
 
@@ -318,6 +315,16 @@ public class CertificateService {
                             issuerValidTo, validTo)
             );
         }
+    }
+
+    private Date removeTime(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
     }
 
 }

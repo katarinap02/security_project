@@ -9,11 +9,9 @@ import com.pki.example.exception.InvalidIssuerException;
 import com.pki.example.exception.ResourceNotFoundException;
 import com.pki.example.model.Certificate;
 import com.pki.example.model.User;
-import com.pki.example.service.CertificateService;
-import com.pki.example.service.CertificateViewService;
-import com.pki.example.service.RevocationService;
-import com.pki.example.service.UserService;
+import com.pki.example.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,13 +34,15 @@ public class CertificateController {
     private final UserService userService;
     private final RevocationService revocationService;
     private final CertificateViewService certificateViewService;
+    private final DownloadService downloadService;
 
     @Autowired
-    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService, CertificateViewService certificateViewService) {
+    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService, CertificateViewService certificateViewService, DownloadService downloadService) {
         this.certificateService = certificateService;
         this.userService = userService;
         this.revocationService = revocationService;
         this.certificateViewService = certificateViewService;
+        this.downloadService = downloadService;
 
     }
 
@@ -138,6 +138,35 @@ public class CertificateController {
         List<CertificateViewDTO> certificates = certificateViewService.getCertificatesForUser(user);
         return ResponseEntity.ok(certificates);
     }
+
+    @GetMapping("/download/{serialNumber}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_END_USER','ROLE_CA_USER')")
+    public ResponseEntity<byte[]> downloadCertificate(
+            @PathVariable String serialNumber,
+            Authentication authentication) {
+
+        // Uzimanje korisnika iz tokena
+        String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+        User user = userService.loadUserByUsername(email);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Poziv servisa
+        byte[] certificateData = downloadService.downloadCertificate(serialNumber, user);
+
+        if (certificateData == null || certificateData.length == 0) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        // Vraćanje fajla kao .cer
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + serialNumber + ".cer\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(certificateData);
+    }
+
 
 
 

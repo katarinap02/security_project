@@ -41,5 +41,22 @@ getCertificatesForUser(): Observable<CertificateDTO[]> {
   return this.http.get<CertificateDTO[]>(`${this.apiUrl}/user`, { headers });
 }
 
+downloadCertificate(serialNumber: string): Observable<Blob> {
+  const token = localStorage.getItem('keycloakToken');
+  let email = '';
+  if (token) {
+    const decoded: any = jwtDecode(token);
+    email = decoded.preferred_username; 
+  }
+
+  const headers = { 'Authorization': `Bearer ${token}` };
+
+  return this.http.get(`${this.apiUrl}/download/${serialNumber}`, { 
+    headers, 
+    responseType: 'blob' // 👈 bitno! preuzimamo binarni fajl
+  });
+}
+
+
 
 }

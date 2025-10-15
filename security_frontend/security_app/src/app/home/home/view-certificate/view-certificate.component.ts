@@ -90,7 +90,21 @@ export class ViewCertificateComponent implements OnInit {
 }
 
 
-  downloadCertificate(cert: CertificateDTO): void {
-    console.log('Download clicked for', cert.serialNumber);
-  }
+  downloadCertificate(certificate: CertificateDTO): void {
+  const serialNumber= certificate.serialNumber;
+  this.certificateService.downloadCertificate(serialNumber).subscribe({
+    next: (file: Blob) => {
+      const url = window.URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${serialNumber}.cer`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    error: (err) => {
+      console.error('Download failed:', err);
+    }
+  });
+}
+
 }

@@ -221,10 +221,24 @@ public class KeystoreService {
                 keyStore.store(fos, keystorePassword);
             }
 
-            System.out.println("✅ Appended trusted certificate to keystore: " + keystoreFileName + " (alias: " + alias + ")");
-
         } catch (Exception e) {
             throw new KeyStoreOperationException("Failed to append trusted certificate to keystore: " + keystoreFileName);
+        }
+    }
+
+    public byte[] exportCertificateAsBytes(String keystoreFileName, char[] keystorePassword, String alias) {
+        try {
+            X509Certificate certificate = readCertificate(keystoreFileName, keystorePassword, alias);
+
+            if (certificate == null) {
+                throw new KeyStoreOperationException("Certificate not found: " + alias);
+            }
+
+            // Vraća DER-encoded sertifikat (standardni .cer format)
+            return certificate.getEncoded();
+
+        } catch (Exception e) {
+            throw new KeyStoreOperationException("Failed to export certificate: " + alias);
         }
     }
 

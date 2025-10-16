@@ -1,5 +1,9 @@
 package com.pki.example.service;
 
+import com.pki.example.model.User;
+import com.pki.example.repository.UserRepository;
+import com.pki.example.util.EncryptionUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -20,6 +24,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Service
 public class KeystoreService {
+
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Value("${app.keystore.encryption-key}")
     private String globalKey;
@@ -157,6 +165,38 @@ public class KeystoreService {
             throw new KeyStoreOperationException("Failed to decrypt user symmetric key. Master key might be incorrect.");
         }
     }
+    public void registerUserPublicKey(String ownerEmail, String publicKeyPem) throws Exception {
+        // 1) Dohvati korisnika
+        User user = userRepository.findByEmail(ownerEmail);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found with email: " + ownerEmail);
+        }
+
+        // 2) Proveri da li korisnik već ima svoj simetrični ključ
+        String encryptedSymKey = user.getEncryptedUserSymmetricKey();
+        if (encryptedSymKey == null) {
+            throw new IllegalStateException("User does not have an encrypted symmetric key yet.");
+        }
+
+        // 3) Dekriptuje simetrični AES ključ pomoću global key
+        String aesKey = decryptUserSymmetricKey(encryptedSymKey); // koristi metodu koju već imaš
+
+        // 4) Enkriptuje AES ključ korisnikovim javnim ključem
+        String encryptedForUser = EncryptionUtil.encryptPassword(aesKey, publicKeyPem);
+
+        // 5) Sačuvaj enkriptovani ključ u bazi
+        user.setEncryptedUserSymmetricKey(encryptedForUser);
+        userRepository.save(user);
+    }
+
+//
+//    private byte[] decryptUserSymmetricKey(String encrypted) throws Exception {
+//        SecretKey masterKey = new SecretKeySpec(globalKey.getBytes(StandardCharsets.UTF_8), "AES");
+//        Cipher cipher = Cipher.getInstance("AES");
+//        cipher.init(Cipher.DECRYPT_MODE, masterKey);
+//        return cipher.doFinal(Base64.getDecoder().decode(encrypted));
+//    }
+
 
     public char[] generateRandomPassword() {
         int length = 24;

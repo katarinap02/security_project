@@ -18,4 +18,5 @@ public class Issuer {
     private PrivateKey privateKey;
     private PublicKey publicKey;
     private X500Name x500Name;
+    private String serialNumber;
 }

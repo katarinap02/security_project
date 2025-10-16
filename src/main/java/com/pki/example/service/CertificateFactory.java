@@ -31,8 +31,8 @@ public class CertificateFactory {
         return new Subject(publicKey, x500Name);
     }
 
-    public Issuer createIssuer(PrivateKey privateKey, PublicKey publicKey, X500Name x500Name) {
-        return new Issuer(privateKey, publicKey, x500Name);
+    public Issuer createIssuer(PrivateKey privateKey, PublicKey publicKey, X500Name x500Name, String serialNumber) {
+        return new Issuer(privateKey, publicKey, x500Name, serialNumber);
     }
     private X500Name createX500NameFromDTO(IssuerCertificateDTO dto) {
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);

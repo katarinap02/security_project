@@ -10,6 +10,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
 import { IssueCertificateFormComponentComponent } from './home/home/IssueCertificateFormComponent/IssueCertificateFormComponent.component';
 import { PasswordManagerComponent } from './password-manager/password-manager.component';
+import { ViewCertificateComponent } from './home/home/view-certificate/view-certificate.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -21,6 +22,8 @@ export const routes: Routes = [
   { path: 'add-cerficate', component: IssueCertificateFormComponentComponent },
   { path: 'password-manager', component: PasswordManagerComponent }
 
+  { path: 'add-certificate', component: IssueCertificateFormComponentComponent },
+  { path: 'view-certificate', component: ViewCertificateComponent}
 ];
 
 @NgModule({

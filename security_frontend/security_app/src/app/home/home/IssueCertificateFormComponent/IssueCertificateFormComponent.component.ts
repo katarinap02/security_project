@@ -11,6 +11,7 @@ import { MatCardModule } from '@angular/material/card';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../service/auth.service';
 import { jwtDecode } from 'jwt-decode';
+import { CertificateDTO } from '../../../model/certificateDto';
 
 @Component({
   selector: 'app-issue-certificate-form-component',
@@ -31,6 +32,7 @@ import { jwtDecode } from 'jwt-decode';
 export class IssueCertificateFormComponentComponent implements OnInit {
 
   certificateForm!: FormGroup;
+  availableIssuers: CertificateDTO[] = [];
   userRoles: number[] = [];
   pom: number = 0;
   userEmail: string | null = localStorage.getItem('sub');
@@ -60,6 +62,30 @@ export class IssueCertificateFormComponentComponent implements OnInit {
     console.log(this.userEmail)
 
     this.proveriUloge();
+    this.loadAvailableIssuers();
+  }
+
+  loadAvailableIssuers(): void {
+    
+    this.certificateService.getCertificatesForUser().subscribe({
+      next: (certificates: CertificateDTO[]) => {
+        console.log('Svi sertifikati:', certificates);
+        
+        this.availableIssuers = certificates.filter(cert => {
+          const isValid = !cert.revoked && !cert.expired && cert.type !== 'END_ENTITY';
+          
+          if (isValid) {
+          }
+          
+          return isValid;
+        });
+
+        console.log('🔐 Dostupni issuers:', this.availableIssuers.length);
+      },
+      error: (err) => {
+        console.error('Greška pri učitavanju sertifikata:', err);
+      }
+    });
   }
 
   onSubmit(): void {
@@ -79,7 +105,7 @@ export class IssueCertificateFormComponentComponent implements OnInit {
       next: (response: Certificate) => {
         console.log('Odgovor sa servera:', response);
         alert('Sertifikat je uspešno izdat! Serijski broj: ' + response.serialNumber);
-
+        this.loadAvailableIssuers();
         this.certificateForm.reset({ type: 'ROOT' });
       },
       error: (err) => {

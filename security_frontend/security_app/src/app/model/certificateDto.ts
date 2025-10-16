@@ -3,7 +3,7 @@ export interface CertificateDTO {
   type: string;                             
   validFrom: Date;                
   validTo: Date;                  
-  isRevoked: boolean;             
+  revoked: boolean;             
   revocationReason?: string;      
   revocationDate?: Date;          
   ownerEmail: string;             

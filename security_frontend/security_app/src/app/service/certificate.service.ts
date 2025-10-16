@@ -5,6 +5,7 @@ import { IssueCertificateDTO } from '../model/issuerCertificateDto';
 import { CertificateDTO } from '../model/certificateDto';
 import { Certificate } from '../model/certificate';
 import { jwtDecode } from 'jwt-decode';
+import { RevokeCertificateDTO } from '../model/revokDto';
 
 @Injectable({
   providedIn: 'root'
@@ -56,6 +57,13 @@ downloadCertificate(serialNumber: string): Observable<Blob> {
     responseType: 'blob' // 👈 bitno! preuzimamo binarni fajl
   });
 }
+
+revokeCertificate(dto: RevokeCertificateDTO): Observable<any> {
+  const token = localStorage.getItem('keycloakToken');
+  const headers = { 'Authorization': `Bearer ${token}` };
+
+    return this.http.post(`${this.apiUrl}/revoke`, dto, { headers });
+  }
 
 
 

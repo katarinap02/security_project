@@ -1,3 +1,51 @@
-:host {
-  display: block;
+.dialog-title {
+  color: #d32f2f;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.dialog-actions {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+
+button[mat-raised-button] {
+  min-width: 100px;
+  font-weight: 500;
+}
+
+button[mat-stroked-button] {
+  min-width: 100px;
+  font-weight: 500;
+}
+
+textarea {
+  resize: none;
+}
+
+/* Animacija i boje pri otvaranju */
+::ng-deep .mat-mdc-dialog-container {
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+::ng-deep .mat-mdc-dialog-surface {
+  background: #fafafa;
+}
+
+::ng-deep .mat-mdc-form-field-outline {
+  border-color: #1976d2 !important;
 }

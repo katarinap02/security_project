@@ -12,6 +12,9 @@ import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { CertificateDTO } from '../../../model/certificateDto';
 import { CertificateService } from '../../../service/certificate.service';
+import { RevokeCertificateDialogComponent } from '../revoke-certificate-dialog/revoke-certificate-dialog.component';
+import { RevokeCertificateDTO } from '../../../model/revokDto';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-view-certificate',
@@ -54,7 +57,7 @@ export class ViewCertificateComponent implements OnInit {
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  constructor(private certificateService: CertificateService) {}
+  constructor(private certificateService: CertificateService, private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.loadCertificates();
@@ -108,8 +111,27 @@ export class ViewCertificateComponent implements OnInit {
   });
 }
 
-revokeCertificate(_t140: any) {
-throw new Error('Method not implemented.');
+revokeCertificate(cert: any): void {
+  const dialogRef = this.dialog.open(RevokeCertificateDialogComponent, {
+    width: '400px',
+    data: { serialNumber: cert.serialNumber }
+  });
+
+  dialogRef.afterClosed().subscribe((result: RevokeCertificateDTO | null) => {
+    if (result) {
+      this.certificateService.revokeCertificate(result).subscribe({
+        next: () => {
+          alert('Certificate successfully revoked.');
+          this.loadCertificates();
+        },
+        error: err => {
+          console.error('Error revoking certificate:', err);
+          alert('Failed to revoke certificate.');
+        }
+      });
+    }
+  });
 }
+
 
 }

@@ -72,7 +72,7 @@ export class IssueCertificateFormComponentComponent implements OnInit {
         console.log('Svi sertifikati:', certificates);
         
         this.availableIssuers = certificates.filter(cert => {
-          const isValid = !cert.isRevoked && !cert.expired && cert.type !== 'END_ENTITY';
+          const isValid = !cert.revoked && !cert.expired && cert.type !== 'END_ENTITY';
           
           if (isValid) {
           }

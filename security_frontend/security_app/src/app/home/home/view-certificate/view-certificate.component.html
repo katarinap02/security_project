@@ -44,7 +44,7 @@
     <!-- Revoked -->
     <ng-container matColumnDef="isRevoked">
       <th mat-header-cell *matHeaderCellDef> Revoked </th>
-      <td mat-cell *matCellDef="let cert" [class.revoked]="cert.isRevoked"> {{ cert.isRevoked ? 'Yes' : 'No' }} </td>
+      <td mat-cell *matCellDef="let cert" [class.revoked]="cert.isRevoked"> {{ cert.revoked ? 'Yes' : 'No' }} </td>
     </ng-container>
 
     <!-- Revocation Reason -->

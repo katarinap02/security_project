@@ -1,13 +1,11 @@
 package com.pki.example.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pki.example.dto.CertificateResponseDTO;
-import com.pki.example.dto.CertificateViewDTO;
-import com.pki.example.dto.IssuerCertificateDTO;
-import com.pki.example.dto.RevokeCertificateDTO;
+import com.pki.example.dto.*;
 import com.pki.example.exception.InvalidIssuerException;
 import com.pki.example.exception.ResourceNotFoundException;
 import com.pki.example.model.Certificate;
+import com.pki.example.model.CertificateTemplate;
 import com.pki.example.model.User;
 import com.pki.example.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,14 +33,16 @@ public class CertificateController {
     private final RevocationService revocationService;
     private final CertificateViewService certificateViewService;
     private final DownloadService downloadService;
+    private final CertificateTemplateService certificateTemplateService;
 
     @Autowired
-    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService, CertificateViewService certificateViewService, DownloadService downloadService) {
+    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService, CertificateViewService certificateViewService, DownloadService downloadService, CertificateTemplateService certificateTemplateService) {
         this.certificateService = certificateService;
         this.userService = userService;
         this.revocationService = revocationService;
         this.certificateViewService = certificateViewService;
         this.downloadService = downloadService;
+        this.certificateTemplateService = certificateTemplateService;
 
     }
 
@@ -158,6 +158,59 @@ public class CertificateController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + serialNumber + ".cer\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(certificateData);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    public ResponseEntity<?> createTemplate(@RequestBody CertificateTemplateDTO dto,
+                                            Authentication authentication) {
+        try {
+
+            String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+            User user = userService.loadUserByUsername(email);
+
+            CertificateTemplate template = certificateTemplateService.createTemplate(dto, user);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                    "message", "Template created successfully",
+                    "templateId", template.getId(),
+                    "templateName", template.getName()
+            ));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to create template: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    public ResponseEntity<?> getAllTemplates(Authentication authentication) {
+        try {
+            String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+            User user = userService.loadUserByUsername(email);
+            List<CertificateTemplateDTO> templates = certificateTemplateService.getTemplatesForUser(user);
+
+            return ResponseEntity.ok(templates);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to retrieve templates: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    public ResponseEntity<?> getTemplateById(@PathVariable Integer id) {
+        try {
+            CertificateTemplate template = certificateTemplateService.getTemplateById(id);
+            return ResponseEntity.ok(template);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(Map.of("error", "Template not found"));
+        }
     }
 
 

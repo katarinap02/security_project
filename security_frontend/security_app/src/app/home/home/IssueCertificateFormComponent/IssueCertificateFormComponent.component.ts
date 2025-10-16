@@ -37,6 +37,7 @@ export class IssueCertificateFormComponentComponent implements OnInit {
   pom: number = 0;
   userEmail: string | null = localStorage.getItem('sub');
 
+
   constructor(
     private fb: FormBuilder,
     private certificateService: CertificateService,
@@ -57,6 +58,7 @@ export class IssueCertificateFormComponentComponent implements OnInit {
       validTo: ['', Validators.required],
       type: ['ROOT', Validators.required],
       issuerSerialNumber: ['']
+      
       
     });
     console.log(this.userEmail)

@@ -1,7 +1,7 @@
-/* Glavni kontejner za formu */
+/* Glavni kontejner */
 .form-container {
-  max-width: 600px; /* Ograničavamo maksimalnu širinu forme */
-  margin: 2rem auto; /* Centriramo formu na stranici sa razmakom od vrha */
+  max-width: 800px;
+  margin: 2rem auto;
   padding: 2rem;
   background-color: #f9f9f9;
   border-radius: 8px;
@@ -9,7 +9,6 @@
   font-family: Arial, sans-serif;
 }
 
-/* Naslov forme */
 h2 {
   text-align: center;
   color: #333;
@@ -24,40 +23,161 @@ h4 {
   padding-bottom: 0.5rem;
 }
 
-/* Stil za sam <form> element */
-form {
-  display: flex;
-  flex-direction: column; /* Ređamo elemente jedan ispod drugog */
-  gap: 1rem; /* Pravimo razmak između svih elemenata u formi */
+.hint {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1rem;
+  font-style: italic;
 }
 
-/* Stil za labele */
+/* Forma */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 label {
   font-weight: bold;
   color: #444;
-  margin-bottom: -0.5rem; /* Malo približavamo labelu input polju */
+  margin-bottom: -0.5rem;
 }
 
-/* Stil za sva input polja i select listu */
 input,
 select {
   width: 100%;
   padding: 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box; /* Osigurava da padding ne utiče na ukupnu širinu */
+  box-sizing: border-box;
   font-size: 1rem;
   transition: border-color 0.2s;
 }
 
-/* Efekat kada se klikne na input polje */
 input:focus,
 select:focus {
   outline: none;
-  border-color: #007bff; /* Plava boja za fokus */
+  border-color: #007bff;
 }
 
-/* Stil za dugme */
+/* Checkbox grid */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: normal;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.checkbox-label:hover {
+  background-color: #f0f0f0;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+}
+
+/* SAN Container */
+.san-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.san-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.san-input-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.san-row input {
+  width: 100%;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  min-height: 20px;
+}
+
+.error-message span {
+  display: block;
+}
+
+.remove-btn {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.remove-btn:hover {
+  background-color: #c82333;
+}
+
+.add-btn {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: bold;
+  transition: background-color 0.2s;
+  align-self: flex-start;
+}
+
+.add-btn:hover {
+  background-color: #218838;
+}
+
+/* Submit dugme */
+.submit-btn {
+  padding: 14px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+}
+
+.submit-btn:hover {
+  background-color: #0056b3;
+}
+
+.submit-btn:disabled {
+  background-color: #a0cffc;
+  cursor: not-allowed;
+}
+
 button {
   padding: 14px 20px;
   background-color: #007bff;
@@ -71,18 +191,16 @@ button {
   margin-top: 1rem;
 }
 
-/* Efekat kada se pređe mišem preko dugmeta */
 button:hover {
   background-color: #0056b3;
 }
 
-/* Stil za onemogućeno (disabled) dugme */
 button:disabled {
   background-color: #a0cffc;
   cursor: not-allowed;
 }
 
-/* Linija za razdvajanje sekcija */
+/* Linija */
 hr {
   border: none;
   border-top: 1px solid #e0e0e0;

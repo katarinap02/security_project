@@ -18,6 +18,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CertificateService {
@@ -88,6 +89,7 @@ public class CertificateService {
         } else {
             issuerRecord = validateAndGetIssuerRecord(dto.getIssuerSerialNumber());
             validateCertificateDates(dto.getValidFrom(), dto.getValidTo(), issuerRecord);
+            validateExtensionsAgainstIssuerPolicy(dto, issuerRecord);
 
             if (ulogovaniKorisnik.hasRole("ROLE_CA_USER")) {
                 if (!issuerRecord.getOwner().getId().equals(ulogovaniKorisnik.getId())) {
@@ -234,6 +236,13 @@ public class CertificateService {
         newCertificateRecord.setRevoked(false);
         newCertificateRecord.setKeystoreFileName(keystoreFileName);
         newCertificateRecord.setEncryptedKeystorePassword(encryptedPassword);
+        if (dto.getKeyUsage() != null && !dto.getKeyUsage().isEmpty()) {
+            newCertificateRecord.setAllowedKeyUsages(String.join(",", dto.getKeyUsage()));
+        }
+
+        if (dto.getExtendedKeyUsage() != null && !dto.getExtendedKeyUsage().isEmpty()) {
+            newCertificateRecord.setAllowedExtendedKeyUsages(String.join(",", dto.getExtendedKeyUsage()));
+        }
 
         if (type == CertificateType.ROOT) {
             newCertificateRecord.setIssuer(null);
@@ -337,6 +346,64 @@ public class CertificateService {
                                     "Issuer valid to: %s, requested valid to: %s",
                             issuerValidTo, validTo)
             );
+        }
+    }
+
+    private void validateExtensionsAgainstIssuerPolicy(IssuerCertificateDTO dto, Certificate issuer) {
+        // 1. Validacija Key Usage
+        if (dto.getKeyUsage() != null && !dto.getKeyUsage().isEmpty()) {
+            if (issuer.getAllowedKeyUsages() == null || issuer.getAllowedKeyUsages().isEmpty()) {
+                throw new SecurityException(
+                        "Issuer does not allow any Key Usage extensions. Cannot issue certificate with Key Usage."
+                );
+            }
+
+            List<String> issuerAllowedKU = Arrays.asList(issuer.getAllowedKeyUsages().split(","));
+            List<String> normalizedIssuerKU = issuerAllowedKU.stream()
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toList());
+
+            for (String requestedKU : dto.getKeyUsage()) {
+                String normalizedRequested = requestedKU.trim().toLowerCase();
+
+                if (!normalizedIssuerKU.contains(normalizedRequested)) {
+                    throw new SecurityException(
+                            String.format("Key Usage '%s' is not allowed by issuer policy. Issuer allows: %s",
+                                    requestedKU, issuer.getAllowedKeyUsages())
+                    );
+                }
+            }
+
+            System.out.println("✅ Key Usage validation passed");
+        }
+
+        // 2. Validacija Extended Key Usage
+        if (dto.getExtendedKeyUsage() != null && !dto.getExtendedKeyUsage().isEmpty()) {
+            if (issuer.getAllowedExtendedKeyUsages() == null || issuer.getAllowedExtendedKeyUsages().isEmpty()) {
+                throw new SecurityException(
+                        "Issuer does not allow any Extended Key Usage extensions. Cannot issue certificate with Extended Key Usage."
+                );
+            }
+
+            List<String> issuerAllowedEKU = Arrays.asList(issuer.getAllowedExtendedKeyUsages().split(","));
+            List<String> normalizedIssuerEKU = issuerAllowedEKU.stream()
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toList());
+
+            for (String requestedEKU : dto.getExtendedKeyUsage()) {
+                String normalizedRequested = requestedEKU.trim().toLowerCase();
+
+                if (!normalizedIssuerEKU.contains(normalizedRequested)) {
+                    throw new SecurityException(
+                            String.format("Extended Key Usage '%s' is not allowed by issuer policy. Issuer allows: %s",
+                                    requestedEKU, issuer.getAllowedExtendedKeyUsages())
+                    );
+                }
+            }
+
+            System.out.println("✅ Extended Key Usage validation passed");
         }
     }
 

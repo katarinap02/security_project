@@ -66,6 +66,12 @@ public class Certificate {
     @Column(nullable = false)
     private String encryptedKeystorePassword;
 
+    @Column(name = "allowed_key_usages", length = 500)
+    private String allowedKeyUsages;
+
+    @Column(name = "allowed_extended_key_usages", length = 500)
+    private String allowedExtendedKeyUsages;
+
     // Konstruktori
     public Certificate() {}
 

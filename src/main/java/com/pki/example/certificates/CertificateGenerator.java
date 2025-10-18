@@ -106,7 +106,7 @@ public class CertificateGenerator {
                 int keyUsageValue = buildKeyUsageValue(keyUsageList);
                 certGen.addExtension(Extension.keyUsage, true, new KeyUsage(keyUsageValue));
             } else {
-                // Fallback: default vrednosti po tipu (ako nisu prosleđene)
+                // Default vrednosti po tipu (ako nisu prosleđene)
                 if (type == CertificateType.ROOT || type == CertificateType.INTERMEDIATE) {
                     certGen.addExtension(Extension.keyUsage, true,
                             new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign));

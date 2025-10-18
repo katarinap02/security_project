@@ -63,20 +63,4 @@ public class PasswordEntryController {
         );
         return ResponseEntity.ok(saved);
     }
-
-    @PostMapping("/register-public-key")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_END_USER', 'ROLE_CA_USER')")
-    public ResponseEntity<String> registerPublicKey(@RequestBody Map<String, String> request) {
-        try {
-            String email = request.get("email");
-            String publicKeyPem = request.get("publicKeyPem");
-
-            keystoreService.registerUserPublicKey(email, publicKeyPem);
-
-            return ResponseEntity.ok("Public key registered and symmetric key encrypted for user.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error: " + e.getMessage());
-        }
-    }
 }

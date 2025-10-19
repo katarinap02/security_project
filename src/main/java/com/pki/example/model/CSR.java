@@ -21,7 +21,7 @@ public class CSR {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ca_id", nullable = false)
+    @JoinColumn(name = "ca_id", nullable = true)
     private CA ca;
 
     @Lob

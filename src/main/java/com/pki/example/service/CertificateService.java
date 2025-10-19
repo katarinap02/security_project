@@ -511,7 +511,84 @@ public class CertificateService {
         }
     }
 
+    public Certificate issueCertificateFromCSR(Subject subjectFromCSR, Certificate issuerRecord, User owner, Date validTo) {
+        // 1. Odredi tip sertifikata
+        CertificateType type = CertificateType.END_ENTITY;
+        String serialNumber = String.valueOf(System.currentTimeMillis());
 
+        // 2. Pripremi issuerData iz već postojećeg sertifikata
+        PrivateKey issuerPrivateKey = keystoreService.readPrivateKey(
+                issuerRecord.getKeystoreFileName(),
+                keystoreService.decryptPassword(
+                        issuerRecord.getEncryptedKeystorePassword(),
+                        keystoreService.decryptUserSymmetricKey(issuerRecord.getOwner().getEncryptedUserSymmetricKey())
+                ),
+                issuerRecord.getSerialNumber()
+        );
+
+        X509Certificate issuerX509Cert = keystoreService.readCertificate(
+                issuerRecord.getKeystoreFileName(),
+                keystoreService.decryptPassword(
+                        issuerRecord.getEncryptedKeystorePassword(),
+                        keystoreService.decryptUserSymmetricKey(issuerRecord.getOwner().getEncryptedUserSymmetricKey())
+                ),
+                issuerRecord.getSerialNumber()
+        );
+
+        X500Name issuerX500Name = new X500Name(issuerX509Cert.getSubjectX500Principal().getName());
+
+        Issuer issuerData = certificateFactory.createIssuer(
+                issuerPrivateKey,
+                issuerX509Cert.getPublicKey(),
+                issuerX500Name,
+                issuerRecord.getSerialNumber()
+        );
+
+        // 3. Generisanje sertifikata koristeći public key iz CSR-a
+        X509Certificate x509Cert = certificateGenerator.generateCertificate(
+                subjectFromCSR,
+                issuerData,
+                new Date(),       // validFrom sada
+                validTo,
+                serialNumber,
+                type,
+                null, // keyUsage
+                null, // extendedKeyUsage
+                null  // SAN
+        );
+
+        // 4. Čuvanje u keystore
+        String keystoreFileName = issuerRecord.getKeystoreFileName();
+        char[] keystorePassword = keystoreService.decryptPassword(
+                issuerRecord.getEncryptedKeystorePassword(),
+                keystoreService.decryptUserSymmetricKey(issuerRecord.getOwner().getEncryptedUserSymmetricKey())
+        );
+
+        keystoreService.appendKeyPairAndChain(
+                keystoreFileName,
+                keystorePassword,
+                serialNumber,
+                null, // nema private key, jer je samo CSR
+                new X509Certificate[]{x509Cert, issuerX509Cert} // lanac
+        );
+
+        // 5. Čuvanje u bazi
+        Certificate newCertificateRecord = new Certificate();
+        newCertificateRecord.setSerialNumber(serialNumber);
+        newCertificateRecord.setValidFrom(new Date());
+        newCertificateRecord.setValidTo(validTo);
+        newCertificateRecord.setType(type);
+        newCertificateRecord.setOwner(owner);
+        newCertificateRecord.setRevoked(false);
+        newCertificateRecord.setKeystoreFileName(keystoreFileName);
+        newCertificateRecord.setEncryptedKeystorePassword(
+                keystoreService.encryptPassword(keystorePassword,
+                        keystoreService.decryptUserSymmetricKey(owner.getEncryptedUserSymmetricKey()))
+        );
+        newCertificateRecord.setIssuer(issuerRecord);
+
+        return certificateRepository.save(newCertificateRecord);
+    }
 
 
 }

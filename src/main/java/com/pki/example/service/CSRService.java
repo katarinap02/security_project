@@ -3,6 +3,7 @@ package com.pki.example.service;
 import com.pki.example.data.Issuer;
 import com.pki.example.data.Subject;
 import com.pki.example.dto.CSRDTO;
+import com.pki.example.dto.CertificateResponseDTO;
 import com.pki.example.dto.IssuerCertificateDTO;
 import com.pki.example.keystores.KeyStoreReader;
 import com.pki.example.keystores.KeyStoreWriter;
@@ -14,7 +15,9 @@ import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.keycloak.KeycloakPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +34,8 @@ import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -57,55 +62,49 @@ public class CSRService {
     @Autowired
     private CertificateRepository certificateRepository;
 
+    @Autowired
+    private KeystoreService keystoreService;
 
-    public List<CSR> getAll(){
+
+    public List<CSR> getAll() {
         return csrRepository.findAll();
     }
 
-    public CSR getCSRById(Long csrId){
+    public CSR getCSRById(Long csrId) {
         return csrRepository.findById(csrId).orElseThrow(() -> new EntityNotFoundException("CSR sa ID " + csrId + " ne postoji"));
     }
 
-    public CSRDTO uploadCSR(MultipartFile csrFile, CA ca, int requestedDuration) throws Exception {
+    public CSRDTO uploadCSR(MultipartFile csrFile, User currentUser) throws Exception {
+        // Parsiranje CSR-a, ekstraktovanje subject i public key
         PKCS10CertificationRequest csr;
-        try(PEMParser pemParser = new PEMParser(new InputStreamReader(csrFile.getInputStream()))) {
+        try (PEMParser pemParser = new PEMParser(new InputStreamReader(csrFile.getInputStream()))) {
             Object object = pemParser.readObject();
-            if(!(object instanceof PKCS10CertificationRequest)) {
+            if (!(object instanceof PKCS10CertificationRequest)) {
                 throw new IllegalArgumentException("Nije validan CSR fajl");
             }
             csr = (PKCS10CertificationRequest) object;
         }
+
         X500Name x500Name = csr.getSubject();
         SubjectPublicKeyInfo pkInfo = csr.getSubjectPublicKeyInfo();
         PublicKey publicKey = new JcaPEMKeyConverter().setProvider("BC").getPublicKey(pkInfo);
         String subject = x500Name.toString();
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userService.loadUserByUsername(email);
-
-
+        // Kreiranje CSR entiteta
         CSR csrEntity = new CSR();
         csrEntity.setSubject(subject);
         csrEntity.setCsrPem(new String(csrFile.getBytes(), StandardCharsets.UTF_8));
-        csrEntity.setRequestedValidityDays(requestedDuration);
-        csrEntity.setCa(ca);
         csrEntity.setStatus(CSRStatus.PENDING);
         csrEntity.setCreatedAt(LocalDateTime.now());
         csrEntity.setPublicKey(publicKey.getEncoded());
         csrEntity.setUser(currentUser);
 
-
-        if (requestedDuration > ca.getMaxCertificateDuration()) {
-            throw new IllegalArgumentException("Trazeni broj dana prekoracuje maksimalno dozvoljeno trajanje sertifikata za ovu CA");
-        }
-
-        /*keyStoreWriter.loadKeyStore(null, "password".toCharArray());
-        keyStoreWriter.write("csr-" + System.currentTimeMillis(), null, "password".toCharArray(), null);
-        keyStoreWriter.saveKeyStore("csr_keystore.jks", "password".toCharArray());
-*/
+        // Čuvanje u bazi
         csrRepository.save(csrEntity);
+
         return new CSRDTO(csrEntity);
     }
+
 
     public List<CSR> getPendingRequestsForCa(Long caId) {
         return csrRepository.findByCaIdAndStatus(caId, CSRStatus.PENDING);
@@ -116,7 +115,7 @@ public class CSRService {
         CSR csr = csrRepository.findById(csrId)
                 .orElseThrow(() -> new RuntimeException("CSR not found"));
 
-        if(csr.getStatus() != CSRStatus.PENDING) {
+        if (csr.getStatus() != CSRStatus.PENDING) {
             throw new RuntimeException("CSR already processed");
         }
 
@@ -188,7 +187,6 @@ public class CSRService {
     }
 
 
-
     public CSR rejectRequest(Long csrId) {
         CSR csr = csrRepository.findById(csrId)
                 .orElseThrow(() -> new RuntimeException("CSR not found"));
@@ -205,4 +203,36 @@ public class CSRService {
         return csrRepository.findByUserId(userId);
     }
 
+
+    public Certificate issueCertificateFromCSR(Long csrId, String issuerSerialNumber, Date validTo) throws Exception {
+        CSR csr = csrRepository.findById(csrId)
+                .orElseThrow(() -> new RuntimeException("CSR not found"));
+
+        // Validacija issuer-a
+        Certificate issuerCert = certificateRepository.findBySerialNumber(issuerSerialNumber)
+                .orElseThrow(() -> new RuntimeException("Issuer not found"));
+        if (issuerCert.isRevoked() || issuerCert.getValidTo().before(new Date())) {
+            throw new IllegalArgumentException("Izabrani issuer nije validan");
+        }
+
+        if (validTo.after(issuerCert.getValidTo()) || validTo.before(new Date())) {
+            throw new IllegalArgumentException("Datum isteka mora biti unutar validnosti izabranog sertifikata");
+        }
+
+        // Kreiramo Subject iz CSR-a
+        PublicKey publicKey = KeyFactory.getInstance("RSA")
+                .generatePublic(new X509EncodedKeySpec(csr.getPublicKey()));
+        Subject subject = new Subject(publicKey, new org.bouncycastle.asn1.x500.X500Name(csr.getSubject()));
+
+        // Pozivamo CertificateService da izda end-entity sertifikat
+        Certificate newCert = certificateService.issueCertificateFromCSR(subject, issuerCert, csr.getUser(), validTo);
+
+        certificateRepository.save(newCert);
+
+        // Čuvamo CSR kao “obradjeni” (opciono)
+        csr.setStatus(CSRStatus.APPROVED);
+        csrRepository.save(csr);
+
+        return newCert;
+    }
 }

@@ -1,43 +1,8 @@
-<form [formGroup]="csrForm" (ngSubmit)="submit()">
-  <!-- Upload fajla -->
-  <div>
-    <label for="csrFile">Izaberi CSR fajl (.pem):</label>
-    <input type="file" id="csrFile" (change)="onFileChange($event)">
-    <div *ngIf="selectedFile">
-      Izabrani fajl: {{ selectedFile.name }}
-    </div>
-  </div>
+<div class="csr-upload">
+  <h2>Upload CSR fajla</h2>
 
-  <!-- Dropdown za CA -->
-  <div>
-    <label for="caId">Izaberi CA:</label>
-    <select id="caId" formControlName="caId" (change)="onCaChange()">
-      <option [ngValue]="null" disabled>-- Izaberi CA --</option>
-      <option *ngFor="let ca of cas" [ngValue]="ca.id">
-        {{ ca.name }} {{ ca.isRoot ? '(Root CA)' : '' }}
-      </option>
-    </select>
-  </div>
+  <input type="file" (change)="onFileSelected($event)" />
+  <button type="button" (click)="submit()">Upload</button>
 
-  <!-- Maksimalno trajanje -->
-  <div *ngIf="selectedCA">
-    Maksimalno trajanje: {{ selectedCA.maxCertificateDuration }} dana
-  </div>
-
-  <!-- Validity days -->
-  <div>
-    <label for="validityDays">Trajanje sertifikata (dana):</label>
-    <input type="number" id="validityDays" formControlName="validityDays"
-       min="1" [max]="selectedCA?.maxCertificateDuration ?? 1">
-  </div>
-
-  <!-- Submit -->
-  <div>
-    <button type="submit" [disabled]="!csrForm.valid || !selectedFile">Pošalji zahtev</button>
-  </div>
-
-  <!-- Poruka -->
-  <div *ngIf="message" [class.success]="success" [class.error]="!success">
-    {{ message }}
-  </div>
-</form>
+  <p *ngIf="message" [style.color]="success ? 'green' : 'red'">{{ message }}</p>
+</div>

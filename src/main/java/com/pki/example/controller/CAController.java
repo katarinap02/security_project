@@ -2,11 +2,13 @@ package com.pki.example.controller;
 import com.pki.example.model.CA;
 import com.pki.example.service.CAService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/ca")
 public class CAController {
@@ -15,7 +17,8 @@ public class CAController {
     private CAService caService;
 
     @GetMapping
-    public List<CA> getAllCAs() {
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER', 'ROLE_END_USER')")
+    public List<CA> getAllActiveCAs() {
         return caService.getAllCAs().stream()
                 .map(ca -> {
                     CA dto = new CA();
@@ -25,4 +28,5 @@ public class CAController {
                     return dto;
                 }).collect(Collectors.toList());
     }
+
 }

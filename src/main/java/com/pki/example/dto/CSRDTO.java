@@ -31,8 +31,8 @@ public class CSRDTO {
 
     public CSRDTO(CSR csr){
         this.id = csr.getId();
-        this.userId = csr.getUser().getId();
-        this.caId = csr.getCa().getId();
+        this.userId = csr.getUser() != null ? csr.getUser().getId() : null;
+        this.caId = csr.getCa() != null ? csr.getCa().getId() : null;
         this.subject = csr.getSubject();
         this.publicKey = csr.getPublicKey();
         this.requestedValidityDays = csr.getRequestedValidityDays();

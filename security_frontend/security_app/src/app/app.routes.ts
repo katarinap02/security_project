@@ -20,7 +20,7 @@ export const routes: Routes = [
   { path: 'forgot-password', component: ForgotPasswordComponent},
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'add-cerficate', component: IssueCertificateFormComponentComponent },
-  { path: 'upload-csr', component: CsrUploadComponent}
+  { path: 'upload-csr', component: CsrUploadComponent},
   { path: 'add-certificate', component: IssueCertificateFormComponentComponent },
   { path: 'view-certificate', component: ViewCertificateComponent}
 ];

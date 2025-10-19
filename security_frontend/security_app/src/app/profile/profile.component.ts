@@ -46,6 +46,7 @@ export class ProfileComponent implements OnInit {
 
 
   isAdmin: boolean = false;
+  isCaUser: boolean = false;
   showCARegistration: boolean = false;
   caEmail: string = '';
   caName: string = '';
@@ -74,7 +75,8 @@ export class ProfileComponent implements OnInit {
       localStorage.setItem('sub', this.userSub);
       
       this.isAdmin = decoded.resource_access?.['my-app']?.roles?.includes('ROLE_ADMIN') || false;
-      console.log('ROLEE:', this.isAdmin);
+      this.isCaUser = decoded.resource_access?.['my-app']?.roles?.includes('ROLE_CA_USER') || false;
+      console.log('ROLEE:', this.isCaUser);
     }
 
     //this.currentJti = localStorage.getItem('jti') || '';

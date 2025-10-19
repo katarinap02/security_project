@@ -35,7 +35,7 @@
       </div>
 
       <!-- ========== TEMPLATE SELECTION ========== -->
-      <div *ngIf="certificateForm.get('issuerSerialNumber')?.value && availableTemplates.length > 0">
+      <div *ngIf="pom === 2 && certificateForm.get('issuerSerialNumber')?.value && availableTemplates.length > 0">
         <label for="template">Certificate Template (Optional):</label>
         <select id="template" formControlName="templateId">
           <option value="">-- No Template (Manual Configuration) --</option>
@@ -61,7 +61,7 @@
               <strong>Extended Key Usage:</strong> {{ selectedTemplate.extendedKeyUsage.join(', ') }}
             </li>
           </ul>
-          <p class="hint">✏️ Extensions are pre-filled but can be modified if needed.</p>
+          <p class="hint"> Extensions are pre-filled but can be modified if needed.</p>
         </div>
       </div>
 
@@ -71,7 +71,6 @@
       <label for="validTo">Valid To:</label>
       <input id="validTo" type="date" formControlName="validTo">
       
-      <!-- 🔥 Prikaži grešku za max validity -->
       <div class="error-message" *ngIf="certificateForm.get('validTo')?.errors?.['maxValidity']">
         {{ certificateForm.get('validTo')?.errors?.['maxValidity'] }}
       </div>
@@ -86,7 +85,6 @@
       <h4>Owner Information (Subject)</h4>
       <input formControlName="commonName" placeholder="Common Name (e.g., Full Name or server.example.com)">
       
-      <!-- 🔥 Prikaži CN grešku ako postoji -->
       <div class="error-message" *ngIf="certificateForm.get('commonName')?.invalid && certificateForm.get('commonName')?.touched">
         <span *ngIf="certificateForm.get('commonName')?.errors?.['required']">
           Common Name is required
@@ -116,7 +114,7 @@
         <span class="template-badge">Template Applied</span> Pre-selected based on template "{{ selectedTemplate.name }}"
       </p>
       <p class="hint template-locked-hint" *ngIf="selectedTemplate">
-         🔒 Checked items are required by the template and cannot be unchecked. You can add additional options.
+          Checked items are required by the template and cannot be unchecked. You can add additional options.
       </p>
       
       <div class="checkbox-grid">
@@ -195,18 +193,10 @@
       <hr>
 
       <!-- ========== SUBMIT ========== -->
-      <!-- 🔥 OVDE JE KLJUČNA PROMENA -->
       <button type="submit" [disabled]="!isFormValid()" class="submit-btn">
         Issue Certificate
       </button>
       
-      <!-- 🔧 Debug info (opciono, obriši kasnije) -->
-      <div style="margin-top: 1rem; padding: 1rem; background: #f0f0f0; border-radius: 4px; font-size: 0.9rem;">
-        <strong>🔍 Debug Info:</strong><br>
-        Form Valid: {{ certificateForm.valid ? '✅' : '❌' }}<br>
-        Custom Valid: {{ isFormValid() ? '✅' : '❌' }}<br>
-        Button Enabled: {{ isFormValid() ? '✅' : '❌' }}
-      </div>
     </form>
   </ng-container>
 </div>

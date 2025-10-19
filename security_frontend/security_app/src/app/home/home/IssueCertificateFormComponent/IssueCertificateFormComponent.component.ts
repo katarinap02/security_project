@@ -22,7 +22,7 @@ import { jwtDecode } from 'jwt-decode';
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,  // 🔥 OVO JE KLJUČNO!
+    ReactiveFormsModule,  
     RouterModule,
     MatCardModule,
     MatButtonModule,
@@ -227,7 +227,7 @@ export class IssueCertificateFormComponentComponent implements OnInit {
         this.availableTemplates = templates;
       },
       error: (err) => {
-        console.error('Greška pri učitavanju šablona:', err);
+        console.error('Error when loading template:', err);
         this.availableTemplates = [];
       }
     });
@@ -237,12 +237,12 @@ export class IssueCertificateFormComponentComponent implements OnInit {
     const template = this.availableTemplates.find(t => t.id === templateId);
     
     if (!template) {
-      console.error('❌ Template not found! ID:', templateId);
+      console.error(' Template not found! ID:', templateId);
       return;
     }
 
     this.selectedTemplate = template;
-    console.log('✅ Applying template:', template.name);
+    console.log('Applying template:', template.name);
 
     // Key Usage
     if (template.keyUsage && template.keyUsage.length > 0) {
@@ -322,10 +322,10 @@ export class IssueCertificateFormComponentComponent implements OnInit {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value) return null;
       
-      // 🔥 Ukloni višestruko escapovanje backslash-eva
+      // Ukloni višestruko escapovanje backslash-eva
       const cleanedRegex = regex.replace(/\\\\\\\\/g, '\\\\').replace(/\\\\/g, '\\');
       
-      console.log('🔍 CN Validation:');
+      console.log(' CN Validation:');
       console.log('  Original Regex:', regex);
       console.log('  Cleaned Regex:', cleanedRegex);
       console.log('  Value:', control.value);
@@ -351,12 +351,11 @@ export class IssueCertificateFormComponentComponent implements OnInit {
       if (basicValidation) return basicValidation;
 
       if (this.selectedTemplate?.sanRegex) {
-        // 🔥 Ukloni višestruko escapovanje backslash-eva
         const cleanedRegex = this.selectedTemplate.sanRegex
           .replace(/\\\\\\\\/g, '\\\\')
           .replace(/\\\\/g, '\\');
         
-        console.log('🔍 SAN Validation:');
+        console.log(' SAN Validation:');
         console.log('  Original Regex:', this.selectedTemplate.sanRegex);
         console.log('  Cleaned Regex:', cleanedRegex);
         console.log('  Value:', control.value);
@@ -413,7 +412,7 @@ export class IssueCertificateFormComponentComponent implements OnInit {
   isFormValid(): boolean {
     // Osnovna validacija
     if (this.certificateForm.invalid) {
-      console.log('❌ Form is invalid');
+      console.log(' Form is invalid');
       this.logInvalidControls();
       return false;
     }
@@ -421,7 +420,7 @@ export class IssueCertificateFormComponentComponent implements OnInit {
     // Proveri da li je barem jedan Key Usage selektovan
     const hasAnyKeyUsage = this.keyUsageFormArray.controls.some(c => c.value === true);
     if (!hasAnyKeyUsage) {
-      console.log('❌ No key usage selected');
+      console.log(' No key usage selected');
       return false;
     }
 
@@ -433,22 +432,22 @@ export class IssueCertificateFormComponentComponent implements OnInit {
     Object.keys(this.certificateForm.controls).forEach(key => {
       const control = this.certificateForm.get(key);
       if (control?.invalid) {
-        console.log(`❌ ${key} is invalid:`, control.errors);
+        console.log(` ${key} is invalid:`, control.errors);
       }
     });
 
     this.sansFormArray.controls.forEach((control, i) => {
       if (control.invalid) {
-        console.log(`❌ SAN[${i}] is invalid:`, control.errors);
+        console.log(` SAN[${i}] is invalid:`, control.errors);
       }
     });
   }
 
   onSubmit(): void {
-    console.log('🚀 Submit clicked');
+    console.log(' Submit clicked');
 
     if (!this.isFormValid()) {
-      alert('⚠️ Molimo Vas popunite sva obavezna polja ispravno.');
+      alert(' Molimo Vas popunite sva obavezna polja ispravno.');
       return;
     }
 
@@ -456,20 +455,18 @@ export class IssueCertificateFormComponentComponent implements OnInit {
     if (this.selectedTemplate?.commonNameRegex) {
       const cn = this.certificateForm.get('commonName')?.value;
       
-      // 🔥 Očisti regex
       const cleanedRegex = this.selectedTemplate.commonNameRegex
         .replace(/\\\\\\\\/g, '\\\\')
         .replace(/\\\\/g, '\\');
       
       const regex = new RegExp(cleanedRegex);
       if (!regex.test(cn)) {
-        alert(`⚠️ Common Name mora odgovarati šablonu: ${cleanedRegex}`);
+        alert(` Common Name mora odgovarati šablonu: ${cleanedRegex}`);
         return;
       }
     }
 
     if (this.selectedTemplate?.sanRegex && this.sansFormArray.length > 0) {
-      // 🔥 Očisti regex
       const cleanedRegex = this.selectedTemplate.sanRegex
         .replace(/\\\\\\\\/g, '\\\\')
         .replace(/\\\\/g, '\\');
@@ -478,7 +475,7 @@ export class IssueCertificateFormComponentComponent implements OnInit {
       for (let i = 0; i < this.sansFormArray.length; i++) {
         const sanValue = this.sansFormArray.at(i).value;
         if (!regex.test(sanValue)) {
-          alert(`⚠️ SAN '${sanValue}' ne odgovara šablonu: ${cleanedRegex}`);
+          alert(` SAN '${sanValue}' ne odgovara šablonu: ${cleanedRegex}`);
           return;
         }
       }
@@ -516,8 +513,6 @@ export class IssueCertificateFormComponentComponent implements OnInit {
 
     delete (formData as any).templateId;
 
-    console.log('📤 Sending certificate data:', formData);
-
     this.certificateService.issueCertificate(formData).subscribe({
       next: (response: Certificate) => {
         console.log('✅ Response:', response);
@@ -526,8 +521,8 @@ export class IssueCertificateFormComponentComponent implements OnInit {
         this.resetForm();
       },
       error: (err) => {
-        console.error('❌ Error:', err);
-        alert('❌ Greška prilikom izdavanja sertifikata: ' + (err.error || err.message));
+        console.error(' Error:', err);
+        alert(' Greška prilikom izdavanja sertifikata: ' + (err.error || err.message));
       }
     });
   }

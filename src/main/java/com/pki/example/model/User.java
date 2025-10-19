@@ -68,10 +68,16 @@ public class User implements UserDetails {
     @Column(name = "encrypted_user_symmetric_key")
     private String encryptedUserSymmetricKey;
 
+    @Column(name = "two_fa_secret")
+    private String twoFaSecret;
+
+    @Column(name = "first_login")
+    private boolean firstLogin = false;
+
 
     public User(Integer id, String name, String surname, String email, String password,
                 boolean activated, LocalDateTime creationTime, String organization,
-                String activationToken, Timestamp activationTokenExpiry, boolean enabled) {
+                String activationToken, Timestamp activationTokenExpiry, boolean enabled, String twoFaSecret) {
 
         this.id = id;
         this.name = name;
@@ -84,6 +90,7 @@ public class User implements UserDetails {
         this.activationToken = activationToken;
         this.activationTokenExpiry = activationTokenExpiry;
         this.enabled = enabled;
+        this.twoFaSecret = twoFaSecret;
     }
 
     public User() {}
@@ -147,7 +154,13 @@ public class User implements UserDetails {
         this.activationToken = activationToken;
     }
 
+    public String getTwoFaSecret() {
+        return twoFaSecret;
+    }
 
+    public void setTwoFaSecret(String twoFaSecret) {
+        this.twoFaSecret = twoFaSecret;
+    }
     public Timestamp getLastPasswordResetDate()
     {
         return lastPasswordResetDate;
@@ -164,6 +177,14 @@ public class User implements UserDetails {
 
     public List<Role> getRoles() {
         return roles;
+    }
+
+    public boolean isFirstLogin() {
+        return firstLogin;
+    }
+
+    public void setFirstLogin(boolean firstLogin) {
+        this.firstLogin = firstLogin;
     }
 
     @JsonIgnore

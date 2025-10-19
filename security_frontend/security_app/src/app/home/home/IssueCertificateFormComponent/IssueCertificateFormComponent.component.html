@@ -1,45 +1,127 @@
 <div class="form-container">
   <h2>Issue New Certificate</h2>
-   <ng-container *ngIf="certificateForm">
-  <form [formGroup]="certificateForm" (ngSubmit)="onSubmit()">
-    
-    <!-- Owner Information -->
-    <h4>Owner Information (Subject)</h4>
-    <input formControlName="commonName" placeholder="Common Name (e.g., Full Name)">
-    <input formControlName="surname" placeholder="Surname">
-    <input formControlName="givenName" placeholder="Given Name">
-    <input formControlName="organization" placeholder="Organization (e.g., UNS-FTN)">
-    <input formControlName="organizationalUnit" placeholder="Organizational Unit (e.g., Department)">
-    <input formControlName="country" placeholder="Country (code, e.g., RS)">
-    <input formControlName="email" placeholder="Owner's Email Address">
+  
+  <ng-container *ngIf="certificateForm">
+    <form [formGroup]="certificateForm" (ngSubmit)="onSubmit()">
+      
+      <!-- ========== OWNER INFORMATION ========== -->
+      <h4>Owner Information (Subject)</h4>
+      <input formControlName="commonName" placeholder="Common Name (e.g., Full Name or server.example.com)">
+      <input formControlName="surname" placeholder="Surname">
+      <input formControlName="givenName" placeholder="Given Name">
+      <input formControlName="organization" placeholder="Organization (e.g., UNS-FTN)">
+      <input formControlName="organizationalUnit" placeholder="Organizational Unit (e.g., Department)">
+      <input formControlName="country" placeholder="Country (code, e.g., RS)">
+      <input formControlName="email" placeholder="Owner's Email Address">
 
-    <hr>
-    
-    <!-- Technical Details -->
-    <h4>Technical Details</h4>
-    <label for="ownerEmail">Owner User Email (from 'users' table):</label>
-    <input id="ownerEmail" formControlName="ownerEmail" placeholder="Owner account email">
-    
-    <label for="type">Certificate Type:</label>
-    <select id="type" formControlName="type">
-      <option *ngIf="pom !== 2" value="ROOT">ROOT</option>
-      <option value="INTERMEDIATE">INTERMEDIATE</option>
-      <option value="END_ENTITY">END_ENTITY</option>
-    </select>
-    
-    <!-- Show this field only if type is NOT ROOT -->
-    <div *ngIf="certificateForm.get('type')?.value !== 'ROOT'">
-      <label for="issuer">Issuer Serial Number:</label>
-      <input id="issuer" formControlName="issuerSerialNumber" placeholder="Enter CA certificate serial number">
-    </div>
+      <hr>
+      
+      <!-- ========== TECHNICAL DETAILS ========== -->
+      <h4>Technical Details</h4>
+      
+      <label for="ownerEmail">Owner User Email (from 'users' table):</label>
+      <input id="ownerEmail" formControlName="ownerEmail" placeholder="Owner account email">
+      
+      <label for="type">Certificate Type:</label>
+      <select id="type" formControlName="type">
+        <option *ngIf="pom !== 2" value="ROOT">ROOT</option>
+        <option value="INTERMEDIATE">INTERMEDIATE</option>
+        <option value="END_ENTITY">END_ENTITY</option>
+      </select>
+      
+      <!-- Issuer Selection -->
+      <div *ngIf="certificateForm.get('type')?.value !== 'ROOT'">
+        <label for="issuer">Issuer Serial Number:</label>
+        <select id="issuer" formControlName="issuerSerialNumber" required>
+          <option value="" disabled selected>Select issuer certificate</option>
+          <option *ngIf="availableIssuers.length === 0" disabled>
+            No valid issuers available
+          </option>
+          <option *ngFor="let issuer of availableIssuers" [value]="issuer.serialNumber">
+            {{ issuer.serialNumber }} ({{ issuer.type }}) - {{ issuer.ownerEmail }}
+          </option>
+        </select>
+        <small *ngIf="availableIssuers.length > 0" style="display: block; margin-top: 5px; color: #666;">
+          Only valid CA certificates (non-expired, non-revoked) are shown
+        </small>
+      </div>
 
-    <label for="validFrom">Valid From:</label>
-    <input id="validFrom" type="date" formControlName="validFrom">
-    
-    <label for="validTo">Valid To:</label>
-    <input id="validTo" type="date" formControlName="validTo">
+      <label for="validFrom">Valid From:</label>
+      <input id="validFrom" type="date" formControlName="validFrom">
+      
+      <label for="validTo">Valid To:</label>
+      <input id="validTo" type="date" formControlName="validTo">
 
-    <button type="submit" [disabled]="certificateForm.invalid">Issue Certificate</button>
-  </form>
+      <hr>
+
+      <!-- ========== KEY USAGE ========== -->
+      <h4>Key Usage Extensions</h4>
+      <p class="hint">Select the purposes for which the certificate key can be used:</p>
+      
+      <div class="checkbox-grid">
+        <label *ngFor="let option of keyUsageOptions; let i = index" class="checkbox-label">
+          <input type="checkbox" [formControl]="getKeyUsageControl(i)">
+          {{ option.label }}
+        </label>
+      </div>
+
+      <hr>
+
+      <!-- ========== EXTENDED KEY USAGE ========== -->
+      <h4>Extended Key Usage</h4>
+      <p class="hint">Select specific application purposes:</p>
+      
+      <div class="checkbox-grid">
+        <label *ngFor="let option of extendedKeyUsageOptions; let i = index" class="checkbox-label">
+          <input type="checkbox" [formControl]="getExtendedKeyUsageControl(i)">
+          {{ option.label }}
+        </label>
+      </div>
+
+      <hr>
+
+      <!-- ========== SUBJECT ALTERNATIVE NAMES ========== -->
+      <h4>Subject Alternative Names (SANs)</h4>
+      <p class="hint">Format: TYPE:value (e.g., DNS:example.com, IP:192.168.1.1, EMAIL:admin&#64;example.com)</p>
+      <p class="hint"><strong>Valid types:</strong> DNS, IP, EMAIL, URI, DIRNAME</p>
+      
+      <div class="san-container">
+        <div *ngFor="let san of sansFormArray.controls; let i = index" class="san-row">
+          <div class="san-input-wrapper">
+            <input [formControl]="getSanControl(i)" placeholder="e.g., DNS:www.example.com">
+            <div class="error-message" *ngIf="getSanControl(i).invalid && getSanControl(i).touched">
+              <span *ngIf="getSanControl(i).errors?.['invalidFormat']">
+                {{ getSanControl(i).errors?.['invalidFormat'] }}
+              </span>
+              <span *ngIf="getSanControl(i).errors?.['invalidType']">
+                {{ getSanControl(i).errors?.['invalidType'] }}
+              </span>
+              <span *ngIf="getSanControl(i).errors?.['emptyValue']">
+                {{ getSanControl(i).errors?.['emptyValue'] }}
+              </span>
+              <span *ngIf="getSanControl(i).errors?.['invalidEmail']">
+                {{ getSanControl(i).errors?.['invalidEmail'] }}
+              </span>
+              <span *ngIf="getSanControl(i).errors?.['invalidIp']">
+                {{ getSanControl(i).errors?.['invalidIp'] }}
+              </span>
+              <span *ngIf="getSanControl(i).errors?.['required']">
+                SAN value is required
+              </span>
+            </div>
+          </div>
+          <button type="button" (click)="removeSAN(i)" class="remove-btn">Remove</button>
+        </div>
+        
+        <button type="button" (click)="addSAN()" class="add-btn">+ Add SAN</button>
+      </div>
+
+      <hr>
+
+      <!-- ========== SUBMIT ========== -->
+      <button type="submit" [disabled]="certificateForm.invalid" class="submit-btn">
+        Issue Certificate
+      </button>
+    </form>
   </ng-container>
 </div>

@@ -9,6 +9,7 @@ import { ResetPasswordComponent } from './home/home/reset-password/reset-passwor
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
 import { IssueCertificateFormComponentComponent } from './home/home/IssueCertificateFormComponent/IssueCertificateFormComponent.component';
+import { ViewCertificateComponent } from './home/home/view-certificate/view-certificate.component';
 import { CsrUploadComponent } from './csr-upload/csr-upload.component';
 
 export const routes: Routes = [
@@ -20,6 +21,8 @@ export const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'add-cerficate', component: IssueCertificateFormComponentComponent },
   { path: 'upload-csr', component: CsrUploadComponent}
+  { path: 'add-certificate', component: IssueCertificateFormComponentComponent },
+  { path: 'view-certificate', component: ViewCertificateComponent}
 ];
 
 @NgModule({

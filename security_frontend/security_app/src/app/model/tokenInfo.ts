@@ -3,4 +3,5 @@ export interface TokenInfo {
     ipAddress: string;
     userAgent: string;
     lastActivity: string; 
+
 }

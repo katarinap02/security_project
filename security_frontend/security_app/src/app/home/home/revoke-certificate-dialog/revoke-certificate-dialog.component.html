@@ -1,0 +1,27 @@
+<h2 mat-dialog-title class="dialog-title">Revoke Certificate</h2>
+
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Serial Number</mat-label>
+    <input matInput [value]="serialNumber" readonly>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Revocation Reason</mat-label>
+    <mat-select [(value)]="reason">
+      <mat-option *ngFor="let r of reasons" [value]="r">{{ r }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Comment (optional)</mat-label>
+    <textarea matInput rows="3" [(ngModel)]="comment" placeholder="Add a note about the revocation..."></textarea>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button color="primary" (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="warn" [disabled]="!reason" (click)="confirmRevoke()">
+    Revoke
+  </button>
+</mat-dialog-actions>

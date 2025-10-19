@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { RouterModule } from '@angular/router';
 import { jwtDecode } from "jwt-decode";
+import { TwoFactorService } from '../../../service/two-factor.service';
 
 
 declare var grecaptcha: any;
@@ -42,13 +43,19 @@ export class LoginComponent implements AfterViewInit {
   loginForm!: FormGroup;
   siteKey: string = '6Lft_qkrAAAAAOh8Jd4JrICGZ_wkVpEvsJyQl0zp'; 
   captchaWidgetId: any = null;
+  showTwoFactor: boolean = false;
+
 
   @ViewChild('captchaElem', { static: true }) captchaElem!: ElementRef;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
+  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private twoFactorService: TwoFactorService ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
+      password: ['', Validators.required],
+      twoFactorCode: ['']
+    });
+      this.twoFactorService.showTwoFactor$.subscribe(value => {
+      this.showTwoFactor = value;
     });
   }
 
@@ -58,69 +65,96 @@ export class LoginComponent implements AfterViewInit {
       sitekey: this.siteKey
     });
   }
+onSubmit() {
+  const captchaToken = grecaptcha.getResponse(this.captchaWidgetId);
 
-  onSubmit() {
-    const token = grecaptcha.getResponse(this.captchaWidgetId);
-
-    if (this.loginForm.invalid) {
-          Swal.fire({
+  if (this.loginForm.invalid || !captchaToken) {
+    Swal.fire({
       icon: 'warning',
-      title: 'Invalid input',
-      text: 'Please fill in all fields correctly.'
+      title: this.loginForm.invalid ? 'Invalid input' : 'CAPTCHA required',
+      text: this.loginForm.invalid ? 'Please fill in all fields correctly.' : 'Please solve the CAPTCHA before submitting.'
     });
-      grecaptcha.reset(this.captchaWidgetId);
-      return;
-    }
+    grecaptcha.reset(this.captchaWidgetId);
+    return;
+  }
 
-    if (!token) {
-          Swal.fire({
-      icon: 'warning',
-      title: 'CAPTCHA required',
-      text: 'Please solve the CAPTCHA before submitting.'
-    });
-      return;
-    }
+  const email = this.loginForm.value.email;
+  const password = this.loginForm.value.password;
+  const twoFactorCode = this.loginForm.value.twoFactorCode;
 
-    const loginData = {
-      email: this.loginForm.value.email,
-      password: this.loginForm.value.password,
-      recaptchaToken: token
-    };
+  // Pošalji login request
+  this.authService.login({ email, password, recaptchaToken: captchaToken, twoFactorCode }).subscribe({
+    next: (res: any) => {
+      if (res.twoFactorRequired) {
+        // Backend traži 2FA, prikazi input za kod
+        this.showTwoFactor = true;
+        this.twoFactorService.setShowTwoFactor(true);
 
-    this.authService.login(loginData).subscribe({
-      
-      next: (res: any) => {
-
-        //console.log("LOGIN RESPONSE:", res);
-
-
-              Swal.fire({
-        icon: 'success',
-        title: 'Login successful',
-        text: 'You have been logged in successfully.'
-      });
-        grecaptcha.reset(this.captchaWidgetId); // resetuje captcha nakon uspešne prijave
-            
+        Swal.fire({
+          icon: 'info',
+          title: 'Two-Factor Authentication required',
+          text: 'Please enter your 2FA code.'
+        });
+        grecaptcha.reset(this.captchaWidgetId);
+      } else {
+        // Login uspešan, sa tokenom
         const decoded: DecodedToken = jwtDecode(res.token);
-
+        console.log('Decoded token:', decoded); 
+        localStorage.setItem('keycloakToken', res.token);
         localStorage.setItem('email', decoded.sub);
-        localStorage.setItem('jti', res.jti);
-        localStorage.setItem('jwtToken', res.token);
-
-        //console.log('LOOGIINNNN INFOOO',decoded);
-
-        this.router.navigate(['/profile']); // preusmerava na profile
-      },
-      error: (err: any) => {
-              Swal.fire({
+        localStorage.setItem('jti', decoded.jti);
+        Swal.fire({
+          icon: 'success',
+          title: 'Login successful'
+        });
+        this.router.navigate(['/profile']);
+      }
+    },
+    error: (err: any) => {
+      Swal.fire({
         icon: 'error',
         title: 'Login failed',
         text: err.error?.message || 'An error occurred during login.'
       });
-        grecaptcha.reset(this.captchaWidgetId); // resetuje captcha nakon greške
-      }
+      grecaptcha.reset(this.captchaWidgetId);
+    }
+  });
+}
+
+
+
+sendLogin(captchaToken: string) {
+    const loginData = {
+        email: this.loginForm.value.email,
+        password: this.loginForm.value.password,
+        recaptchaToken: captchaToken,
+        twoFactorCode: this.loginForm.value.twoFactorCode || null
+    };
+
+    this.authService.login(loginData).subscribe({
+        next: (res: any) => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Login successful'
+            });
+            const decoded: DecodedToken = jwtDecode(res.token);
+            localStorage.setItem('email', decoded.sub);
+            localStorage.setItem('jti', res.jti);
+            localStorage.setItem('keycloakToken', res.token);
+            this.router.navigate(['/profile']);
+        },
+        error: (err: any) => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Login failed',
+                text: err.error?.message || 'An error occurred during login.'
+            });
+            grecaptcha.reset(this.captchaWidgetId);
+        }
     });
-  }
+}
+
+
 }
 
 

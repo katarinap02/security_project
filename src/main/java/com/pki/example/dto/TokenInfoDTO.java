@@ -2,7 +2,6 @@ package com.pki.example.dto;
 
 import com.pki.example.model.TokenInfo;
 
-import java.time.LocalDateTime;
 
 public class TokenInfoDTO {
     private String jti;

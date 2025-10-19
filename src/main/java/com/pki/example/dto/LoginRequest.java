@@ -5,13 +5,15 @@ public class LoginRequest {
     private String email;
     private String password;
     private String recaptchaToken;
+    private Integer twoFactorCode;
 
     public LoginRequest() {}
 
-    public LoginRequest(String email, String password, String recaptchaToken) {
+    public LoginRequest(String email, String password, String recaptchaToken, Integer twoFactorCode) {
         this.email = email;
         this.password = password;
         this.recaptchaToken = recaptchaToken;
+        this.twoFactorCode = twoFactorCode;
     }
 
     public String getEmail() {
@@ -37,4 +39,6 @@ public class LoginRequest {
     public void setRecaptchaToken(String recaptchaToken) {
         this.recaptchaToken = recaptchaToken;
     }
+    public Integer getTwoFactorCode() { return twoFactorCode; }
+    public void setTwoFactorCode(Integer twoFactorCode) { this.twoFactorCode = twoFactorCode; }
 }

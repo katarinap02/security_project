@@ -105,26 +105,4 @@ public class CSRController {
         return csrService.getCsrsByUsername(email);
     }
 
-    @PostMapping("/{csrId}/sign")
-    @PreAuthorize("hasAnyRole('END_USER')")
-    public ResponseEntity<?> signCSR(
-            @PathVariable Long csrId,
-            @RequestBody SignCSRRequest request, // novi DTO
-            Authentication authentication) {
-
-        try {
-            String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
-            CertificateResponseDTO newCertificate = csrService.signCSR(
-                    csrId,
-                    request.getCaId(),
-                    email,
-                    request // prosledi Subject polja
-            );
-            return ResponseEntity.ok(newCertificate);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-
-
 }

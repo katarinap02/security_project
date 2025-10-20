@@ -207,6 +207,7 @@ public class KeystoreService {
             System.out.println("✅ Appended key entry to keystore: " + keystoreFileName + " (alias: " + alias + ")");
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new KeyStoreOperationException("Failed to append key entry to keystore: " + keystoreFileName);
         }
     }

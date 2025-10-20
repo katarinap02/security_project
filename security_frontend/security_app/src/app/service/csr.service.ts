@@ -55,15 +55,4 @@ export class CsrService {
     return this.http.get<CA[]>(`http://localhost:8081/api/ca`, { headers });
   }
 
-  signCSR(csrId: number, request: SignCSRRequest): Observable<Certificate> {
-    const token = localStorage.getItem('keycloakToken');
-    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
-
-    return this.http.post<Certificate>(
-      `${this.apiUrl}/${csrId}/sign`,
-      request, // ovde šaljemo DTO u body
-      { headers }
-    );
-  }
-
 }

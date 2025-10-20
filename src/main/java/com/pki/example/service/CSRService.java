@@ -212,106 +212,10 @@ public class CSRService {
     }
 
 
-    public Certificate issueCertificateFromCSR(Long csrId, String issuerSerialNumber, Date validTo) throws Exception {
-        CSR csr = csrRepository.findById(csrId)
-                .orElseThrow(() -> new RuntimeException("CSR not found"));
-
-        // Validacija issuer-a
-        Certificate issuerCert = certificateRepository.findBySerialNumber(issuerSerialNumber)
-                .orElseThrow(() -> new RuntimeException("Issuer not found"));
-        if (issuerCert.isRevoked() || issuerCert.getValidTo().before(new Date())) {
-            throw new IllegalArgumentException("Izabrani issuer nije validan");
-        }
-
-        if (validTo.after(issuerCert.getValidTo()) || validTo.before(new Date())) {
-            throw new IllegalArgumentException("Datum isteka mora biti unutar validnosti izabranog sertifikata");
-        }
-
-        // Kreiramo Subject iz CSR-a
-        PublicKey publicKey = KeyFactory.getInstance("RSA")
-                .generatePublic(new X509EncodedKeySpec(csr.getPublicKey()));
-        Subject subject = new Subject(publicKey, new org.bouncycastle.asn1.x500.X500Name(csr.getSubject()));
-
-        // Pozivamo CertificateService da izda end-entity sertifikat
-        Certificate newCert = certificateService.issueCertificateFromCSR(subject, issuerCert, csr.getUser(), validTo);
-
-        certificateRepository.save(newCert);
-
-        // Čuvamo CSR kao “obradjeni” (opciono)
-        csr.setStatus(CSRStatus.APPROVED);
-        csrRepository.save(csr);
-
-        return newCert;
-    }
-
     @Transactional(readOnly = true)
     public List<CSR> getCsrsByUsername(String email) {
         User user = userRepository.findByEmail(email);
         return csrRepository.findAllByUser(user);
-    }
-
-    public CertificateResponseDTO signCSR(Long csrId, Integer caId, String email, SignCSRRequest request) {
-        // 1. Učitaj CSR
-        CSR csr = csrRepository.findById(csrId)
-                .orElseThrow(() -> new RuntimeException("CSR not found"));
-
-        if (!csr.getStatus().equals(CSRStatus.PENDING)) {
-            throw new RuntimeException("CSR is not in PENDING state");
-        }
-
-        // 2. Učitaj issuer (CA)
-        Certificate issuerRecord = certificateRepository.findById(caId)
-                .orElseThrow(() -> new RuntimeException("CA certificate not found"));
-
-        // 3. Dohvati ulogovanog korisnika
-        User loggedUser = userRepository.findByEmail(email);
-        if (loggedUser == null) {
-            throw new RuntimeException("Logged-in user not found");
-        }
-
-        // 4. Kreiraj X500Name iz polja sa fronta
-        X500NameBuilder x500Builder = new X500NameBuilder(BCStyle.INSTANCE);
-        if (request.getCommonName() != null) x500Builder.addRDN(BCStyle.CN, request.getCommonName());
-        if (request.getSurname() != null) x500Builder.addRDN(BCStyle.SN, request.getSurname());
-        if (request.getGivenName() != null) x500Builder.addRDN(BCStyle.GIVENNAME, request.getGivenName());
-        if (request.getOrganization() != null) x500Builder.addRDN(BCStyle.O, request.getOrganization());
-        if (request.getOrganizationalUnit() != null) x500Builder.addRDN(BCStyle.OU, request.getOrganizationalUnit());
-        if (request.getCountry() != null) x500Builder.addRDN(BCStyle.C, request.getCountry());
-        if (request.getEmail() != null) x500Builder.addRDN(BCStyle.E, request.getEmail());
-        X500Name subjectX500Name = x500Builder.build();
-
-        // 5. Parsiraj CSR iz baze i kreiraj Subject
-        Subject subjectFromCSR;
-        try (PEMParser pemParser = new PEMParser(new StringReader(csr.getCsrPem()))) {
-            PKCS10CertificationRequest pkcs10 = (PKCS10CertificationRequest) pemParser.readObject();
-            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
-            PublicKey publicKey = converter.getPublicKey(pkcs10.getSubjectPublicKeyInfo());
-
-            subjectFromCSR = new Subject();
-            subjectFromCSR.setPublicKey(publicKey);
-            subjectFromCSR.setX500Name(subjectX500Name);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse CSR PEM: " + e.getMessage(), e);
-        }
-
-        // 6. Odredi validTo datum
-        Date validTo = new Date(System.currentTimeMillis() +
-                (csr.getRequestedValidityDays() != null ? csr.getRequestedValidityDays() * 24L * 60 * 60 * 1000
-                        : 365L * 24 * 60 * 60 * 1000));
-
-        // 7. Potpiši CSR
-        Certificate signedCert = certificateService.issueCertificateFromCSR(
-                subjectFromCSR,
-                issuerRecord,
-                loggedUser,
-                validTo
-        );
-
-        // 8. Ažuriraj status CSR-a
-        csr.setStatus(CSRStatus.APPROVED);
-        csrRepository.save(csr);
-
-        return new CertificateResponseDTO(signedCert);
     }
 
 

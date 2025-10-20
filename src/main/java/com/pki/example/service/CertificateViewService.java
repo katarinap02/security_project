@@ -149,4 +149,16 @@ public class CertificateViewService {
 
         return dto;
     }
+
+
+    @Transactional(readOnly = true)
+    public List<CertificateViewDTO> getAvailableIssuersForUser() {
+        List<Certificate> certificates = certificateRepository.findAll().stream()
+                .filter(cert -> !cert.isRevoked() && cert.getType() != CertificateType.END_ENTITY)
+                .collect(Collectors.toList());
+
+        return certificates.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
 }

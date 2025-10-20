@@ -60,5 +60,34 @@ revokeCertificate(dto: RevokeCertificateDTO): Observable<any> {
   }
 
 
+  issueCertificateFromCSR(csrPem: string, dto: IssueCertificateDTO): Observable<Certificate> {
+    const token = localStorage.getItem('keycloakToken');
+    const headers = { 
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+
+    // šaljemo PEM i ostala polja u body
+    const body = {
+      csrContent: csrPem,
+      dto: dto
+    };
+
+    return this.http.post<Certificate>(`${this.apiUrl}/issueFromCSR`, body, { headers });
+  }
+
+
+getIssuersForUser(): Observable<CertificateDTO[]> {
+  const token = localStorage.getItem('keycloakToken');
+  let email = '';
+  if (token) {
+    const decoded: any = jwtDecode(token);
+    email = decoded.preferred_username; 
+  }
+
+  const headers = { 'Authorization': `Bearer ${token}` };
+
+  return this.http.get<CertificateDTO[]>(`${this.apiUrl}/getIssuers`, { headers });
+}
 
 }

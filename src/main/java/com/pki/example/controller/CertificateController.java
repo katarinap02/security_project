@@ -296,6 +296,62 @@ public class CertificateController {
     }
 
 
+    @PostMapping("/issueFromCSR")
+    @PreAuthorize("hasAnyRole('ROLE_END_USER')")
+    public ResponseEntity<?> issueCertificateFromCSR(
+            @RequestBody IssueCSRRequest request,
+            Authentication authentication) {
+        try {
+            // Uzmi email iz JWT tokena
 
+            String csrContent = request.getCsrContent();
+            IssuerCertificateDTO dto = request.getDto();
+            String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+
+            User ulogovaniKorisnik = userService.loadUserByUsername(email);
+            if (ulogovaniKorisnik == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "User not authenticated"));
+            }
+
+            // Prosleđujemo CSR PEM sadržaj u servis
+            Certificate noviSertifikat = certificateService.issueCertificateFromCSR(dto, ulogovaniKorisnik, csrContent);
+
+            // Pripremimo DTO za front
+            CertificateResponseDTO noviSertifikatDTO = new CertificateResponseDTO();
+            noviSertifikatDTO.setSerialNumber(noviSertifikat.getSerialNumber());
+            noviSertifikatDTO.setValidFrom(noviSertifikat.getValidFrom());
+            noviSertifikatDTO.setValidTo(noviSertifikat.getValidTo());
+            noviSertifikatDTO.setType(noviSertifikat.getType().name());
+
+            return new ResponseEntity<>(noviSertifikatDTO, HttpStatus.CREATED);
+
+        } catch (ResourceNotFoundException | InvalidIssuerException |
+                 IllegalArgumentException | SecurityException e) {
+
+            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(Map.of("error", "An unexpected error occurred on the server."),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+    @GetMapping("/getIssuers")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_END_USER','ROLE_CA_USER')")
+    public ResponseEntity<List<CertificateViewDTO>> getIssuersForCurrentUser(Authentication authentication) {
+        String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+        User user = userService.loadUserByUsername(email);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<CertificateViewDTO> certificates = certificateViewService.getAvailableIssuersForUser();
+        return ResponseEntity.ok(certificates);
+    }
 }
 

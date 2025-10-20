@@ -4,6 +4,7 @@ import com.pki.example.certificates.CertificateGenerator;
 import com.pki.example.data.Issuer;
 import com.pki.example.data.Subject;
 import com.pki.example.dto.CertificateResponseDTO;
+import com.pki.example.dto.CertificateViewDTO;
 import com.pki.example.dto.IssuerCertificateDTO;
 import com.pki.example.exception.InvalidIssuerException;
 import com.pki.example.exception.ResourceNotFoundException;
@@ -14,10 +15,12 @@ import com.pki.example.util.TokenUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -511,12 +514,17 @@ public class CertificateService {
         }
     }
 
-    public Certificate issueCertificateFromCSR(Subject subjectFromCSR, Certificate issuerRecord, User owner, Date validTo) {
-        // 1. Odredi tip sertifikata
-        CertificateType type = CertificateType.END_ENTITY;
-        String serialNumber = String.valueOf(System.currentTimeMillis());
+    public Certificate issueCertificateFromCSR(IssuerCertificateDTO dto, User ulogovaniKorisnik, String csrPem) {
 
-        // 2. Pripremi issuerData iz već postojećeg sertifikata
+        if (ulogovaniKorisnik == null) {
+            throw new SecurityException("Access denied. No information about the logged-in user.");
+        }
+
+        // *************** DEO GDE PRIPREMAMO ISSUERA ******************//
+        Certificate issuerRecord = validateAndGetIssuerRecord(dto.getIssuerSerialNumber());
+        validateCertificateDates(dto.getValidFrom(), dto.getValidTo(), issuerRecord);
+        validateExtensionsAgainstIssuerPolicy(dto, issuerRecord);
+
         PrivateKey issuerPrivateKey = keystoreService.readPrivateKey(
                 issuerRecord.getKeystoreFileName(),
                 keystoreService.decryptPassword(
@@ -536,7 +544,6 @@ public class CertificateService {
         );
 
         X500Name issuerX500Name = new X500Name(issuerX509Cert.getSubjectX500Principal().getName());
-
         Issuer issuerData = certificateFactory.createIssuer(
                 issuerPrivateKey,
                 issuerX509Cert.getPublicKey(),
@@ -544,51 +551,60 @@ public class CertificateService {
                 issuerRecord.getSerialNumber()
         );
 
-        // 3. Generisanje sertifikata koristeći public key iz CSR-a
+        // *************** PARSIRANJE CSR-a i pravljenje Subject-a ****************//
+        PublicKey publicKeyFromCSR = certificateFactory.getPublicKeyFromCSR(csrPem); // metoda za parsiranje PEM-a
+        Subject subjectFromCSR = certificateFactory.createSubject(dto, publicKeyFromCSR);
+
+
+        // ************** GENERISANJE X.509 SERTIFIKATA ***************//
+        CertificateType type = CertificateType.END_ENTITY;
+        String serialNumber = String.valueOf(System.currentTimeMillis());
+
         X509Certificate x509Cert = certificateGenerator.generateCertificate(
                 subjectFromCSR,
                 issuerData,
-                new Date(),       // validFrom sada
-                validTo,
+                dto.getValidFrom(),
+                dto.getValidTo(),
                 serialNumber,
                 type,
-                null, // keyUsage
-                null, // extendedKeyUsage
-                null  // SAN
+                dto.getKeyUsage(),
+                dto.getExtendedKeyUsage(),
+                dto.getSubjectAlternativeNames()
         );
 
-        // 4. Čuvanje u keystore
+        // ************** ČUVANJE U KEYSTORE-u ****************//
         String keystoreFileName = issuerRecord.getKeystoreFileName();
         char[] keystorePassword = keystoreService.decryptPassword(
                 issuerRecord.getEncryptedKeystorePassword(),
                 keystoreService.decryptUserSymmetricKey(issuerRecord.getOwner().getEncryptedUserSymmetricKey())
         );
 
-        keystoreService.appendKeyPairAndChain(
+        keystoreService.appendTrustedCertificate(
                 keystoreFileName,
                 keystorePassword,
                 serialNumber,
-                null, // nema private key, jer je samo CSR
-                new X509Certificate[]{x509Cert, issuerX509Cert} // lanac
+                x509Cert // nema private key, jer je samo CSR
+                 // lanac
         );
 
-        // 5. Čuvanje u bazi
+        // ************** ČUVANJE U BAZU ****************//
         Certificate newCertificateRecord = new Certificate();
         newCertificateRecord.setSerialNumber(serialNumber);
-        newCertificateRecord.setValidFrom(new Date());
-        newCertificateRecord.setValidTo(validTo);
+        newCertificateRecord.setValidFrom(dto.getValidFrom());
+        newCertificateRecord.setValidTo(dto.getValidTo());
         newCertificateRecord.setType(type);
-        newCertificateRecord.setOwner(owner);
+        newCertificateRecord.setOwner(ulogovaniKorisnik);
         newCertificateRecord.setRevoked(false);
         newCertificateRecord.setKeystoreFileName(keystoreFileName);
         newCertificateRecord.setEncryptedKeystorePassword(
-                keystoreService.encryptPassword(keystorePassword,
-                        keystoreService.decryptUserSymmetricKey(owner.getEncryptedUserSymmetricKey()))
+                keystoreService.encryptPassword(
+                        keystorePassword,
+                        keystoreService.decryptUserSymmetricKey(ulogovaniKorisnik.getEncryptedUserSymmetricKey())
+                )
         );
         newCertificateRecord.setIssuer(issuerRecord);
 
         return certificateRepository.save(newCertificateRecord);
     }
-
 
 }

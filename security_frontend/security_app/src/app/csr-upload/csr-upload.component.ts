@@ -7,6 +7,8 @@ import { FormsModule } from '@angular/forms';
 import { CSRDTO } from '../model/csr';
 import { CA } from '../model/ca';
 import { SignCSRRequest } from '../model/signCsr';
+import { CertificateDTO } from '../model/certificateDto';
+import { IssueCertificateDTO } from '../model/issuerCertificateDto';
 
 
 @Component({
@@ -22,13 +24,14 @@ export class CsrUploadComponent {
   success: boolean = false;
 
   userCsrs: CSRDTO[] = [];
-  availableCAs: CA[] = [];
+  availableIssuers: CertificateDTO[] = [];
+  
 
   constructor(private csrService: CsrService, private certificateService: CertificateService) {}
 
   ngOnInit() {
     this.loadUserCSRs();
-    this.loadAvailableCAs();
+    this.loadAvailableIssuers();
   }
 
   onFileSelected(event: any) {
@@ -57,20 +60,24 @@ export class CsrUploadComponent {
   }
 
   
-  loadUserCSRs() {
+ loadUserCSRs() {
   this.csrService.getUserCSRs().subscribe({
     next: (csrs) => {
       this.userCsrs = csrs.map(csr => ({
         ...csr,
         signRequest: csr.signRequest ?? {  // ako već postoji, ne dodaj
-          caId: 0,
+          issuerSerialNumber: '',          // obavezno polje
           commonName: '',
           surname: '',
           givenName: '',
           organization: '',
           organizationalUnit: '',
           country: '',
-          email: ''
+          email: '',
+          validFrom: new Date(),           // opcionalno, default vrednost
+          validTo: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+          type: 'END_ENTITY',              // možeš staviti default
+          ownerEmail: ''                   // ili email korisnika
         }
       }));
     },
@@ -82,46 +89,64 @@ export class CsrUploadComponent {
 }
 
 
-  loadAvailableCAs() {
-    this.csrService.getAllCAs().subscribe({
-      next: cas => this.availableCAs = cas,
-      error: err => console.error('Ne mogu da dobijem CA-ove', err)
-    });
-  }
 
-  
-  signCertificate(csr: any): void {
-  if (!csr.signRequest.caId) {
-    alert('⚠️ Molimo izaberite CA.');
-    return;
-  }
-
-  this.csrService.signCSR(csr.id, csr.signRequest).subscribe({
-    next: (cert: any) => {
-      csr.signedCertificate = cert; // za dugme Download
-      this.downloadCertificate(cert);
-    },
-    error: (err) => {
-      alert('Greška pri potpisivanju: ' + err.error);
+  loadAvailableIssuers(): void {
+      this.certificateService.getIssuersForUser().subscribe({
+        next: (certificates: CertificateDTO[]) => {
+          this.availableIssuers = certificates.filter(cert => 
+            !cert.revoked && !cert.expired && cert.type !== 'END_ENTITY'
+          );
+        },
+        error: (err) => {
+          console.error('Greška pri učitavanju sertifikata:', err);
+        }
+      });
     }
-  });
-}
 
 
-  downloadCertificate(certificate: any): void {
-    const serialNumber = certificate.serialNumber;
-    this.certificateService.downloadCertificate(serialNumber).subscribe({
-      next: (file: Blob) => {
-        const url = window.URL.createObjectURL(file);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${serialNumber}.cer`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      },
-      error: (err) => {
-        console.error('Download failed:', err);
+    signCertificate(csr: CSRDTO) {
+      if (!csr.signRequest?.issuerSerialNumber) {
+        alert('⚠️ Molimo izaberite issuer sertifikat.');
+        return;
       }
-    });
-  }
+
+      if (!csr.csrPem) {
+        alert('⚠️ CSR sadržaj nije učitan.');
+        return;
+      }
+
+      const dto: IssueCertificateDTO = {
+        commonName: csr.signRequest.commonName,
+        surname: csr.signRequest.surname,
+        givenName: csr.signRequest.givenName,
+        organization: csr.signRequest.organization,
+        organizationalUnit: csr.signRequest.organizationalUnit,
+        country: csr.signRequest.country,
+        email: csr.signRequest.email,
+        validFrom: csr.signRequest!.validFrom ? new Date(csr.signRequest!.validFrom) : new Date(),
+        validTo: csr.signRequest!.validTo ? new Date(csr.signRequest!.validTo) : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+        type: 'END_ENTITY', // ili po potrebi
+        ownerEmail: csr.signRequest.ownerEmail || '', // može se defaultovati
+        issuerSerialNumber: csr.signRequest.issuerSerialNumber,
+        templateId: csr.signRequest.templateId,
+        subjectAlternativeNames: csr.signRequest.subjectAlternativeNames,
+        keyUsage: csr.signRequest.keyUsage,
+        extendedKeyUsage: csr.signRequest.extendedKeyUsage
+      };
+
+      this.certificateService.issueCertificateFromCSR(csr.csrPem, dto).subscribe({
+        next: (signedCertificate) => {
+          this.message = '✅ CSR je uspešno potpisan!';
+          this.success = true;
+          csr.signedCertificate = signedCertificate;
+          csr.signRequest = undefined; // ukloni formu nakon potpisivanja
+        },
+        error: (err) => {
+          console.error('Greška pri potpisivanju CSR-a:', err);
+          this.message = '❌ Došlo je do greške pri potpisivanju CSR-a.';
+          this.success = false;
+        }
+      });
+    }
+
 }

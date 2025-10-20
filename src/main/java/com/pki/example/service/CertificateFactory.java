@@ -2,8 +2,12 @@ package com.pki.example.service;
 
 import com.pki.example.dto.IssuerCertificateDTO;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.springframework.stereotype.Component;
 
+import java.io.StringReader;
 import java.security.*;
 import com.pki.example.data.Issuer;
 import com.pki.example.data.Subject;
@@ -46,4 +50,15 @@ public class CertificateFactory {
         builder.addRDN(BCStyle.UID, dto.getEmail());
         return builder.build();
     }
+
+
+    public PublicKey getPublicKeyFromCSR(String csrPem) {
+        try (PEMParser pemParser = new PEMParser(new StringReader(csrPem))) {
+            PKCS10CertificationRequest csr = (PKCS10CertificationRequest) pemParser.readObject();
+            return new JcaPKCS10CertificationRequest(csr).getPublicKey();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse CSR", e);
+        }
+    }
+
 }

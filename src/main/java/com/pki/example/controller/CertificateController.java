@@ -46,10 +46,11 @@ public class CertificateController {
     private final DownloadService downloadService;
     private final CertificateTemplateService certificateTemplateService;
     private final CertificateRepository certificateRepository;
+    private final CRLService crlService;
 
 
     @Autowired
-    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService, CertificateViewService certificateViewService, DownloadService downloadService, CertificateTemplateService certificateTemplateService, CertificateRepository certificateRepository) {
+    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService, CertificateViewService certificateViewService, DownloadService downloadService, CertificateTemplateService certificateTemplateService, CertificateRepository certificateRepository, CRLService crlService) {
         this.certificateService = certificateService;
         this.userService = userService;
         this.revocationService = revocationService;
@@ -57,6 +58,7 @@ public class CertificateController {
         this.downloadService = downloadService;
         this.certificateTemplateService = certificateTemplateService;
         this.certificateRepository = certificateRepository;
+        this.crlService = crlService;
     }
 
     @PostMapping("/issue")
@@ -124,6 +126,28 @@ public class CertificateController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Internal server error: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{issuerSerialNumber}.crl")
+    public ResponseEntity<byte[]> downloadCRL(@PathVariable String issuerSerialNumber) {
+        try {
+            byte[] crlBytes = crlService.getCRLBytes(issuerSerialNumber);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/pkix-crl"));
+            headers.set(HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=crl_" + issuerSerialNumber + ".crl");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(crlBytes);
+
+        } catch (Exception e) {
+            System.err.println("Failed to download CRL for issuer: " + issuerSerialNumber);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
         }
     }
 

@@ -61,14 +61,14 @@ public class KeystoreService {
 
     public PrivateKey readPrivateKey(String keystoreFileName, char[] keystorePassword, String alias) {
         try {
-            ClassPathResource resource = new ClassPathResource(keystoreFileName);
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            try (InputStream is = resource.getInputStream()) {
-                keyStore.load(is, keystorePassword);
+
+            // Čitaj iz keystores/ foldera na file sistemu
+            try (FileInputStream fis = new FileInputStream("keystores/" + keystoreFileName)) {
+                keyStore.load(fis, keystorePassword);
             }
 
-
-            return (PrivateKey) keyStore.getKey(alias, keystorePassword); // Pretpostavljamo da je lozinka za ključ ista kao za keystore
+            return (PrivateKey) keyStore.getKey(alias, keystorePassword);
 
         } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableKeyException e) {
             throw new KeyStoreOperationException("Failed to read private key from keystore: " + keystoreFileName);

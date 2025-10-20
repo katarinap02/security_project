@@ -1,0 +1,56 @@
+<div class="csr-upload">
+  <h2>Upload CSR fajla</h2>
+
+  <input type="file" (change)="onFileSelected($event)" />
+  <button type="button" (click)="submit()">Upload</button>
+
+  <p *ngIf="message" [style.color]="success ? 'green' : 'red'">{{ message }}</p>
+</div>
+
+<div class="csr-list" *ngIf="userCsrs.length > 0">
+  <h3>Moji CSR-ovi</h3>
+  <div class="csr-cards">
+    <div class="csr-card" *ngFor="let csr of userCsrs">
+      <p><strong>Subject iz CSR-a:</strong> {{ csr.subject }}</p>
+      <p><strong>Status:</strong> {{ csr.status }}</p>
+      <p><strong>Kreiran:</strong> {{ csr.createdAt | date:'short' }}</p>
+
+      <!-- Forma za unos podataka za potpisivanje -->
+      <div class="csr-form" *ngIf="csr.signRequest">
+        <label for="issuerSelect-{{csr.id}}">Izaberite CA:</label>
+        <select 
+          id="issuerSelect-{{csr.id}}" 
+          [(ngModel)]="csr.signRequest.issuerSerialNumber" 
+          name="issuerSelect-{{csr.id}}" 
+          required>
+          <option value="" disabled selected>Select issuer certificate</option>
+          <option *ngIf="availableIssuers.length === 0" disabled>
+            No valid issuers available
+          </option>
+          <option *ngFor="let issuer of availableIssuers" [value]="issuer.serialNumber">
+            {{ issuer.serialNumber }} ({{ issuer.type }}) - {{ issuer.ownerEmail }}
+          </option>
+        </select>
+
+        <input type="text" placeholder="Common Name" [(ngModel)]="csr.signRequest.commonName" [ngModelOptions]="{standalone: true}" />
+        <input type="text" placeholder="Surname" [(ngModel)]="csr.signRequest.surname" [ngModelOptions]="{standalone: true}" />
+        <input type="text" placeholder="Given Name" [(ngModel)]="csr.signRequest.givenName" [ngModelOptions]="{standalone: true}" />
+        <input type="text" placeholder="Organization" [(ngModel)]="csr.signRequest.organization" [ngModelOptions]="{standalone: true}" />
+        <input type="text" placeholder="Organizational Unit" [(ngModel)]="csr.signRequest.organizationalUnit" [ngModelOptions]="{standalone: true}" />
+        <input type="text" placeholder="Country" [(ngModel)]="csr.signRequest.country" [ngModelOptions]="{standalone: true}" />
+        <input type="email" placeholder="Email" [(ngModel)]="csr.signRequest.email" [ngModelOptions]="{standalone: true}" />
+
+
+        <label>Valid From:</label>
+        <input type="date" [(ngModel)]="csr.signRequest.validFrom" [ngModelOptions]="{standalone: true}" />
+
+        <label>Valid To:</label>
+        <input type="date" [(ngModel)]="csr.signRequest.validTo" [ngModelOptions]="{standalone: true}" />
+
+        <button type="button" (click)="signCertificate(csr)">Sign Certificate</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p *ngIf="userCsrs.length === 0">Nemate nijedan CSR.</p>

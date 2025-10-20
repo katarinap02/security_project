@@ -4,18 +4,23 @@ import com.pki.example.certificates.CertificateGenerator;
 import com.pki.example.data.Issuer;
 import com.pki.example.data.Subject;
 import com.pki.example.dto.CertificateResponseDTO;
+import com.pki.example.dto.CertificateViewDTO;
 import com.pki.example.dto.IssuerCertificateDTO;
 import com.pki.example.exception.InvalidIssuerException;
 import com.pki.example.exception.ResourceNotFoundException;
 import com.pki.example.model.*;
 import com.pki.example.repository.CertificateRepository;
 import com.pki.example.repository.UserRepository;
+import com.pki.example.util.TokenUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,18 +34,32 @@ public class CertificateService {
     private final CertificateGenerator certificateGenerator;
     private final UserRepository userRepository;
     private final CertificateTemplateService certificateTemplateService;
+    private final CRLService crlService;
 
     @Autowired
-    public CertificateService(CertificateRepository certificateRepository, UserRepository userRepository,CertificateFactory certificateFactory, KeystoreService keystoreService, CertificateTemplateService certificateTemplateService) {
+    private HttpServletRequest request;
+    @Autowired
+    private TokenUtils tokenUtils;
+
+    @Autowired
+    public CertificateService(CertificateRepository certificateRepository, UserRepository userRepository,CertificateFactory certificateFactory, KeystoreService keystoreService, CertificateTemplateService certificateTemplateService, CRLService crlService) {
         this.certificateRepository = certificateRepository;
         this.certificateFactory = certificateFactory;
         this.keystoreService = keystoreService;
         this.certificateGenerator = new CertificateGenerator();
         this.userRepository = userRepository;
         this.certificateTemplateService = certificateTemplateService;
+        this.crlService = crlService;
     }
 
     public CertificateResponseDTO issueCertificate(IssuerCertificateDTO dto, User ulogovaniKorisnik) {
+
+       // String authHeader = request.getHeader("Authorization");
+       // if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
+
+       // String token = authHeader.substring(7);
+      //  String email = tokenUtils.getEmailFromToken(token);
+       // ulogovaniKorisnik = userRepository.findByEmail(email);
 
         if (ulogovaniKorisnik == null) {
             throw new SecurityException("Access denied. No information about the logged-in user.");
@@ -260,7 +279,7 @@ public class CertificateService {
 
 
 
-    //Prima već učitani issuer sertifikat 
+    //Prima već učitani issuer sertifikat
     private X509Certificate[] buildCertificateChainFromCert(Certificate certificateRecord, X509Certificate x509Cert) {
         List<X509Certificate> chain = new ArrayList<>();
         chain.add(x509Cert); // Dodaj trenutni sertifikat u lanac
@@ -303,6 +322,25 @@ public class CertificateService {
             throw new InvalidIssuerException(
                     "Issuer certificate is revoked. Reason: " + issuer.getRevocationReason().getDescription()
             );
+        }
+        if (issuer.getIssuer() != null) {
+            try {
+                boolean revokedInCRL = crlService.isCertificateRevokedInCRL(
+                        issuer.getSerialNumber(),
+                        issuer.getIssuer().getSerialNumber()
+                );
+
+                if (revokedInCRL) {
+                    throw new InvalidIssuerException(
+                            "Issuer certificate is revoked according to CRL (Serial: " + issuerSerialNumber + ")"
+                    );
+                }
+
+
+            } catch (RuntimeException e) {
+                System.err.println(" CRL check failed for issuer " + issuerSerialNumber + ": " + e.getMessage());
+                System.err.println("   Continuing based on database status...");
+            }
         }
         if (issuer.getValidTo().before(new Date())) {
             throw new InvalidIssuerException("Issuer certificate has expired.");
@@ -497,7 +535,97 @@ public class CertificateService {
         }
     }
 
+    public Certificate issueCertificateFromCSR(IssuerCertificateDTO dto, User ulogovaniKorisnik, String csrPem) {
+
+        if (ulogovaniKorisnik == null) {
+            throw new SecurityException("Access denied. No information about the logged-in user.");
+        }
+
+        // *************** DEO GDE PRIPREMAMO ISSUERA ******************//
+        Certificate issuerRecord = validateAndGetIssuerRecord(dto.getIssuerSerialNumber());
+        validateCertificateDates(dto.getValidFrom(), dto.getValidTo(), issuerRecord);
+        validateExtensionsAgainstIssuerPolicy(dto, issuerRecord);
+
+        PrivateKey issuerPrivateKey = keystoreService.readPrivateKey(
+                issuerRecord.getKeystoreFileName(),
+                keystoreService.decryptPassword(
+                        issuerRecord.getEncryptedKeystorePassword(),
+                        keystoreService.decryptUserSymmetricKey(issuerRecord.getOwner().getEncryptedUserSymmetricKey())
+                ),
+                issuerRecord.getSerialNumber()
+        );
+
+        X509Certificate issuerX509Cert = keystoreService.readCertificate(
+                issuerRecord.getKeystoreFileName(),
+                keystoreService.decryptPassword(
+                        issuerRecord.getEncryptedKeystorePassword(),
+                        keystoreService.decryptUserSymmetricKey(issuerRecord.getOwner().getEncryptedUserSymmetricKey())
+                ),
+                issuerRecord.getSerialNumber()
+        );
+
+        X500Name issuerX500Name = new X500Name(issuerX509Cert.getSubjectX500Principal().getName());
+        Issuer issuerData = certificateFactory.createIssuer(
+                issuerPrivateKey,
+                issuerX509Cert.getPublicKey(),
+                issuerX500Name,
+                issuerRecord.getSerialNumber()
+        );
+
+        // *************** PARSIRANJE CSR-a i pravljenje Subject-a ****************//
+        PublicKey publicKeyFromCSR = certificateFactory.getPublicKeyFromCSR(csrPem); // metoda za parsiranje PEM-a
+        Subject subjectFromCSR = certificateFactory.createSubject(dto, publicKeyFromCSR);
 
 
+        // ************** GENERISANJE X.509 SERTIFIKATA ***************//
+        CertificateType type = CertificateType.END_ENTITY;
+        String serialNumber = String.valueOf(System.currentTimeMillis());
+
+        X509Certificate x509Cert = certificateGenerator.generateCertificate(
+                subjectFromCSR,
+                issuerData,
+                dto.getValidFrom(),
+                dto.getValidTo(),
+                serialNumber,
+                type,
+                dto.getKeyUsage(),
+                dto.getExtendedKeyUsage(),
+                dto.getSubjectAlternativeNames()
+        );
+
+        // ************** ČUVANJE U KEYSTORE-u ****************//
+        String keystoreFileName = issuerRecord.getKeystoreFileName();
+        char[] keystorePassword = keystoreService.decryptPassword(
+                issuerRecord.getEncryptedKeystorePassword(),
+                keystoreService.decryptUserSymmetricKey(issuerRecord.getOwner().getEncryptedUserSymmetricKey())
+        );
+
+        keystoreService.appendTrustedCertificate(
+                keystoreFileName,
+                keystorePassword,
+                serialNumber,
+                x509Cert // nema private key, jer je samo CSR
+                 // lanac
+        );
+
+        // ************** ČUVANJE U BAZU ****************//
+        Certificate newCertificateRecord = new Certificate();
+        newCertificateRecord.setSerialNumber(serialNumber);
+        newCertificateRecord.setValidFrom(dto.getValidFrom());
+        newCertificateRecord.setValidTo(dto.getValidTo());
+        newCertificateRecord.setType(type);
+        newCertificateRecord.setOwner(ulogovaniKorisnik);
+        newCertificateRecord.setRevoked(false);
+        newCertificateRecord.setKeystoreFileName(keystoreFileName);
+        newCertificateRecord.setEncryptedKeystorePassword(
+                keystoreService.encryptPassword(
+                        keystorePassword,
+                        keystoreService.decryptUserSymmetricKey(ulogovaniKorisnik.getEncryptedUserSymmetricKey())
+                )
+        );
+        newCertificateRecord.setIssuer(issuerRecord);
+
+        return certificateRepository.save(newCertificateRecord);
+    }
 
 }

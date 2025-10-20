@@ -6,7 +6,10 @@ import com.pki.example.exception.InvalidIssuerException;
 import com.pki.example.exception.ResourceNotFoundException;
 import com.pki.example.model.Certificate;
 import com.pki.example.model.CertificateTemplate;
+import com.pki.example.model.CertificateType;
 import com.pki.example.model.User;
+import com.pki.example.repository.CertificateRepository;
+import com.pki.example.repository.UserRepository;
 import com.pki.example.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -18,10 +21,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 import java.security.Principal;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -34,42 +45,53 @@ public class CertificateController {
     private final CertificateViewService certificateViewService;
     private final DownloadService downloadService;
     private final CertificateTemplateService certificateTemplateService;
+    private final CertificateRepository certificateRepository;
+    private final CRLService crlService;
+
 
     @Autowired
-    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService, CertificateViewService certificateViewService, DownloadService downloadService, CertificateTemplateService certificateTemplateService) {
+    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService, CertificateViewService certificateViewService, DownloadService downloadService, CertificateTemplateService certificateTemplateService, CertificateRepository certificateRepository, CRLService crlService) {
         this.certificateService = certificateService;
         this.userService = userService;
         this.revocationService = revocationService;
         this.certificateViewService = certificateViewService;
         this.downloadService = downloadService;
         this.certificateTemplateService = certificateTemplateService;
-
+        this.certificateRepository = certificateRepository;
+        this.crlService = crlService;
     }
 
     @PostMapping("/issue")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
-    public ResponseEntity<?> issueCertificate(@RequestBody Map<String, Object> body)  {
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_CA_USER')")
+    public ResponseEntity<?> issueCertificate(
+            @RequestBody IssuerCertificateDTO dto,
+            Authentication authentication) {
         try {
-            IssuerCertificateDTO dto = new ObjectMapper()
-                    .convertValue(body.get("dto"), IssuerCertificateDTO.class);
-
-            String email = (String) body.get("email");
+            // Uzmi email iz JWT tokena
+            String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
 
             User ulogovaniKorisnik = userService.loadUserByUsername(email);
+            if (ulogovaniKorisnik == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "User not authenticated"));
+            }
 
             CertificateResponseDTO noviSertifikatDTO = certificateService.issueCertificate(dto, ulogovaniKorisnik);
 
             return new ResponseEntity<>(noviSertifikatDTO, HttpStatus.CREATED);
 
-        } catch (ResourceNotFoundException | InvalidIssuerException | IllegalArgumentException | SecurityException e) {
+        } catch (ResourceNotFoundException | InvalidIssuerException |
+                 IllegalArgumentException | SecurityException e) {
 
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
 
         } catch (Exception e) {
-
-            return new ResponseEntity<>("An unexpected error occurred on the server.", HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return new ResponseEntity<>(Map.of("error", "An unexpected error occurred on the server."),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     @PostMapping("/revoke")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_END_USER','ROLE_CA_USER')")
@@ -104,6 +126,28 @@ public class CertificateController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Internal server error: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{issuerSerialNumber}.crl")
+    public ResponseEntity<byte[]> downloadCRL(@PathVariable String issuerSerialNumber) {
+        try {
+            byte[] crlBytes = crlService.getCRLBytes(issuerSerialNumber);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/pkix-crl"));
+            headers.set(HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=crl_" + issuerSerialNumber + ".crl");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(crlBytes);
+
+        } catch (Exception e) {
+            System.err.println("Failed to download CRL for issuer: " + issuerSerialNumber);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
         }
     }
 
@@ -230,8 +274,108 @@ public class CertificateController {
 
 
 
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadCertificate(@RequestParam("file") MultipartFile file) {
+        try {
+            // 1️⃣ Učitaj sertifikat iz fajla
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate certificate = (X509Certificate) cf.generateCertificate(file.getInputStream());
+
+            // 2️⃣ Kreiraj entitet
+            Certificate entity = new Certificate();
+            entity.setEncryptedKeystorePassword(null);
+            entity.setRevoked(false);
+            entity.setKeystoreFileName(file.getOriginalFilename());
+            entity.setRevocationReason(null);
+            entity.setSerialNumber(certificate.getSerialNumber().toString());
+            entity.setType(CertificateType.INTERMEDIATE);
+            entity.setValidFrom(certificate.getNotBefore());
+            entity.setValidTo(certificate.getNotAfter());
+            entity.setIssuer(null);
+            entity.setOwner(null);
+            entity.setRevocationDate(null);
+
+            // Extended i key usages (može biti null)
+            try {
+                List<String> extUsages = certificate.getExtendedKeyUsage();
+                if (extUsages != null) {
+                    entity.setAllowedExtendedKeyUsages(String.join(",", extUsages));
+                }
+            } catch (CertificateParsingException ignored) {}
+
+            boolean[] keyUsages = certificate.getKeyUsage();
+            if (keyUsages != null) {
+                entity.setAllowedKeyUsages(Arrays.toString(keyUsages));
+            }
+
+            // 3️⃣ Sačuvaj u bazu
+            certificateRepository.save(entity);
+
+            return ResponseEntity.ok("Sertifikat uspešno ubačen u bazu.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Greška pri učitavanju sertifikata: " + e.getMessage());
+        }
+    }
+
+
+    @PostMapping("/issueFromCSR")
+    @PreAuthorize("hasAnyRole('ROLE_END_USER')")
+    public ResponseEntity<?> issueCertificateFromCSR(
+            @RequestBody IssueCSRRequest request,
+            Authentication authentication) {
+        try {
+            // Uzmi email iz JWT tokena
+
+            String csrContent = request.getCsrContent();
+            IssuerCertificateDTO dto = request.getDto();
+            String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+
+            User ulogovaniKorisnik = userService.loadUserByUsername(email);
+            if (ulogovaniKorisnik == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "User not authenticated"));
+            }
+
+            // Prosleđujemo CSR PEM sadržaj u servis
+            Certificate noviSertifikat = certificateService.issueCertificateFromCSR(dto, ulogovaniKorisnik, csrContent);
+
+            // Pripremimo DTO za front
+            CertificateResponseDTO noviSertifikatDTO = new CertificateResponseDTO();
+            noviSertifikatDTO.setSerialNumber(noviSertifikat.getSerialNumber());
+            noviSertifikatDTO.setValidFrom(noviSertifikat.getValidFrom());
+            noviSertifikatDTO.setValidTo(noviSertifikat.getValidTo());
+            noviSertifikatDTO.setType(noviSertifikat.getType().name());
+
+            return new ResponseEntity<>(noviSertifikatDTO, HttpStatus.CREATED);
+
+        } catch (ResourceNotFoundException | InvalidIssuerException |
+                 IllegalArgumentException | SecurityException e) {
+
+            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(Map.of("error", "An unexpected error occurred on the server."),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
 
+    @GetMapping("/getIssuers")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_END_USER','ROLE_CA_USER')")
+    public ResponseEntity<List<CertificateViewDTO>> getIssuersForCurrentUser(Authentication authentication) {
+        String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+        User user = userService.loadUserByUsername(email);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<CertificateViewDTO> certificates = certificateViewService.getAvailableIssuersForUser();
+        return ResponseEntity.ok(certificates);
+    }
 }
 

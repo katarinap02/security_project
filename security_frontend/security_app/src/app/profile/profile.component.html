@@ -26,8 +26,8 @@
       </button>
 
   <!-- Dugme Logout -->
-  <button mat-raised-button 
-          [ngStyle]="{'background-color':'rgba(0,0,0,0.2)', 'color':'white'}" 
+  <button mat-raised-button
+          [ngStyle]="{'background-color':'rgba(0,0,0,0.2)', 'color':'white'}"
           (click)="logout()">
     Logout
   </button>
@@ -88,10 +88,10 @@
         </tbody>
       </table>
     </div>
-    
+
   </mat-card>
 
-</div> 
+</div>
 
 
 
@@ -130,5 +130,17 @@
     </form>
   </mat-card>
 </div>
+<div class="certificate-buttons">
+      <button mat-raised-button color="primary" routerLink="/add-cerficate">
+        ➕ Add Certificate
+      </button>
+      <button mat-raised-button color="accent">
+        📜 Certificate Overview
+      </button>
+      <button mat-raised-button color="accent" [routerLink]="['/upload-csr']">
+        Upload csr
+      </button>
+
+    </div>
 
 

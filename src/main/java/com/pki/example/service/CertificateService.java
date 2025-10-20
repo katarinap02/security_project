@@ -34,6 +34,7 @@ public class CertificateService {
     private final CertificateGenerator certificateGenerator;
     private final UserRepository userRepository;
     private final CertificateTemplateService certificateTemplateService;
+    private final CRLService crlService;
 
     @Autowired
     private HttpServletRequest request;
@@ -41,13 +42,14 @@ public class CertificateService {
     private TokenUtils tokenUtils;
 
     @Autowired
-    public CertificateService(CertificateRepository certificateRepository, UserRepository userRepository,CertificateFactory certificateFactory, KeystoreService keystoreService, CertificateTemplateService certificateTemplateService) {
+    public CertificateService(CertificateRepository certificateRepository, UserRepository userRepository,CertificateFactory certificateFactory, KeystoreService keystoreService, CertificateTemplateService certificateTemplateService, CRLService crlService) {
         this.certificateRepository = certificateRepository;
         this.certificateFactory = certificateFactory;
         this.keystoreService = keystoreService;
         this.certificateGenerator = new CertificateGenerator();
         this.userRepository = userRepository;
         this.certificateTemplateService = certificateTemplateService;
+        this.crlService = crlService;
     }
 
     public CertificateResponseDTO issueCertificate(IssuerCertificateDTO dto, User ulogovaniKorisnik) {
@@ -320,6 +322,25 @@ public class CertificateService {
             throw new InvalidIssuerException(
                     "Issuer certificate is revoked. Reason: " + issuer.getRevocationReason().getDescription()
             );
+        }
+        if (issuer.getIssuer() != null) {
+            try {
+                boolean revokedInCRL = crlService.isCertificateRevokedInCRL(
+                        issuer.getSerialNumber(),
+                        issuer.getIssuer().getSerialNumber()
+                );
+
+                if (revokedInCRL) {
+                    throw new InvalidIssuerException(
+                            "Issuer certificate is revoked according to CRL (Serial: " + issuerSerialNumber + ")"
+                    );
+                }
+
+
+            } catch (RuntimeException e) {
+                System.err.println(" CRL check failed for issuer " + issuerSerialNumber + ": " + e.getMessage());
+                System.err.println("   Continuing based on database status...");
+            }
         }
         if (issuer.getValidTo().before(new Date())) {
             throw new InvalidIssuerException("Issuer certificate has expired.");

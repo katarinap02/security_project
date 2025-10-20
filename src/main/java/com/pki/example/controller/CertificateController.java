@@ -227,6 +227,22 @@ public class CertificateController {
         }
     }
 
+    @GetMapping("/by-issuer/{issuerSerialNumber}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
+    public ResponseEntity<?> getTemplatesByIssuer(@PathVariable String issuerSerialNumber) {
+        try {
+            List<CertificateTemplate> templates = certificateTemplateService.getTemplateByIssuer(issuerSerialNumber);
+            return ResponseEntity.ok(templates);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to retrieve templates for issuer: " + e.getMessage()));
+        }
+    }
+
+
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadCertificate(@RequestParam("file") MultipartFile file) {

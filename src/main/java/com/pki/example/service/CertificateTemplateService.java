@@ -117,4 +117,15 @@ public class CertificateTemplateService {
         return templateRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Template not found"));
     }
+
+    public List<CertificateTemplate> getTemplateByIssuer(String issuerSerialNumber) {
+        Certificate issuer = certificateRepository.findBySerialNumber(issuerSerialNumber)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Issuer certificate not found with serial number " + issuerSerialNumber));
+
+        return templateRepository.findByIssuerCertificate(issuer);
+    }
+
+
+
 }

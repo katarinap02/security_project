@@ -23,11 +23,120 @@ h4 {
   padding-bottom: 0.5rem;
 }
 
+h5 {
+  color: #0056b3;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
 .hint {
   font-size: 0.9rem;
   color: #666;
   margin-bottom: 1rem;
   font-style: italic;
+}
+
+/* Warning Hint Box */
+.hint-warning {
+  font-size: 0.9rem;
+  color: #856404;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hint-warning code {
+  background-color: #fff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  color: #d63384;
+  font-weight: 600;
+}
+
+/* Template Info Box */
+.template-info {
+  background: linear-gradient(135deg, #e7f3ff 0%, #f0f8ff 100%);
+  border: 2px solid #0056b3;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 86, 179, 0.1);
+}
+
+.template-info h5 {
+  margin-top: 0;
+  color: #0056b3;
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.template-info ul {
+  margin: 0.75rem 0 0.5rem 0;
+  padding-left: 1.5rem;
+  list-style-type: none;
+}
+
+.template-info li {
+  margin-bottom: 0.6rem;
+  color: #333;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.template-info li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #28a745;
+  font-weight: bold;
+}
+
+.template-info li strong {
+  color: #555;
+}
+
+.template-info code {
+  background-color: #fff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  color: #d63384;
+  font-size: 0.9rem;
+  border: 1px solid #e0e0e0;
+}
+
+.template-info .hint {
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+  color: #0056b3;
+  font-style: normal;
+  font-weight: 500;
+}
+
+/* Template Badge */
+.template-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #0056b3 0%, #004494 100%);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-right: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 86, 179, 0.2);
 }
 
 /* Forma */
@@ -77,6 +186,7 @@ select:focus {
   padding: 0.5rem;
   border-radius: 4px;
   transition: background-color 0.2s;
+  position: relative;
 }
 
 .checkbox-label:hover {
@@ -86,6 +196,33 @@ select:focus {
 .checkbox-label input[type="checkbox"] {
   width: auto;
   cursor: pointer;
+}
+
+/* Blokirani checkbox (iz šablona) */
+.checkbox-locked {
+  background-color: #e7f3ff;
+  border: 1px solid #0056b3;
+  font-weight: 500;
+}
+
+.checkbox-locked input[type="checkbox"] {
+  cursor: not-allowed;
+}
+
+.lock-icon {
+  margin-left: auto;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.template-locked-hint {
+  color: #0056b3;
+  background-color: #e7f3ff;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-left: 3px solid #0056b3;
+  font-style: normal;
+  font-weight: 500;
 }
 
 /* SAN Container */

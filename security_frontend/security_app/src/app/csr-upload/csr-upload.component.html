@@ -6,3 +6,40 @@
 
   <p *ngIf="message" [style.color]="success ? 'green' : 'red'">{{ message }}</p>
 </div>
+
+<div class="csr-list" *ngIf="userCsrs.length > 0">
+  <h3>Moji CSR-ovi</h3>
+  <div class="csr-cards">
+    <div class="csr-card" *ngFor="let csr of userCsrs">
+      <p><strong>Subject iz CSR-a:</strong> {{ csr.subject }}</p>
+      <p><strong>Status:</strong> {{ csr.status }}</p>
+      <p><strong>Tražena validnost (dana):</strong> {{ csr.requestedValidityDays || '-' }}</p>
+      <p><strong>Kreiran:</strong> {{ csr.createdAt | date:'short' }}</p>
+
+      <!-- Forma za unos podataka za potpisivanje -->
+      <div class="csr-form" *ngIf="csr.signRequest">
+        <label for="caSelect-{{csr.id}}">Izaberite CA:</label>
+        <select [(ngModel)]="csr.signRequest.caId" [ngModelOptions]="{standalone: true}" id="caSelect-{{csr.id}}">
+          <option *ngFor="let ca of availableCAs" [value]="ca.id">{{ ca.name }}</option>
+        </select>
+
+        <input type="text" placeholder="Common Name" [(ngModel)]="csr.signRequest.commonName" [ngModelOptions]="{standalone: true}" />
+        <input type="text" placeholder="Surname" [(ngModel)]="csr.signRequest.surname" [ngModelOptions]="{standalone: true}" />
+        <input type="text" placeholder="Given Name" [(ngModel)]="csr.signRequest.givenName" [ngModelOptions]="{standalone: true}" />
+        <input type="text" placeholder="Organization" [(ngModel)]="csr.signRequest.organization" [ngModelOptions]="{standalone: true}" />
+        <input type="text" placeholder="Organizational Unit" [(ngModel)]="csr.signRequest.organizationalUnit" [ngModelOptions]="{standalone: true}" />
+        <input type="text" placeholder="Country" [(ngModel)]="csr.signRequest.country" [ngModelOptions]="{standalone: true}" />
+        <input type="email" placeholder="Email" [(ngModel)]="csr.signRequest.email" [ngModelOptions]="{standalone: true}" />
+
+        <button type="button" (click)="signCertificate(csr)">Sign Certificate</button>
+        <button type="button" *ngIf="csr.signedCertificate" (click)="downloadCertificate(csr.signedCertificate)">
+          Download
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Ako nema CSR-ova -->
+<p *ngIf="userCsrs.length === 0">Nemate nijedan CSR.</p>

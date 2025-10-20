@@ -50,3 +50,30 @@ button:disabled {
   color: red;
   font-weight: bold;
 }
+
+
+.csr-list {
+  margin-top: 20px;
+}
+
+.csr-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.csr-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 15px;
+  width: 250px;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+}
+
+.csr-card p {
+  margin: 5px 0;
+}
+
+.csr-card button {
+  margin-top: 10px;
+}

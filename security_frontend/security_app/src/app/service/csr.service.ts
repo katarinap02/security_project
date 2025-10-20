@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { CSRDTO } from '../model/csr';
+import { CA } from '../model/ca';
+import { Certificate } from '../model/certificate';
+import { SignCSRRequest } from '../model/signCsr';
 
 @Injectable({
   providedIn: 'root'
@@ -36,10 +39,31 @@ export class CsrService {
     return this.http.post<CSRDTO>(`${this.apiUrl}/upload`, formData, { headers });
   }
 
-  // Ako bude trebalo, možeš dodati još GET metode, npr.:
+  /**
+   * Vraća sve CSR-ove trenutno ulogovanog korisnika
+   * @returns Observable sa listom CSRDTO objekata
+   */
   getUserCSRs(): Observable<CSRDTO[]> {
     const token = localStorage.getItem('keycloakToken');
     const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
-    return this.http.get<CSRDTO[]>(`${this.apiUrl}/user`, { headers });
+    return this.http.get<CSRDTO[]>(`${this.apiUrl}/my`, { headers });
   }
+
+  getAllCAs() {
+    const token = localStorage.getItem('keycloakToken');
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+    return this.http.get<CA[]>(`http://localhost:8081/api/ca`, { headers });
+  }
+
+  signCSR(csrId: number, request: SignCSRRequest): Observable<Certificate> {
+    const token = localStorage.getItem('keycloakToken');
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : undefined;
+
+    return this.http.post<Certificate>(
+      `${this.apiUrl}/${csrId}/sign`,
+      request, // ovde šaljemo DTO u body
+      { headers }
+    );
+  }
+
 }

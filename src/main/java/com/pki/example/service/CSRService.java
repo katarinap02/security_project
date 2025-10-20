@@ -5,12 +5,16 @@ import com.pki.example.data.Subject;
 import com.pki.example.dto.CSRDTO;
 import com.pki.example.dto.CertificateResponseDTO;
 import com.pki.example.dto.IssuerCertificateDTO;
+import com.pki.example.dto.SignCSRRequest;
 import com.pki.example.keystores.KeyStoreReader;
 import com.pki.example.keystores.KeyStoreWriter;
 import com.pki.example.model.*;
 import com.pki.example.repository.CSRRepository;
 import com.pki.example.repository.CertificateRepository;
+import com.pki.example.repository.UserRepository;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -20,11 +24,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityNotFoundException;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -65,6 +71,8 @@ public class CSRService {
     @Autowired
     private KeystoreService keystoreService;
 
+    @Autowired
+    private UserRepository userRepository;
 
     public List<CSR> getAll() {
         return csrRepository.findAll();
@@ -234,5 +242,89 @@ public class CSRService {
         csrRepository.save(csr);
 
         return newCert;
+    }
+
+    @Transactional(readOnly = true)
+    public List<CSR> getCsrsByUsername(String email) {
+        User user = userRepository.findByEmail(email);
+        return csrRepository.findAllByUser(user);
+    }
+
+    public CertificateResponseDTO signCSR(Long csrId, Integer caId, String email, SignCSRRequest request) {
+        // 1. Učitaj CSR
+        CSR csr = csrRepository.findById(csrId)
+                .orElseThrow(() -> new RuntimeException("CSR not found"));
+
+        if (!csr.getStatus().equals(CSRStatus.PENDING)) {
+            throw new RuntimeException("CSR is not in PENDING state");
+        }
+
+        // 2. Učitaj issuer (CA)
+        Certificate issuerRecord = certificateRepository.findById(caId)
+                .orElseThrow(() -> new RuntimeException("CA certificate not found"));
+
+        // 3. Dohvati ulogovanog korisnika
+        User loggedUser = userRepository.findByEmail(email);
+        if (loggedUser == null) {
+            throw new RuntimeException("Logged-in user not found");
+        }
+
+        // 4. Kreiraj X500Name iz polja sa fronta
+        X500NameBuilder x500Builder = new X500NameBuilder(BCStyle.INSTANCE);
+        if (request.getCommonName() != null) x500Builder.addRDN(BCStyle.CN, request.getCommonName());
+        if (request.getSurname() != null) x500Builder.addRDN(BCStyle.SN, request.getSurname());
+        if (request.getGivenName() != null) x500Builder.addRDN(BCStyle.GIVENNAME, request.getGivenName());
+        if (request.getOrganization() != null) x500Builder.addRDN(BCStyle.O, request.getOrganization());
+        if (request.getOrganizationalUnit() != null) x500Builder.addRDN(BCStyle.OU, request.getOrganizationalUnit());
+        if (request.getCountry() != null) x500Builder.addRDN(BCStyle.C, request.getCountry());
+        if (request.getEmail() != null) x500Builder.addRDN(BCStyle.E, request.getEmail());
+        X500Name subjectX500Name = x500Builder.build();
+
+        // 5. Parsiraj CSR iz baze i kreiraj Subject
+        Subject subjectFromCSR;
+        try (PEMParser pemParser = new PEMParser(new StringReader(csr.getCsrPem()))) {
+            PKCS10CertificationRequest pkcs10 = (PKCS10CertificationRequest) pemParser.readObject();
+            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
+            PublicKey publicKey = converter.getPublicKey(pkcs10.getSubjectPublicKeyInfo());
+
+            subjectFromCSR = new Subject();
+            subjectFromCSR.setPublicKey(publicKey);
+            subjectFromCSR.setX500Name(subjectX500Name);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse CSR PEM: " + e.getMessage(), e);
+        }
+
+        // 6. Odredi validTo datum
+        Date validTo = new Date(System.currentTimeMillis() +
+                (csr.getRequestedValidityDays() != null ? csr.getRequestedValidityDays() * 24L * 60 * 60 * 1000
+                        : 365L * 24 * 60 * 60 * 1000));
+
+        // 7. Potpiši CSR
+        Certificate signedCert = certificateService.issueCertificateFromCSR(
+                subjectFromCSR,
+                issuerRecord,
+                loggedUser,
+                validTo
+        );
+
+        // 8. Ažuriraj status CSR-a
+        csr.setStatus(CSRStatus.APPROVED);
+        csrRepository.save(csr);
+
+        return new CertificateResponseDTO(signedCert);
+    }
+
+
+
+    public Subject parseCSR(String csrPem, X500Name x500FromForm) throws Exception {
+        PEMParser pemParser = new PEMParser(new StringReader(csrPem));
+        PKCS10CertificationRequest csr = (PKCS10CertificationRequest) pemParser.readObject();
+        JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+        PublicKey publicKey = converter.getPublicKey(csr.getSubjectPublicKeyInfo());
+
+        Subject subject = new Subject();
+        subject.setPublicKey(publicKey);
+        subject.setX500Name(x500FromForm); // uzmi X500Name iz forme
+        return subject;
     }
 }

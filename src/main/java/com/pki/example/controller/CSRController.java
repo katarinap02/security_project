@@ -2,6 +2,7 @@ package com.pki.example.controller;
 
 import com.pki.example.dto.CSRDTO;
 import com.pki.example.dto.CertificateResponseDTO;
+import com.pki.example.dto.SignCSRRequest;
 import com.pki.example.model.CA;
 import com.pki.example.model.CSR;
 import com.pki.example.model.Certificate;
@@ -11,6 +12,7 @@ import com.pki.example.repository.CSRRepository;
 import com.pki.example.service.CSRService;
 import com.pki.example.service.KeystoreService;
 import com.pki.example.service.UserService;
+import org.apache.tomcat.util.http.parser.Authorization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,27 +98,33 @@ public class CSRController {
 
     // CSRController.java (nastavak)
 
-    @PostMapping("/generate")
-    public ResponseEntity<CertificateResponseDTO> generateCertificateFromCSR(
-            @RequestParam("csrId") Long csrId,
-            @RequestParam("issuerSerial") String issuerSerial,
-            @RequestParam("validTo") long validToTimestamp
-    ) {
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('END_USER')")
+    public List<CSR> getMyCsrs(Authentication authentication) {
+        String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+        return csrService.getCsrsByUsername(email);
+    }
+
+    @PostMapping("/{csrId}/sign")
+    @PreAuthorize("hasAnyRole('END_USER')")
+    public ResponseEntity<?> signCSR(
+            @PathVariable Long csrId,
+            @RequestBody SignCSRRequest request, // novi DTO
+            Authentication authentication) {
+
         try {
-            Date validTo = new Date(validToTimestamp);
-
-            // Pozivamo servis da izda sertifikat
-            Certificate newCert = csrService.issueCertificateFromCSR(csrId, issuerSerial, validTo);
-
-            // Formiramo DTO za frontend
-            CertificateResponseDTO response = new CertificateResponseDTO(newCert);
-
-            return ResponseEntity.ok(response);
-
+            String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+            CertificateResponseDTO newCertificate = csrService.signCSR(
+                    csrId,
+                    request.getCaId(),
+                    email,
+                    request // prosledi Subject polja
+            );
+            return ResponseEntity.ok(newCertificate);
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
 
 }

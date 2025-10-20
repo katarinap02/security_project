@@ -6,7 +6,10 @@ import com.pki.example.exception.InvalidIssuerException;
 import com.pki.example.exception.ResourceNotFoundException;
 import com.pki.example.model.Certificate;
 import com.pki.example.model.CertificateTemplate;
+import com.pki.example.model.CertificateType;
 import com.pki.example.model.User;
+import com.pki.example.repository.CertificateRepository;
+import com.pki.example.repository.UserRepository;
 import com.pki.example.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -18,10 +21,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 import java.security.Principal;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -34,16 +45,18 @@ public class CertificateController {
     private final CertificateViewService certificateViewService;
     private final DownloadService downloadService;
     private final CertificateTemplateService certificateTemplateService;
+    private final CertificateRepository certificateRepository;
+
 
     @Autowired
-    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService, CertificateViewService certificateViewService, DownloadService downloadService, CertificateTemplateService certificateTemplateService) {
+    public CertificateController(CertificateService certificateService, UserService userService, RevocationService revocationService, CertificateViewService certificateViewService, DownloadService downloadService, CertificateTemplateService certificateTemplateService, CertificateRepository certificateRepository) {
         this.certificateService = certificateService;
         this.userService = userService;
         this.revocationService = revocationService;
         this.certificateViewService = certificateViewService;
         this.downloadService = downloadService;
         this.certificateTemplateService = certificateTemplateService;
-
+        this.certificateRepository = certificateRepository;
     }
 
     @PostMapping("/issue")
@@ -215,6 +228,50 @@ public class CertificateController {
     }
 
 
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadCertificate(@RequestParam("file") MultipartFile file) {
+        try {
+            // 1️⃣ Učitaj sertifikat iz fajla
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate certificate = (X509Certificate) cf.generateCertificate(file.getInputStream());
+
+            // 2️⃣ Kreiraj entitet
+            Certificate entity = new Certificate();
+            entity.setEncryptedKeystorePassword(null);
+            entity.setRevoked(false);
+            entity.setKeystoreFileName(file.getOriginalFilename());
+            entity.setRevocationReason(null);
+            entity.setSerialNumber(certificate.getSerialNumber().toString());
+            entity.setType(CertificateType.INTERMEDIATE);
+            entity.setValidFrom(certificate.getNotBefore());
+            entity.setValidTo(certificate.getNotAfter());
+            entity.setIssuer(null);
+            entity.setOwner(null);
+            entity.setRevocationDate(null);
+
+            // Extended i key usages (može biti null)
+            try {
+                List<String> extUsages = certificate.getExtendedKeyUsage();
+                if (extUsages != null) {
+                    entity.setAllowedExtendedKeyUsages(String.join(",", extUsages));
+                }
+            } catch (CertificateParsingException ignored) {}
+
+            boolean[] keyUsages = certificate.getKeyUsage();
+            if (keyUsages != null) {
+                entity.setAllowedKeyUsages(Arrays.toString(keyUsages));
+            }
+
+            // 3️⃣ Sačuvaj u bazu
+            certificateRepository.save(entity);
+
+            return ResponseEntity.ok("Sertifikat uspešno ubačen u bazu.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Greška pri učitavanju sertifikata: " + e.getMessage());
+        }
+    }
 
 
 

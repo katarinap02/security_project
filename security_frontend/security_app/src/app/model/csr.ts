@@ -1,3 +1,5 @@
+import { SignCSRRequest } from "./signCsr";
+
 export interface CSRDTO {
   id: number;
   userId: number;
@@ -7,4 +9,6 @@ export interface CSRDTO {
   requestedValidityDays?: number;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string; // ISO string, može se parsirati u Date
+  signRequest?: SignCSRRequest;
+  signedCertificate?: any; 
 }

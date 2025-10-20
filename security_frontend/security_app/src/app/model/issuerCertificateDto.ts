@@ -12,4 +12,8 @@ export interface IssueCertificateDTO {
   type: string; 
   ownerEmail: string;
   issuerSerialNumber?: string;
+  templateId?: number;        
+  subjectAlternativeNames?: string[];
+  keyUsage?: string[];
+  extendedKeyUsage?: string[];
 }

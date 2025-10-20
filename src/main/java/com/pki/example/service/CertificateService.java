@@ -7,10 +7,7 @@ import com.pki.example.dto.CertificateResponseDTO;
 import com.pki.example.dto.IssuerCertificateDTO;
 import com.pki.example.exception.InvalidIssuerException;
 import com.pki.example.exception.ResourceNotFoundException;
-import com.pki.example.model.Certificate;
-import com.pki.example.model.CertificateType;
-import com.pki.example.model.Role;
-import com.pki.example.model.User;
+import com.pki.example.model.*;
 import com.pki.example.repository.CertificateRepository;
 import com.pki.example.repository.UserRepository;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -21,6 +18,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CertificateService {
@@ -30,14 +28,16 @@ public class CertificateService {
     private final KeystoreService keystoreService; // Pretpostavimo da smo napravili i ovaj servis
     private final CertificateGenerator certificateGenerator;
     private final UserRepository userRepository;
+    private final CertificateTemplateService certificateTemplateService;
 
     @Autowired
-    public CertificateService(CertificateRepository certificateRepository, UserRepository userRepository,CertificateFactory certificateFactory, KeystoreService keystoreService) {
+    public CertificateService(CertificateRepository certificateRepository, UserRepository userRepository,CertificateFactory certificateFactory, KeystoreService keystoreService, CertificateTemplateService certificateTemplateService) {
         this.certificateRepository = certificateRepository;
         this.certificateFactory = certificateFactory;
         this.keystoreService = keystoreService;
         this.certificateGenerator = new CertificateGenerator();
         this.userRepository = userRepository;
+        this.certificateTemplateService = certificateTemplateService;
     }
 
     public CertificateResponseDTO issueCertificate(IssuerCertificateDTO dto, User ulogovaniKorisnik) {
@@ -45,8 +45,15 @@ public class CertificateService {
         if (ulogovaniKorisnik == null) {
             throw new SecurityException("Access denied. No information about the logged-in user.");
         }
+        CertificateTemplate template = null;
+        if (dto.getTemplateId() != null) {
+            template = certificateTemplateService.getTemplateById(dto.getTemplateId());
+        }
 
-        // *** DEO GDE POSTAVLJAMO PRAVILNO OWNER ****
+        validateCertificateTemplate(dto);
+
+
+            // *** DEO GDE POSTAVLJAMO PRAVILNO OWNER ****
         User owner;
         if (dto.getOwnerEmail() == null || dto.getOwnerEmail().isBlank() || dto.getOwnerEmail().equals(ulogovaniKorisnik.getEmail())) {
             owner = ulogovaniKorisnik;
@@ -82,6 +89,7 @@ public class CertificateService {
         } else {
             issuerRecord = validateAndGetIssuerRecord(dto.getIssuerSerialNumber());
             validateCertificateDates(dto.getValidFrom(), dto.getValidTo(), issuerRecord);
+            validateExtensionsAgainstIssuerPolicy(dto, issuerRecord);
 
             if (ulogovaniKorisnik.hasRole("ROLE_CA_USER")) {
                 if (!issuerRecord.getOwner().getId().equals(ulogovaniKorisnik.getId())) {
@@ -130,6 +138,18 @@ public class CertificateService {
         //************** PRIPREMA SUBJECT-A *************//
         KeyPair subjectKeyPair = certificateFactory.generateKeyPair();
         Subject subjectData = certificateFactory.createSubject(dto, subjectKeyPair.getPublic());
+        List<String> keyUsage = dto.getKeyUsage();
+        List<String> extendedKeyUsage = dto.getExtendedKeyUsage();
+        List<String> san = dto.getSubjectAlternativeNames();
+
+        if (template != null) {
+            if (keyUsage == null || keyUsage.isEmpty()) {
+                keyUsage = template.getKeyUsage();
+            }
+            if (extendedKeyUsage == null || extendedKeyUsage.isEmpty()) {
+                extendedKeyUsage = template.getExtendedKeyUsage();
+            }
+        }
 
         // ************** GENERISANJE X.509 SERTIFIKATA i ekstenzija ***************//
         X509Certificate x509Cert = certificateGenerator.generateCertificate(
@@ -138,7 +158,10 @@ public class CertificateService {
                 dto.getValidFrom(),
                 dto.getValidTo(),
                 serialNumber,
-                type
+                type,
+                keyUsage,
+                extendedKeyUsage,
+                san
         );
 
         //*********** CUVANJE POMOCU KEYSTORE U FAJL**************//
@@ -213,6 +236,13 @@ public class CertificateService {
         newCertificateRecord.setRevoked(false);
         newCertificateRecord.setKeystoreFileName(keystoreFileName);
         newCertificateRecord.setEncryptedKeystorePassword(encryptedPassword);
+        if (dto.getKeyUsage() != null && !dto.getKeyUsage().isEmpty()) {
+            newCertificateRecord.setAllowedKeyUsages(String.join(",", dto.getKeyUsage()));
+        }
+
+        if (dto.getExtendedKeyUsage() != null && !dto.getExtendedKeyUsage().isEmpty()) {
+            newCertificateRecord.setAllowedExtendedKeyUsages(String.join(",", dto.getExtendedKeyUsage()));
+        }
 
         if (type == CertificateType.ROOT) {
             newCertificateRecord.setIssuer(null);
@@ -226,6 +256,8 @@ public class CertificateService {
 
         return new CertificateResponseDTO(savedCertificateRecord);
     }
+
+
 
 
     //Prima već učitani issuer sertifikat 
@@ -317,6 +349,64 @@ public class CertificateService {
         }
     }
 
+    private void validateExtensionsAgainstIssuerPolicy(IssuerCertificateDTO dto, Certificate issuer) {
+        // 1. Validacija Key Usage
+        if (dto.getKeyUsage() != null && !dto.getKeyUsage().isEmpty()) {
+            if (issuer.getAllowedKeyUsages() == null || issuer.getAllowedKeyUsages().isEmpty()) {
+                throw new SecurityException(
+                        "Issuer does not allow any Key Usage extensions. Cannot issue certificate with Key Usage."
+                );
+            }
+
+            List<String> issuerAllowedKU = Arrays.asList(issuer.getAllowedKeyUsages().split(","));
+            List<String> normalizedIssuerKU = issuerAllowedKU.stream()
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toList());
+
+            for (String requestedKU : dto.getKeyUsage()) {
+                String normalizedRequested = requestedKU.trim().toLowerCase();
+
+                if (!normalizedIssuerKU.contains(normalizedRequested)) {
+                    throw new SecurityException(
+                            String.format("Key Usage '%s' is not allowed by issuer policy. Issuer allows: %s",
+                                    requestedKU, issuer.getAllowedKeyUsages())
+                    );
+                }
+            }
+
+            System.out.println("✅ Key Usage validation passed");
+        }
+
+        // 2. Validacija Extended Key Usage
+        if (dto.getExtendedKeyUsage() != null && !dto.getExtendedKeyUsage().isEmpty()) {
+            if (issuer.getAllowedExtendedKeyUsages() == null || issuer.getAllowedExtendedKeyUsages().isEmpty()) {
+                throw new SecurityException(
+                        "Issuer does not allow any Extended Key Usage extensions. Cannot issue certificate with Extended Key Usage."
+                );
+            }
+
+            List<String> issuerAllowedEKU = Arrays.asList(issuer.getAllowedExtendedKeyUsages().split(","));
+            List<String> normalizedIssuerEKU = issuerAllowedEKU.stream()
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toList());
+
+            for (String requestedEKU : dto.getExtendedKeyUsage()) {
+                String normalizedRequested = requestedEKU.trim().toLowerCase();
+
+                if (!normalizedIssuerEKU.contains(normalizedRequested)) {
+                    throw new SecurityException(
+                            String.format("Extended Key Usage '%s' is not allowed by issuer policy. Issuer allows: %s",
+                                    requestedEKU, issuer.getAllowedExtendedKeyUsages())
+                    );
+                }
+            }
+
+            System.out.println("✅ Extended Key Usage validation passed");
+        }
+    }
+
     private Date removeTime(Date date) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
@@ -326,5 +416,88 @@ public class CertificateService {
         cal.set(Calendar.MILLISECOND, 0);
         return cal.getTime();
     }
+
+    private void validateCertificateTemplate(IssuerCertificateDTO dto) {
+        CertificateTemplate template = null;
+        if (dto.getTemplateId() != null) {
+            template = certificateTemplateService.getTemplateById(dto.getTemplateId());
+
+            // Validacija da template pripada odabranom issueru
+            if (!template.getIssuerCertificate().getSerialNumber().equals(dto.getIssuerSerialNumber())) {
+                throw new IllegalArgumentException(
+                        "Selected template is not associated with the chosen issuer certificate."
+                );
+            }
+
+            // Validacija Common Name
+            if (!certificateTemplateService.validateCommonName(dto.getCommonName(), template)) {
+                throw new IllegalArgumentException(
+                        "Common Name '" + dto.getCommonName() + "' does not match template pattern: " +
+                                template.getCommonNameRegex()
+                );
+            }
+
+            // Validacija Subject Alternative Names
+            if (dto.getSubjectAlternativeNames() != null && !dto.getSubjectAlternativeNames().isEmpty()) {
+                for (String san : dto.getSubjectAlternativeNames()) {
+                    if (!certificateTemplateService.validateSAN(san, template)) {
+                        throw new IllegalArgumentException(
+                                "Subject Alternative Name '" + san + "' does not match template pattern: " +
+                                        template.getSanRegex()
+                        );
+                    }
+                }
+            }
+
+            // Validacija perioda važenja
+            long requestedDays = (dto.getValidTo().getTime() - dto.getValidFrom().getTime())
+                    / (1000 * 60 * 60 * 24);
+            if (!certificateTemplateService.validateValidityPeriod((int) requestedDays, template)) {
+                throw new IllegalArgumentException(
+                        "Requested validity period (" + requestedDays + " days) exceeds template maximum of " +
+                                template.getMaxValidityDays() + " days."
+                );
+            }
+
+            // Primeni predefinisane ekstenzije iz šablona (ako korisnik nije već postavio)
+            if (dto.getKeyUsage() == null || dto.getKeyUsage().isEmpty()) {
+                dto.setKeyUsage(new ArrayList<>(template.getKeyUsage()));
+            } else {
+                // Korisnik je postavio svoje Key Usage - validuj da su subset ili jednaki šablonu
+                validateExtensionsAgainstTemplate(dto.getKeyUsage(), template.getKeyUsage(), "Key Usage");
+            }
+
+            if (dto.getExtendedKeyUsage() == null || dto.getExtendedKeyUsage().isEmpty()) {
+                dto.setExtendedKeyUsage(new ArrayList<>(template.getExtendedKeyUsage()));
+            } else {
+                // Korisnik je postavio svoje EKU - validuj
+                validateExtensionsAgainstTemplate(dto.getExtendedKeyUsage(),
+                        template.getExtendedKeyUsage(),
+                        "Extended Key Usage");
+            }
+
+
+        }
+    }
+
+    private void validateExtensionsAgainstTemplate(List<String> requestedExtensions,
+                                                   List<String> templateExtensions,
+                                                   String extensionName) {
+        if (templateExtensions == null || templateExtensions.isEmpty()) {
+            return; // Šablon nema ograničenja za ovu ekstenziju
+        }
+
+        for (String requested : requestedExtensions) {
+            if (!templateExtensions.contains(requested)) {
+                throw new IllegalArgumentException(
+                        extensionName + " value '" + requested + "' is not allowed by the template. " +
+                                "Allowed values: " + String.join(", ", templateExtensions)
+                );
+            }
+        }
+    }
+
+
+
 
 }

@@ -5,6 +5,8 @@ import lombok.Data;
 import org.bouncycastle.asn1.x500.X500Name;
 
 import java.util.Date;
+import java.util.List;
+
 @Data
 public class IssuerCertificateDTO {
 
@@ -25,4 +27,10 @@ public class IssuerCertificateDTO {
 
     //serijski broj izdavaoca, ako je root onda je prazan string
     private String issuerSerialNumber;
+
+    private Integer templateId;
+    private List<String> subjectAlternativeNames;
+
+    private List<String> keyUsage;
+    private List<String> extendedKeyUsage;
 }

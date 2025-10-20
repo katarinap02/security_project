@@ -15,11 +15,14 @@
   <button *ngIf="isAdmin" mat-raised-button color="accent" (click)="openCARegistration()" class="toolbar-button">
     Register CA User
   </button>
-  <button mat-raised-button color="primary" class="toolbar-button"  routerLink="/add-certificate">
+  <button *ngIf="isAdmin || isCaUser" mat-raised-button color="primary" class="toolbar-button"  routerLink="/add-certificate">
         ➕ Add Certificate
       </button>
       <button mat-raised-button class="toolbar-button" color="accent"  routerLink="/view-certificate">
         📜 Certificate Overview
+      </button>
+      <button *ngIf="isCaUser" mat-raised-button class="toolbar-button" color="accent"  routerLink="/create-template">
+        📜 Certificate Template
       </button>
 
       <!-- Dugme za Password Manager -->

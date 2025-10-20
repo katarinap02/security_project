@@ -1,36 +1,26 @@
 <div class="form-container">
   <h2>Issue New Certificate</h2>
-   <ng-container *ngIf="certificateForm">
-  <form [formGroup]="certificateForm" (ngSubmit)="onSubmit()">
-    
-    <!-- Owner Information -->
-    <h4>Owner Information (Subject)</h4>
-    <input formControlName="commonName" placeholder="Common Name (e.g., Full Name)">
-    <input formControlName="surname" placeholder="Surname">
-    <input formControlName="givenName" placeholder="Given Name">
-    <input formControlName="organization" placeholder="Organization (e.g., UNS-FTN)">
-    <input formControlName="organizationalUnit" placeholder="Organizational Unit (e.g., Department)">
-    <input formControlName="country" placeholder="Country (code, e.g., RS)">
-    <input formControlName="email" placeholder="Owner's Email Address">
-
-    <hr>
-    
-    <!-- Technical Details -->
-    <h4>Technical Details</h4>
-    <label for="ownerEmail">Owner User Email (from 'users' table):</label>
-    <input id="ownerEmail" formControlName="ownerEmail" placeholder="Owner account email">
-    
-    <label for="type">Certificate Type:</label>
-    <select id="type" formControlName="type">
-      <option *ngIf="pom !== 2" value="ROOT">ROOT</option>
-      <option value="INTERMEDIATE">INTERMEDIATE</option>
-      <option value="END_ENTITY">END_ENTITY</option>
-    </select>
-    
-    <!-- Show this field only if type is NOT ROOT -->
-    <div *ngIf="certificateForm.get('type')?.value !== 'ROOT'">
+  
+  <ng-container *ngIf="certificateForm">
+    <form [formGroup]="certificateForm" (ngSubmit)="onSubmit()">
+      
+      <!-- ========== TECHNICAL DETAILS ========== -->
+      <h4>Technical Details</h4>
+      
+      <label for="ownerEmail">Owner User Email (from 'users' table):</label>
+      <input id="ownerEmail" formControlName="ownerEmail" placeholder="Owner account email">
+      
+      <label for="type">Certificate Type:</label>
+      <select id="type" formControlName="type">
+        <option *ngIf="pom !== 2" value="ROOT">ROOT</option>
+        <option value="INTERMEDIATE">INTERMEDIATE</option>
+        <option value="END_ENTITY">END_ENTITY</option>
+      </select>
+      
+      <!-- Issuer Selection -->
+      <div *ngIf="certificateForm.get('type')?.value !== 'ROOT'">
         <label for="issuer">Issuer Serial Number:</label>
-        <select id="issuer" formControlName="issuerSerialNumber">
+        <select id="issuer" formControlName="issuerSerialNumber" required>
           <option value="" disabled selected>Select issuer certificate</option>
           <option *ngIf="availableIssuers.length === 0" disabled>
             No valid issuers available
@@ -44,13 +34,169 @@
         </small>
       </div>
 
-    <label for="validFrom">Valid From:</label>
-    <input id="validFrom" type="date" formControlName="validFrom">
-    
-    <label for="validTo">Valid To:</label>
-    <input id="validTo" type="date" formControlName="validTo">
+      <!-- ========== TEMPLATE SELECTION ========== -->
+      <div *ngIf="pom === 2 && certificateForm.get('issuerSerialNumber')?.value && availableTemplates.length > 0">
+        <label for="template">Certificate Template (Optional):</label>
+        <select id="template" formControlName="templateId">
+          <option value="">-- No Template (Manual Configuration) --</option>
+          <option *ngFor="let template of availableTemplates" [value]="template.id">
+            {{ template.name }} 
+            <span *ngIf="template.description">({{ template.description }})</span>
+            - Max {{ template.maxValidityDays }} days
+          </option>
+        </select>
+        
+        <!-- Template Info -->
+        <div *ngIf="selectedTemplate" class="template-info">
+          <h5>✓ Applied Template: {{ selectedTemplate.name }}</h5>
+          <ul>
+            <li *ngIf="selectedTemplate.description"><strong>Description:</strong> {{ selectedTemplate.description }}</li>
+            <li><strong>Max Validity:</strong> {{ selectedTemplate.maxValidityDays }} days</li>
+            <li *ngIf="selectedTemplate.commonNameRegex"><strong>CN Pattern:</strong> <code>{{ selectedTemplate.commonNameRegex }}</code></li>
+            <li *ngIf="selectedTemplate.sanRegex"><strong>SAN Pattern:</strong> <code>{{ selectedTemplate.sanRegex }}</code></li>
+            <li *ngIf="selectedTemplate.keyUsage && selectedTemplate.keyUsage.length > 0">
+              <strong>Key Usage:</strong> {{ selectedTemplate.keyUsage.join(', ') }}
+            </li>
+            <li *ngIf="selectedTemplate.extendedKeyUsage && selectedTemplate.extendedKeyUsage.length > 0">
+              <strong>Extended Key Usage:</strong> {{ selectedTemplate.extendedKeyUsage.join(', ') }}
+            </li>
+          </ul>
+          <p class="hint"> Extensions are pre-filled but can be modified if needed.</p>
+        </div>
+      </div>
 
-    <button type="submit" [disabled]="certificateForm.invalid">Issue Certificate</button>
-  </form>
+      <label for="validFrom">Valid From:</label>
+      <input id="validFrom" type="date" formControlName="validFrom">
+      
+      <label for="validTo">Valid To:</label>
+      <input id="validTo" type="date" formControlName="validTo">
+      
+      <div class="error-message" *ngIf="certificateForm.get('validTo')?.errors?.['maxValidity']">
+        {{ certificateForm.get('validTo')?.errors?.['maxValidity'] }}
+      </div>
+      
+      <div class="hint-warning" *ngIf="selectedTemplate?.maxValidityDays">
+         Maximum validity for this template: {{ selectedTemplate?.maxValidityDays }} days
+      </div>
+
+      <hr>
+
+       <!-- ========== OWNER INFORMATION ========== -->
+      <h4>Owner Information (Subject)</h4>
+      <input formControlName="commonName" placeholder="Common Name (e.g., Full Name or server.example.com)">
+      
+      <div class="error-message" *ngIf="certificateForm.get('commonName')?.invalid && certificateForm.get('commonName')?.touched">
+        <span *ngIf="certificateForm.get('commonName')?.errors?.['required']">
+          Common Name is required
+        </span>
+        <span *ngIf="certificateForm.get('commonName')?.errors?.['cnPattern']">
+          {{ certificateForm.get('commonName')?.errors?.['cnPattern'] }}
+        </span>
+      </div>
+      
+      <div class="hint-warning" *ngIf="selectedTemplate?.commonNameRegex">
+         CN must match pattern: <code>{{ selectedTemplate?.commonNameRegex }}</code>
+      </div>
+      
+      <input formControlName="surname" placeholder="Surname">
+      <input formControlName="givenName" placeholder="Given Name">
+      <input formControlName="organization" placeholder="Organization (e.g., UNS-FTN)">
+      <input formControlName="organizationalUnit" placeholder="Organizational Unit (e.g., Department)">
+      <input formControlName="country" placeholder="Country (code, e.g., RS)">
+      <input formControlName="email" placeholder="Owner's Email Address">
+
+      <hr>
+
+      <!-- ========== KEY USAGE ========== -->
+      <h4>Key Usage Extensions</h4>
+      <p class="hint">Select the purposes for which the certificate key can be used:</p>
+      <p class="hint" *ngIf="selectedTemplate">
+        <span class="template-badge">Template Applied</span> Pre-selected based on template "{{ selectedTemplate.name }}"
+      </p>
+      <p class="hint template-locked-hint" *ngIf="selectedTemplate">
+          Checked items are required by the template and cannot be unchecked. You can add additional options.
+      </p>
+      
+      <div class="checkbox-grid">
+        <label *ngFor="let option of keyUsageOptions; let i = index" 
+               class="checkbox-label"
+               [class.checkbox-locked]="getKeyUsageControl(i).disabled">
+          <input type="checkbox" [formControl]="getKeyUsageControl(i)">
+          {{ option.label }}
+          <span *ngIf="getKeyUsageControl(i).disabled" class="lock-icon">🔒</span>
+        </label>
+      </div>
+
+      <hr>
+
+      <!-- ========== EXTENDED KEY USAGE ========== -->
+      <h4>Extended Key Usage</h4>
+      <p class="hint">Select specific application purposes:</p>
+      <p class="hint" *ngIf="selectedTemplate">
+        <span class="template-badge">Template Applied</span> Pre-selected based on template "{{ selectedTemplate.name }}"
+      </p>
+      
+      <div class="checkbox-grid">
+        <label *ngFor="let option of extendedKeyUsageOptions; let i = index" 
+               class="checkbox-label"
+               [class.checkbox-locked]="getExtendedKeyUsageControl(i).disabled">
+          <input type="checkbox" [formControl]="getExtendedKeyUsageControl(i)">
+          {{ option.label }}
+          <span *ngIf="getExtendedKeyUsageControl(i).disabled" class="lock-icon">🔒</span>
+        </label>
+      </div>
+
+      <hr>
+
+      <!-- ========== SUBJECT ALTERNATIVE NAMES ========== -->
+      <h4>Subject Alternative Names (SANs)</h4>
+      <p class="hint">Format: TYPE:value (e.g., DNS:example.com, IP:192.168.1.1, EMAIL:admin&#64;example.com)</p>
+      <p class="hint"><strong>Valid types:</strong> DNS, IP, EMAIL, URI, DIRNAME</p>
+      <div class="hint-warning" *ngIf="selectedTemplate?.sanRegex">
+         SANs must match pattern: <code>{{ selectedTemplate?.sanRegex }}</code>
+      </div>
+      
+      <div class="san-container">
+        <div *ngFor="let san of sansFormArray.controls; let i = index" class="san-row">
+          <div class="san-input-wrapper">
+            <input [formControl]="getSanControl(i)" placeholder="e.g., DNS:www.example.com">
+            <div class="error-message" *ngIf="getSanControl(i).invalid && getSanControl(i).touched">
+              <span *ngIf="getSanControl(i).errors?.['invalidFormat']">
+                {{ getSanControl(i).errors?.['invalidFormat'] }}
+              </span>
+              <span *ngIf="getSanControl(i).errors?.['invalidType']">
+                {{ getSanControl(i).errors?.['invalidType'] }}
+              </span>
+              <span *ngIf="getSanControl(i).errors?.['emptyValue']">
+                {{ getSanControl(i).errors?.['emptyValue'] }}
+              </span>
+              <span *ngIf="getSanControl(i).errors?.['invalidEmail']">
+                {{ getSanControl(i).errors?.['invalidEmail'] }}
+              </span>
+              <span *ngIf="getSanControl(i).errors?.['invalidIp']">
+                {{ getSanControl(i).errors?.['invalidIp'] }}
+              </span>
+              <span *ngIf="getSanControl(i).errors?.['templateRegexMismatch']">
+                {{ getSanControl(i).errors?.['templateRegexMismatch'] }}
+              </span>
+              <span *ngIf="getSanControl(i).errors?.['required']">
+                SAN value is required
+              </span>
+            </div>
+          </div>
+          <button type="button" (click)="removeSAN(i)" class="remove-btn">Remove</button>
+        </div>
+        
+        <button type="button" (click)="addSAN()" class="add-btn">+ Add SAN</button>
+      </div>
+
+      <hr>
+
+      <!-- ========== SUBMIT ========== -->
+      <button type="submit" [disabled]="!isFormValid()" class="submit-btn">
+        Issue Certificate
+      </button>
+      
+    </form>
   </ng-container>
 </div>

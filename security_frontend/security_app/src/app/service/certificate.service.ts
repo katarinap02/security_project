@@ -17,17 +17,11 @@ export class CertificateService {
 
   issueCertificate(dto: IssueCertificateDTO): Observable<Certificate> {
   const token = localStorage.getItem('keycloakToken');
-  let email = '';
-  if (token) {
-    const decoded: any = jwtDecode(token);
-    email = decoded.preferred_username; // ili decoded.preferred_username
-  }
-
   const headers = { 'Authorization': `Bearer ${token}` };
-
-  // Pošalji DTO + email u body
-  return this.http.post<Certificate>(`${this.apiUrl}/issue`, { dto, email }, {headers});
+    console.log(token)
+  return this.http.post<Certificate>(`${this.apiUrl}/issue`, dto, { headers });
 }
+
 
 getCertificatesForUser(): Observable<CertificateDTO[]> {
   const token = localStorage.getItem('keycloakToken');

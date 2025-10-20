@@ -60,30 +60,36 @@ public class CertificateController {
     }
 
     @PostMapping("/issue")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CA_USER')")
-    public ResponseEntity<?> issueCertificate(@RequestBody Map<String, Object> body)  {
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_CA_USER')")
+    public ResponseEntity<?> issueCertificate(
+            @RequestBody IssuerCertificateDTO dto,
+            Authentication authentication) {
         try {
-            IssuerCertificateDTO dto = new ObjectMapper()
-                    .convertValue(body.get("dto"), IssuerCertificateDTO.class);
-
-            String email = (String) body.get("email");
+            // Uzmi email iz JWT tokena
+            String email = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
 
             User ulogovaniKorisnik = userService.loadUserByUsername(email);
+            if (ulogovaniKorisnik == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "User not authenticated"));
+            }
 
             CertificateResponseDTO noviSertifikatDTO = certificateService.issueCertificate(dto, ulogovaniKorisnik);
 
             return new ResponseEntity<>(noviSertifikatDTO, HttpStatus.CREATED);
 
-        } catch (ResourceNotFoundException | InvalidIssuerException | IllegalArgumentException | SecurityException e) {
+        } catch (ResourceNotFoundException | InvalidIssuerException |
+                 IllegalArgumentException | SecurityException e) {
 
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
 
         } catch (Exception e) {
-            e.printStackTrace(); // ili Logger ako koristiš
-
-            return new ResponseEntity<>("An unexpected error occurred on the server.", HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return new ResponseEntity<>(Map.of("error", "An unexpected error occurred on the server."),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     @PostMapping("/revoke")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_END_USER','ROLE_CA_USER')")

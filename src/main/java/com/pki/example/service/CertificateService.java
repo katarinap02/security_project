@@ -49,12 +49,12 @@ public class CertificateService {
 
     public CertificateResponseDTO issueCertificate(IssuerCertificateDTO dto, User ulogovaniKorisnik) {
 
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
+       // String authHeader = request.getHeader("Authorization");
+       // if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
 
-        String token = authHeader.substring(7);
-        String email = tokenUtils.getEmailFromToken(token);
-        ulogovaniKorisnik = userRepository.findByEmail(email);
+       // String token = authHeader.substring(7);
+      //  String email = tokenUtils.getEmailFromToken(token);
+       // ulogovaniKorisnik = userRepository.findByEmail(email);
 
         if (ulogovaniKorisnik == null) {
             throw new SecurityException("Access denied. No information about the logged-in user.");

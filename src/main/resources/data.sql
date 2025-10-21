@@ -1,10 +1,12 @@
-INSERT INTO role (id, name) VALUES
+/*INSERT INTO role (id, name) VALUES
                                 (1, 'ROLE_ADMIN'),
                                 (2, 'ROLE_CA_USER'),
                                 (3, 'ROLE_END_USER')
     ON CONFLICT (id) DO NOTHING;
 
-/*
+ALTER TABLE users
+ALTER COLUMN encrypted_user_symmetric_key TYPE TEXT;
+
 INSERT INTO users (email, password, name, surname, activated, enabled, creation_time, organization, last_password_reset_date, encrypted_user_symmetric_key, activation_token, activation_token_expiry) VALUES
                                                                                                                                                                                                            ('katarina.petrovic02@gmail.com', '$2a$10$XyXL3ErdT34a1hNoquFtHOaQ8tCMloitD1pE1Uil5DVOrMUmfkrNe', 'Admin', 'Adminovic', true, true, NOW(), 'System Administrators', NOW(), 'ZSpGLj6xr7JnxX1jIDQYowCby+aMIFOo7+Y+46cTSio=', NULL, NULL),
                                                                                                                                                                                                            ('ca.user@example.com', '$2a$10$XyXL3ErdT34a1hNoquFtHOaQ8tCMloitD1pE1Uil5DVOrMUmfkrNe', 'Pera', 'Peric', true, true, NOW(), 'UNS-FTN', NOW(), 'ZSpGLj6xr7JnxX1jIDQYowCby+aMIFOo7+Y+46cTSio=', NULL, NULL),

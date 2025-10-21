@@ -11,6 +11,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { IssueCertificateFormComponentComponent } from './home/home/IssueCertificateFormComponent/IssueCertificateFormComponent.component';
 import { PasswordManagerComponent } from './password-manager/password-manager.component';
 import { ViewCertificateComponent } from './home/home/view-certificate/view-certificate.component';
+import { CsrUploadComponent } from './csr-upload/csr-upload.component';
 import { CreateTemplateComponent } from './home/home/create-template/create-template.component';
 
 export const routes: Routes = [
@@ -22,7 +23,7 @@ export const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'add-cerficate', component: IssueCertificateFormComponentComponent },
   { path: 'password-manager', component: PasswordManagerComponent },
-
+  { path: 'upload-csr', component: CsrUploadComponent},
   { path: 'add-certificate', component: IssueCertificateFormComponentComponent },
   { path: 'view-certificate', component: ViewCertificateComponent},
   { path: 'create-template', component: CreateTemplateComponent}

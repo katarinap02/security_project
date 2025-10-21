@@ -1,13 +1,11 @@
 package com.pki.example.service;
 
-import com.pki.example.model.User;
-import com.pki.example.repository.UserRepository;
-import com.pki.example.util.EncryptionUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.Certificate;
@@ -24,10 +22,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Service
 public class KeystoreService {
-
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Value("${app.keystore.encryption-key}")
     private String globalKey;
@@ -69,11 +63,12 @@ public class KeystoreService {
         try {
             KeyStore keyStore = KeyStore.getInstance("JKS");
 
+            // Čitaj iz keystores/ foldera na file sistemu
             try (FileInputStream fis = new FileInputStream("keystores/" + keystoreFileName)) {
                 keyStore.load(fis, keystorePassword);
             }
 
-            return (PrivateKey) keyStore.getKey(alias, keystorePassword); // Pretpostavljamo da je lozinka za ključ ista kao za keystore
+            return (PrivateKey) keyStore.getKey(alias, keystorePassword);
 
         } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableKeyException e) {
             throw new KeyStoreOperationException("Failed to read private key from keystore: " + keystoreFileName);
@@ -116,21 +111,28 @@ public class KeystoreService {
 
     public char[] decryptPassword(String encryptedPassword, String userSymmetricKey) {
         try {
-            SecretKey secretKey = new SecretKeySpec(userSymmetricKey.getBytes(StandardCharsets.UTF_8), "AES");
+            System.out.println("Decrypting password...");
+            System.out.println("Encrypted password (Base64): " + encryptedPassword);
+            System.out.println("User symmetric key: " + userSymmetricKey);
 
+            SecretKey secretKey = new SecretKeySpec(userSymmetricKey.getBytes(StandardCharsets.UTF_8), "AES");
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
 
             byte[] encryptedBytes = Base64.getDecoder().decode(encryptedPassword);
+            System.out.println("Encrypted bytes length: " + encryptedBytes.length);
 
             byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
+            String decryptedString = new String(decryptedBytes, StandardCharsets.UTF_8);
+            System.out.println("Decrypted password: " + decryptedString);
 
-            // Dekriptovane bajtove pretvaramo nazad u string i vraćamo kao char[]
-            return new String(decryptedBytes, StandardCharsets.UTF_8).toCharArray();
+            return decryptedString.toCharArray();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new KeyStoreOperationException("Failed to decrypt password.");
         }
     }
+
 
     public String encryptUserSymmetricKey(String userSymmetricKey) {
         try {
@@ -165,15 +167,6 @@ public class KeystoreService {
             throw new KeyStoreOperationException("Failed to decrypt user symmetric key. Master key might be incorrect.");
         }
     }
-
-//
-//    private byte[] decryptUserSymmetricKey(String encrypted) throws Exception {
-//        SecretKey masterKey = new SecretKeySpec(globalKey.getBytes(StandardCharsets.UTF_8), "AES");
-//        Cipher cipher = Cipher.getInstance("AES");
-//        cipher.init(Cipher.DECRYPT_MODE, masterKey);
-//        return cipher.doFinal(Base64.getDecoder().decode(encrypted));
-//    }
-
 
     public char[] generateRandomPassword() {
         int length = 24;
@@ -214,6 +207,7 @@ public class KeystoreService {
             System.out.println("✅ Appended key entry to keystore: " + keystoreFileName + " (alias: " + alias + ")");
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new KeyStoreOperationException("Failed to append key entry to keystore: " + keystoreFileName);
         }
     }

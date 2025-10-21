@@ -1,10 +1,18 @@
 import { Component, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 import { PasswordManagerService, PasswordEntry } from '../service/password-manager.service';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+
+interface PasswordRequestDTO {
+  siteName: string;
+  username: string;
+  encryptedPassword: string;
+  encryptedAesKey: string;
+  iv: string;
+}
 
 @Component({
   selector: 'app-password-manager',
@@ -14,7 +22,6 @@ import { MatButtonModule } from '@angular/material/button';
   styleUrls: ['./password-manager.component.css']
 })
 export class PasswordManagerComponent {
-  userEmail = '';
   siteName = '';
   username = '';
   password = '';
@@ -29,77 +36,79 @@ export class PasswordManagerComponent {
 
   constructor(
     private pmService: PasswordManagerService,
-    private http: HttpClient,
     @Optional() private dialogRef?: MatDialogRef<PasswordManagerComponent>
   ) {}
 
-  // -------------------------------
-  // 🔹 Zatvaranje dijaloga
-  // -------------------------------
   close() {
-    if (this.dialogRef) {
-      this.dialogRef.close();
-    }
+    this.dialogRef?.close();
   }
 
-  // -------------------------------
-  // 🔹 Učitavanje postojećih lozinki
-  // -------------------------------
   loadPasswords() {
-    this.pmService.getPasswords(this.userEmail).subscribe(res => this.passwords = res);
+    this.pmService.getPasswords().subscribe({
+      next: res => this.passwords = res,
+      error: err => alert('Error loading passwords: ' + err.message)
+    });
   }
 
-  // -------------------------------
-  // 🔹 Dodavanje nove lozinke
-  // -------------------------------
   async addPassword() {
-  if (!this.publicKeyPem || !this.password) {
-    alert('Public key or password missing!');
-    return;
-  }
+    if (!this.publicKeyPem || !this.password) {
+      alert('Public key or password missing!');
+      return;
+    }
 
-  await this.pmService.addPassword({
-    ownerEmail: this.userEmail,
-    siteName: this.siteName,
-    username: this.username,
-    encryptedPassword: this.password // plaintext, biće šifrovana u servisu
-  }, this.publicKeyPem).toPromise();
-
-  this.siteName = '';
-  this.username = '';
-  this.password = '';
-  this.loadPasswords();
-}
-
-
-
-  // -------------------------------
-  // 🔹 Generisanje RSA para ključeva
-  // -------------------------------
-  async generateKeys() {
-    const keyPair = await window.crypto.subtle.generateKey(
-      {
-        name: 'RSA-OAEP',
-        modulusLength: 2048,
-        publicExponent: new Uint8Array([1, 0, 1]),
-        hash: 'SHA-256'
-      },
+    // 1️⃣ Generiši AES ključ
+    const aesKey = await window.crypto.subtle.generateKey(
+      { name: 'AES-GCM', length: 256 },
       true,
       ['encrypt', 'decrypt']
     );
 
-    const publicKey = await window.crypto.subtle.exportKey('spki', keyPair.publicKey);
-    const privateKey = await window.crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+    // 2️⃣ Šifruj lozinku AES-om
+    const encoder = new TextEncoder();
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const encryptedPasswordBuffer = await window.crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      aesKey,
+      encoder.encode(this.password)
+    );
+    const encryptedPassword = btoa(String.fromCharCode(...new Uint8Array(encryptedPasswordBuffer)));
+    const ivBase64 = btoa(String.fromCharCode(...iv));
 
-    this.publicKeyPem = this.arrayBufferToPem(publicKey, 'PUBLIC KEY');
-    this.privateKeyPem = this.arrayBufferToPem(privateKey, 'PRIVATE KEY');
-    this.privateKey = keyPair.privateKey;
+    // 3️⃣ Eksportuj AES ključ i šifruj RSA javnim ključem
+    const rawAesKey = await window.crypto.subtle.exportKey('raw', aesKey);
 
-    this.message = 'RSA par ključeva generisan uspešno!';
+    const rsaKey = await window.crypto.subtle.importKey(
+      'spki',
+      this.pemToArrayBuffer(this.publicKeyPem),
+      { name: 'RSA-OAEP', hash: 'SHA-256' },
+      false,
+      ['encrypt']
+    );
+
+    const encryptedAesKeyBuffer = await window.crypto.subtle.encrypt(
+      { name: 'RSA-OAEP' },
+      rsaKey,
+      rawAesKey
+    );
+    const encryptedAesKey = btoa(String.fromCharCode(...new Uint8Array(encryptedAesKeyBuffer)));
+
+    // 4️⃣ Pošalji backend-u
+    const dto: PasswordRequestDTO = {
+      siteName: this.siteName,
+      username: this.username,
+      encryptedPassword,
+      encryptedAesKey,
+      iv: ivBase64
+    };
+
+    await this.pmService.addPassword(dto).toPromise();
+
+    this.siteName = '';
+    this.username = '';
+    this.password = '';
+    this.loadPasswords();
   }
-  // -------------------------------
-  // 🔹 Učitavanje privatnog ključa iz .pem fajla
-  // -------------------------------
+
   async loadPrivateKey(event: any) {
     const file = event.target.files[0];
     const pem = await file.text();
@@ -117,32 +126,74 @@ export class PasswordManagerComponent {
     );
   }
 
-  // -------------------------------
-  // 🔹 Dekripcija lozinke
-  // -------------------------------
   async decryptPassword(entry: PasswordEntry) {
     if (!this.privateKey) {
       alert('Load private key first!');
       return;
     }
 
-    const encryptedBytes = Uint8Array.from(atob(entry.encryptedPassword), c => c.charCodeAt(0));
-    const decrypted = await window.crypto.subtle.decrypt(
-      { name: 'RSA-OAEP' },
-      this.privateKey,
-      encryptedBytes
-    );
+    try {
+      const encryptedAesKeyBytes = Uint8Array.from(atob(entry.encryptedAesKey), c => c.charCodeAt(0));
+      const rawAesKey = await window.crypto.subtle.decrypt(
+        { name: 'RSA-OAEP' },
+        this.privateKey,
+        encryptedAesKeyBytes
+      );
 
-    this.decryptedPasswords[entry.id!.toString()] = new TextDecoder().decode(decrypted);
+      const aesKey = await window.crypto.subtle.importKey(
+        'raw',
+        rawAesKey,
+        'AES-GCM',
+        true,
+        ['decrypt']
+      );
+
+      const encryptedPasswordBytes = Uint8Array.from(atob(entry.encryptedPassword), c => c.charCodeAt(0));
+      const iv = Uint8Array.from(atob(entry.iv), c => c.charCodeAt(0));
+
+      const decryptedBuffer = await window.crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        aesKey,
+        encryptedPasswordBytes
+      );
+
+      this.decryptedPasswords[entry.id!.toString()] = new TextDecoder().decode(decryptedBuffer);
+
+    } catch (e) {
+      alert('Error decrypting password: ' + e);
+    }
   }
 
-  // -------------------------------
-  // 🔹 Helper: konverzija u PEM format
-  // -------------------------------
-  private arrayBufferToPem(buffer: ArrayBuffer, label: string): string {
-    const binary = String.fromCharCode(...new Uint8Array(buffer));
-    const base64 = btoa(binary);
-    const formatted = base64.match(/.{1,64}/g)?.join('\n');
-    return `-----BEGIN ${label}-----\n${formatted}\n-----END ${label}-----`;
+  private pemToArrayBuffer(pem: string): ArrayBuffer {
+  // Ukloni header, footer i sve whitespace
+  const cleanPem = pem
+    .replace(/-----BEGIN [\w\s]+-----/, '')
+    .replace(/-----END [\w\s]+-----/, '')
+    .replace(/\s+/g, '');
+  const binary = atob(cleanPem);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
   }
+  return bytes.buffer;
+}
+
+
+  deletePassword(id: number) {
+    if (!confirm('Da li ste sigurni da želite da obrišete ovu lozinku?')) return;
+
+    this.pmService.deletePassword(id).subscribe({
+      next: () => {
+        this.passwords = this.passwords.filter(p => p.id !== id);
+        delete this.decryptedPasswords[id.toString()];
+      },
+      error: err => alert('Error deleting password: ' + err.message)
+    });
+  }
+
+  async loadPublicKey(event: any) {
+    const file = event.target.files[0];
+    this.publicKeyPem = await file.text();
+  }
+
 }

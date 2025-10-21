@@ -18,9 +18,28 @@ public class PasswordEntry {
     private String username;
 
     @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(columnDefinition = "TEXT")
     private String encryptedPassword;
 
     private LocalDateTime createdAt;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(columnDefinition = "TEXT")
+    private String encryptedAesKey;  // RSA šifrovani AES ključ
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(columnDefinition = "TEXT")
+    private String iv;               // IV za AES-GCM
+
+    // GETTERI I SETTERI
+    public String getEncryptedAesKey() { return encryptedAesKey; }
+    public void setEncryptedAesKey(String encryptedAesKey) { this.encryptedAesKey = encryptedAesKey; }
+
+    public String getIv() { return iv; }
+    public void setIv(String iv) { this.iv = iv; }
 
     public PasswordEntry() {
         this.createdAt = LocalDateTime.now();

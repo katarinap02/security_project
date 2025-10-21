@@ -2,65 +2,80 @@ package com.pki.example.controller;
 
 import com.pki.example.dto.PasswordRequestDTO;
 import com.pki.example.model.PasswordEntry;
-import com.pki.example.service.KeystoreService;
 import com.pki.example.service.PasswordEntryService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
-@RequestMapping(value="/api/passwords", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping("/api/passwords")
 public class PasswordEntryController {
 
     private final PasswordEntryService service;
-    private final KeystoreService keystoreService;
 
-    public PasswordEntryController(PasswordEntryService service, KeystoreService keystoreService) {
+    public PasswordEntryController(PasswordEntryService service) {
         this.service = service;
-        this.keystoreService = keystoreService;
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ROLE_END_USER')")
+    @PreAuthorize("hasRole('ROLE_END_USER')")
+    public ResponseEntity<PasswordEntry> addPassword(
+            @RequestBody PasswordRequestDTO request,
+            Authentication authentication) {
 
-    public ResponseEntity<PasswordEntry> addPassword(@RequestBody PasswordEntry entry) {
-        PasswordEntry saved = service.save(entry);
-        return ResponseEntity.ok(saved);
-    }
+        String ownerEmail;
+        if (authentication.getPrincipal() instanceof Jwt) {
+            ownerEmail = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+        } else {
+            ownerEmail = authentication.getName();
+        }
 
-    @GetMapping("/{email}")
-    @PreAuthorize("hasAnyRole('ROLE_END_USER')")
-
-    public ResponseEntity<List<PasswordEntry>> getPasswords(@PathVariable String email) {
-        List<PasswordEntry> entries = service.getByOwnerEmail(email);
-        return ResponseEntity.ok(entries);
-    }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_END_USER')")
-
-    public ResponseEntity<Void> deletePassword(@PathVariable Long id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/secure")
-    @PreAuthorize("hasAnyRole('ROLE_END_USER')")
-
-    public ResponseEntity<PasswordEntry> addSecurePassword(@RequestBody PasswordRequestDTO request) throws Exception {
-        PasswordEntry saved = service.savePassword(
-                request.getOwnerEmail(),
+        PasswordEntry saved = service.saveEncryptedPassword(
+                ownerEmail,
                 request.getSiteName(),
                 request.getUsername(),
-                request.getPassword(),
-                request.getPublicKeyPem()
+                request.getEncryptedPassword(),
+                request.getEncryptedAesKey(),
+                request.getIv()
         );
         return ResponseEntity.ok(saved);
     }
+
+
+    @GetMapping
+    @PreAuthorize("hasRole('ROLE_END_USER')")
+    public ResponseEntity<List<PasswordEntry>> getUserPasswords(Authentication authentication) {
+        String ownerEmail;
+        if (authentication.getPrincipal() instanceof Jwt) {
+            ownerEmail = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+        } else {
+            ownerEmail = authentication.getName();
+        }
+
+        List<PasswordEntry> entries = service.getAllByOwner(ownerEmail);
+        return ResponseEntity.ok(entries);
+    }
+
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_END_USER')")
+    public ResponseEntity<Void> deletePassword(@PathVariable Long id, Authentication authentication) {
+        String ownerEmail;
+        if (authentication.getPrincipal() instanceof Jwt) {
+            ownerEmail = ((Jwt) authentication.getPrincipal()).getClaim("preferred_username");
+        } else {
+            ownerEmail = authentication.getName();
+        }
+
+        // Opcionalno možeš proveriti da li taj korisnik zaista ima pravo da obriše ovu lozinku
+        service.deleteById(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
 }

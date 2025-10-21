@@ -1,14 +1,13 @@
 package com.pki.example.dto;
 
 public class PasswordRequestDTO {
-    private String ownerEmail;
+
     private String siteName;
     private String username;
-    private String password; // plain tekst
-    private String publicKeyPem; // javni ključ korisnika
 
-    public String getOwnerEmail() { return ownerEmail; }
-    public void setOwnerEmail(String ownerEmail) { this.ownerEmail = ownerEmail; }
+    private String encryptedPassword; // AES šifrovana lozinka
+    private String encryptedAesKey;   // RSA šifrovani AES ključ
+    private String iv;                // IV za AES-GCM
 
     public String getSiteName() { return siteName; }
     public void setSiteName(String siteName) { this.siteName = siteName; }
@@ -16,9 +15,12 @@ public class PasswordRequestDTO {
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public String getEncryptedPassword() { return encryptedPassword; }
+    public void setEncryptedPassword(String encryptedPassword) { this.encryptedPassword = encryptedPassword; }
 
-    public String getPublicKeyPem() { return publicKeyPem; }
-    public void setPublicKeyPem(String publicKeyPem) { this.publicKeyPem = publicKeyPem; }
+    public String getEncryptedAesKey() { return encryptedAesKey; }
+    public void setEncryptedAesKey(String encryptedAesKey) { this.encryptedAesKey = encryptedAesKey; }
+
+    public String getIv() { return iv; }
+    public void setIv(String iv) { this.iv = iv; }
 }

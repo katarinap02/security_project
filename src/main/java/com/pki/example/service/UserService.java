@@ -588,5 +588,12 @@ public class UserService implements UserDetailsService {
         );
     }
 
+    public User findByEmail(String email){
+        return userRepository.findByEmail(email);
+    }
+
+    public List<User> getEndEntityUsers() {
+        return userRepository.findAll();
+    }
 
 }

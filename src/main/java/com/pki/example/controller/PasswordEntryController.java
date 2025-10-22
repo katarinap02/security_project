@@ -1,11 +1,17 @@
 package com.pki.example.controller;
 
 import com.pki.example.dto.PasswordRequestDTO;
+import com.pki.example.dto.PasswordShareRequestDTO;
 import com.pki.example.model.PasswordEntry;
+import com.pki.example.model.PasswordShare;
+import com.pki.example.model.User;
 import com.pki.example.service.PasswordEntryService;
+import com.pki.example.service.PasswordShareService;
+import com.pki.example.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,9 +23,11 @@ import java.util.List;
 public class PasswordEntryController {
 
     private final PasswordEntryService service;
+    private final UserService userService;
 
-    public PasswordEntryController(PasswordEntryService service) {
+    public PasswordEntryController(PasswordEntryService service, UserService userService) {
         this.service = service;
+        this.userService = userService;
     }
 
     @PostMapping
